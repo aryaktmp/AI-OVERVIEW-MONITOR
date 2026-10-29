@@ -1,0 +1,439 @@
+{
+  "search_metadata": {
+    "id": "6ae313143107b80503330cc6",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/X_wcrLEuLzODAlCj8qCYnYEUy9vXzo9-LNIqiWLKCS8/6ae313143107b80503330cc6.json",
+    "markdown_endpoint": "https://serpapi.com/searches/X_wcrLEuLzODAlCj8qCYnYEUy9vXzo9-LNIqiWLKCS8/6ae313143107b80503330cc6.md",
+    "pixel_position_endpoint": "https://serpapi.com/searches/X_wcrLEuLzODAlCj8qCYnYEUy9vXzo9-LNIqiWLKCS8/6ae313143107b80503330cc6.json_with_pixel_position",
+    "created_at": "2026-10-29 09:34:12 UTC",
+    "processed_at": "2026-10-29 09:34:12 UTC",
+    "google_url": "https://www.google.co.id/search?q=succession+planning+system&oq=succession+planning+system&uule=w+CAIQICIJSW5kb25lc2lh&hl=id&gl=id&sourceid=chrome&ie=UTF-8",
+    "raw_html_file": "https://serpapi.com/searches/X_wcrLEuLzODAlCj8qCYnYEUy9vXzo9-LNIqiWLKCS8/6ae313143107b80503330cc6.html",
+    "total_time_taken": 0.37
+  },
+  "search_parameters": {
+    "engine": "google",
+    "q": "succession planning system",
+    "location_requested": "Indonesia",
+    "location_used": "Indonesia",
+    "google_domain": "google.co.id",
+    "hl": "id",
+    "gl": "id",
+    "device": "desktop"
+  },
+  "search_information": {
+    "query_displayed": "succession planning system",
+    "total_results": 135,
+    "time_taken_displayed": 0.2,
+    "organic_results_state": "Results for exact spelling"
+  },
+  "inline_images": [
+    {
+      "source": "https://www.rasmussen.edu/degrees/business/blog/what-is-succession-planning/",
+      "thumbnail": "https://serpapi.com/searches/6ae313143107b80503330cc6/images/B0ZOr592MC6sNdo6rIBc3ENrCFqzApnxcPiRN6is6mA.jpeg",
+      "original": "https://www.rasmussen.edu/images/rasmussenlibraries/blogs/what-is-succession-planningd33b12a6-aef5-46fd-a5e3-0532a590a50e.jpg",
+      "title": "What Is Succession Planning? Exploring this Element of HR ...",
+      "source_name": "Rasmussen University"
+    },
+    {
+      "source": "https://cezannehr.com/hr-systems/career-succession-planning/",
+      "thumbnail": "https://serpapi.com/searches/6ae313143107b80503330cc6/images/-0BP8pC495KA921aYglOWW0xqHqp3Y9vye3bNUg8vSw.jpeg",
+      "original": "https://cezannehr.com/wp-content/uploads/2022/07/Career-Succession-planning-banner@1.5x-2.png",
+      "title": "Career & Succession Planning Software | Prepare for the Future",
+      "source_name": "Cezanne HR"
+    },
+    {
+      "source": "https://www.aihr.com/blog/succession-planning-tools/",
+      "thumbnail": "https://serpapi.com/searches/6ae313143107b80503330cc6/images/-berShAYxKQnygUNtJ-7Y59U0ChnujC2lAzcuSxbIw8.jpeg",
+      "original": "https://www.aihr.com/wp-content/uploads/Simple-succession-planning-template-preview-1024x638.png",
+      "title": "19 Succession Planning Tools and Software [2026 Edition] - AIHR",
+      "source_name": "AIHR"
+    },
+    {
+      "source": "https://cezannehr.com/hr-systems/career-succession-planning/",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfkT5NUVV2M7k8h6eLprqtBtb5ZfFT3VfLgbLMJIvzB1wIL9Kb7-DyW5Q&s",
+      "original": "https://cezannehr.com/wp-content/uploads/2023/06/Succession_planning@1.5x.png",
+      "title": "Career & Succession Planning Software | Prepare for the Future",
+      "source_name": "Cezanne HR"
+    },
+    {
+      "source": "https://www.staffcircle.com/blogs/succession-planning/",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzUtksmsJh_0NnKJJEfjK3Dp2-XBA6IX439TwCa4iGGXN4hRgQFIWumqI&s",
+      "original": "https://www.staffcircle.com/wp-content/uploads/2022/03/Featured_Succession_Planning.png",
+      "title": "Succession Planning: Meaning, Process & Importance for Staff",
+      "source_name": "StaffCircle"
+    },
+    {
+      "source": "https://www.shrofile.com/succession-planning.php",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTbce-eLEjTW4D47AFUfATWbe6dMjOu69lq_TzxCPY79BFUXvF5xjt2GDE&s",
+      "original": "https://www.shrofile.com/assets/img/Succession-Planning-Process.jpg",
+      "title": "Professional and Organizational Development in Succession ...",
+      "source_name": "Shrofile"
+    },
+    {
+      "source": "https://triaxiapartners.com/services/leadership/leadership-consulting/leadership-succession-planning-systems-and-process/",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlJYi1228axOOwbuhVabNgdqoXcLeOWagchYDl_Dgm7eGmcZpIxM76rbY&s",
+      "original": "https://triaxiapartners.com/wp-content/uploads/2016/01/Succession-Strategy@2x.png",
+      "title": "Leadership Succession Planning Systems and Process - Triaxia ...",
+      "source_name": "Triaxia Partners"
+    },
+    {
+      "source": "https://www.personio.com/hr-lexicon/succession-planning/",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQneMPnTUKjpgbtr8Z8Im4rty3TRVblmkybMOvOp3ohuAWJA8nLn2Cy9c&s",
+      "original": "https://images.ctfassets.net/p03bi75xct27/3fyc3lzD2THWy2Z55b2tjW/9f1bef87b89c5542a2b4ec371c63906a/5G8A7448-1.jpg",
+      "title": "The Succession Planning Process In 7 Simple Steps",
+      "source_name": "Personio"
+    },
+    {
+      "source": "https://www.rasmussen.edu/degrees/business/blog/what-is-succession-planning/",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSly5z5jqT-MnjZ43eApuAS1AtaExF2ZGdB0QtETw9I2g4oJTOcuFIvJ_M&s",
+      "original": "https://www.rasmussen.edu/images/rasmussenlibraries/blogs/what-is-succession-planning-s.jpg",
+      "title": "What Is Succession Planning? Exploring this Element of HR ...",
+      "source_name": "Rasmussen University"
+    }
+  ],
+  "ai_overview": {
+    "page_token": "o3elT3iczVbbcuI4EP2B_Y31SwKYiwmkyjUlX5gIE4IgAwMvlG_IBtsiFmDI2_7LftV-zco3bgGSnX3Y7SosS-putbr7-PDHn54bLP76TXJWqyV9LJWiKCpiQrBnF01SdK2STneBWZoRj4am82299mwxupMBRFCG7cFIWBgVwTMrnsNhT3QtjpJ1aNquJZpOSHw7m2ezIjE4J1HbbcQqZ1KR52xXbEm9ub5yBdl-C4Qu6fFmD2BAuORscWro1J6z4LZzWpqW2GPxe1VhkyJlARbfBnKj4NF55UetWOEr1eJLSfeZAvgPRJWAitkIgQoAvqXZ_qJHh_0QGJwvYzV57uff48NBogtRstK67E-KdRKNvnpYKTzbYyMCgKROboeeBpWJDCSUe4lt40jhJ-aXowKZp9TrF9RPJLNQD3vPJ_vwhrvoZKYx5Wnytg_ncF6W432C1Nwk9tKq9YD8JLMs3hZWe3MnteWLFzkTCfHDw00qUlyhkoVZf_MlI2RDueSajpm8hDRue_m1yZMnuRINgM-jrTraWKS-Lbw3Jw07GEQLXDINpucR3bKtqTPlvyXzcqUs8M3qQ-M-wZtJ94Cjx4CDw9V7u2MvfawWO0WpnKNNznORyFm2kXYx_VhK63alXRZpW584yl9UfGSk5YuymvQmjk33IgOEG8dqoAeBhCE9PRYdIr-Ctv1-elhqlPSsmvZuundcUynuLZQB7sNudJyyTAZHh-RWGOcdgPKv2vfsZuBDrtsqkNEBQeh0N_kuOSpMI5cV7CZZUPA-Mgh1LI_lNjw2yY5h-YXj9ORc5Ox5jDYp_vawOowBYteR2nDQYjXBmSuc3CgvhqZ-wED_fCG_GWi5V7Y-l88wuReUw-oMJcfoakUKZEw4IBNhNq0P10_h_KGOdK250fFlNBHf-Af8Zf4_8Zazm5ax23W8NQH4Et4cAD9ht-QiR-zWTvHWuo43lODtErvVLrDbBbw5B7wNlIzdvseHypfY7RfwJt_GW8rcl_DG2O0y3uANvMXsdoK3c3Y74O2U3XK8_RK7Lf8FuyXws9PhlOrWc3yd8jZNvHhS6suJMFcaXVOfynZ_bM_wcIQ-pbyZv3r0dcu7n7rWo1Rpr3bW_ZQtkEfb4t5EujZNm1KXBHdLTw8CN8B3dEdXts_5XkhEXq_3ea2wbkwGZDsd2ZG_GwW0Nxt3hOfmizvshlITPo95sLC0H3CMamZB6O7e64HkrOHbemFMtrXNq9CWu7vZ04DMX35ug9VkpsxVv941gKB0F-WXn2XehzWpXC9v1qGivoYdoTEphGvP0JwNnRom3x32NazWyGqDkriouOv3qlufKJ4y5vzQFFlVahh0ERgBoAMpAm32UdBYpTQ2dtjYIRJAT6yTWIsihbBu4ChLpU3Z_3Whatp6o2HUKvpDXa9yPl7tlmKtzNEgFMt_AwUseqQ",
+    "serpapi_link": "https://serpapi.com/search.json?engine=google_ai_overview&page_token=o3elT3iczVbbcuI4EP2B_Y31SwKYiwmkyjUlX5gIE4IgAwMvlG_IBtsiFmDI2_7LftV-zco3bgGSnX3Y7SosS-putbr7-PDHn54bLP76TXJWqyV9LJWiKCpiQrBnF01SdK2STneBWZoRj4am82299mwxupMBRFCG7cFIWBgVwTMrnsNhT3QtjpJ1aNquJZpOSHw7m2ezIjE4J1HbbcQqZ1KR52xXbEm9ub5yBdl-C4Qu6fFmD2BAuORscWro1J6z4LZzWpqW2GPxe1VhkyJlARbfBnKj4NF55UetWOEr1eJLSfeZAvgPRJWAitkIgQoAvqXZ_qJHh_0QGJwvYzV57uff48NBogtRstK67E-KdRKNvnpYKTzbYyMCgKROboeeBpWJDCSUe4lt40jhJ-aXowKZp9TrF9RPJLNQD3vPJ_vwhrvoZKYx5Wnytg_ncF6W432C1Nwk9tKq9YD8JLMs3hZWe3MnteWLFzkTCfHDw00qUlyhkoVZf_MlI2RDueSajpm8hDRue_m1yZMnuRINgM-jrTraWKS-Lbw3Jw07GEQLXDINpucR3bKtqTPlvyXzcqUs8M3qQ-M-wZtJ94Cjx4CDw9V7u2MvfawWO0WpnKNNznORyFm2kXYx_VhK63alXRZpW584yl9UfGSk5YuymvQmjk33IgOEG8dqoAeBhCE9PRYdIr-Ctv1-elhqlPSsmvZuundcUynuLZQB7sNudJyyTAZHh-RWGOcdgPKv2vfsZuBDrtsqkNEBQeh0N_kuOSpMI5cV7CZZUPA-Mgh1LI_lNjw2yY5h-YXj9ORc5Ox5jDYp_vawOowBYteR2nDQYjXBmSuc3CgvhqZ-wED_fCG_GWi5V7Y-l88wuReUw-oMJcfoakUKZEw4IBNhNq0P10_h_KGOdK250fFlNBHf-Af8Zf4_8Zazm5ax23W8NQH4Et4cAD9ht-QiR-zWTvHWuo43lODtErvVLrDbBbw5B7wNlIzdvseHypfY7RfwJt_GW8rcl_DG2O0y3uANvMXsdoK3c3Y74O2U3XK8_RK7Lf8FuyXws9PhlOrWc3yd8jZNvHhS6suJMFcaXVOfynZ_bM_wcIQ-pbyZv3r0dcu7n7rWo1Rpr3bW_ZQtkEfb4t5EujZNm1KXBHdLTw8CN8B3dEdXts_5XkhEXq_3ea2wbkwGZDsd2ZG_GwW0Nxt3hOfmizvshlITPo95sLC0H3CMamZB6O7e64HkrOHbemFMtrXNq9CWu7vZ04DMX35ug9VkpsxVv941gKB0F-WXn2XehzWpXC9v1qGivoYdoTEphGvP0JwNnRom3x32NazWyGqDkriouOv3qlufKJ4y5vzQFFlVahh0ERgBoAMpAm32UdBYpTQ2dtjYIRJAT6yTWIsihbBu4ChLpU3Z_3Whatp6o2HUKvpDXa9yPl7tlmKtzNEgFMt_AwUseqQ"
+  },
+  "organic_results": [
+    {
+      "position": 1,
+      "title": "What Is Succession Planning and Why Is It Important?",
+      "link": "https://www.bamboohr.com/blog/why-succession-plan",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESbAHrOzAVsAsRJu5b-D4076GAam0ccsI-Pss19PM_4B_d-hD9RUg2yXNMDXNqVL1wMhxsxRGoUpKGYgzFT-HUYrf5u8Ej7WHjMCMqAhenC3VjrFWtED0d2fm-IlgjRaZzkKYN3bLYnPdnAaAaUg&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQFnoECB4QAQ&uoh=1",
+      "displayed_link": "https://www.bamboohr.com › ...",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAgVBMVEX____W7t2b1a0qrlkQpUcAoDsAoDz8__6U0KYAo0AAnC75_vsAmyx9xZHQ6tgAnjUeqlI-tGZ1x5BnvYDd8eQjqE8AnDAbpkmO0aVvwogAmiSFzZyj2bWMz6B5wo3F5s-u4cHu-fJQt3Gu27rm9uzy-_UAlhK35MjA4clHuG_K6NP4CWMuAAABZklEQVR4AY2TBXbDMBBEx7BrUrwBZZs6zHD_A1Yqml-_2fOfUQNPEEYxcQOKozDAF0ma5UTcgijP0gSOIjLEvZCJCpdPDA9iJgVK4RGkRJpzDfJzjTzFlJj-wizLGgZFyNzK5D6cCcs8CBbCNTK4JLbhUtnYN9IVMFGuA7foO-y8qrDOBwQ2IbAxASgfEIgSYJViW3khV1MZpbrAOgeQFoG_wm653geH1VLqAmV74Hi0sb-ChceetCYwVecCuEROAK5lmQBJTDWBiU7pYbP0wv5E2fsFOCvVBCbJTW6cYG9CpAJcZvIp1FEnbJUd1R7FokfY_nyHfAPseoQJsM0_r3DvvYKcrriqODMC7JQ6AmclcI9ut5MFNsJdQeIC39iKPgVqGnqycPjrCDsIWcuQav4oy_Oz-spjRMQt1JAY-R1yW-UORLUv91LiQUhewHasONt_VM-XV7SvvCppgi_28776z_dwfABsXiGWT6c2oAAAAABJRU5ErkJggg.png",
+      "date": "16 Sep 2025",
+      "snippet": "Simply put, succession planning means identifying and developing employees to fill key roles when they become vacant. The importance of ...",
+      "snippet_highlighted_words": [
+        "succession planning"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "Simply put, succession planning means identifying and developing employees to fill key roles when they become vacant. The importance of ...",
+          "source_info_link": "https://www.bamboohr.com/blog/why-succession-plan",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAgVBMVEX____W7t2b1a0qrlkQpUcAoDsAoDz8__6U0KYAo0AAnC75_vsAmyx9xZHQ6tgAnjUeqlI-tGZ1x5BnvYDd8eQjqE8AnDAbpkmO0aVvwogAmiSFzZyj2bWMz6B5wo3F5s-u4cHu-fJQt3Gu27rm9uzy-_UAlhK35MjA4clHuG_K6NP4CWMuAAABZklEQVR4AY2TBXbDMBBEx7BrUrwBZZs6zHD_A1Yqml-_2fOfUQNPEEYxcQOKozDAF0ma5UTcgijP0gSOIjLEvZCJCpdPDA9iJgVK4RGkRJpzDfJzjTzFlJj-wizLGgZFyNzK5D6cCcs8CBbCNTK4JLbhUtnYN9IVMFGuA7foO-y8qrDOBwQ2IbAxASgfEIgSYJViW3khV1MZpbrAOgeQFoG_wm653geH1VLqAmV74Hi0sb-ChceetCYwVecCuEROAK5lmQBJTDWBiU7pYbP0wv5E2fsFOCvVBCbJTW6cYG9CpAJcZvIp1FEnbJUd1R7FokfY_nyHfAPseoQJsM0_r3DvvYKcrriqODMC7JQ6AmclcI9ut5MFNsJdQeIC39iKPgVqGnqycPjrCDsIWcuQav4oy_Oz-spjRMQt1JAY-R1yW-UORLUv91LiQUhewHasONt_VM-XV7SvvCppgi_28776z_dwfABsXiGWT6c2oAAAAABJRU5ErkJggg.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CqABL2dvdG8_dXJsPUNBRVNiQUhyT3pBVm4xVlhqMDZRVy1Ud0dTU3ZCb3lIRXRtNi1seGxQQ1VOSE9GcjhMNjRqcFg1MDNfMW44YXpwcFBzaDJQWW8xVDNZd1JnS0JESDZyMjl2OThoMWN6N0hKOS1XNWhJYzhiWWNvc2VWaTdyM2lyZHJjUmt4TUZPYWo1d1Rqc3dLUGlFYW0wb3ZKRXduZxIEGgIIABqKBhICCAAaACIAKgAyBggCEgJpZDoAQgQIAhAmSgBaAHIAegCCQOQFCAAQABgAIAAqNgoKc3VjY2Vzc2lvbhVxUKVAGhJzdWNjZXNzaW9ucGxhbm5pbmcaD2l2O2Q7c3VjY2Vzc2lvbipwCghwbGFubmluZxXMHotAGgptYW5hZ2VtZW50GgRwbGFuGhJzdWNjZXNzaW9ucGxhbm5pbmcaDnBsYW5uaW5nc3lzdGVtGg1pdjtkO3BsYW5uaW5nGg9pdjtkO21hbmFnZW1lbnQaCWl2O2Q7cGxhbiq1AQoGc3lzdGVtFQAAAAAaCGNvbXB1dGVyGgdzeXN0ZW1zGg5wbGFubmluZ3N5c3RlbRoLaXY7ZDtzeXN0ZW0aDGl2O2Q7c3lzdGVtcxoIc29mdHdhcmUaB3Byb2Nlc3MaCHN0cmF0ZWd5GglmcmFtZXdvcmsaCm1hbmFnZW1lbnQaBW1vZGVsGgV0b29scxoEcGxhbhoKc3RyYXRlZ2llcxoIcGxhdGZvcm0aCnRlY2hub2xvZ3kyoAEvZ290bz91cmw9Q0FFU2JBSHJPekFWbjFWWGowNlFXLVR3R1NTdkJveUhFdG02LWx4bFBDVU5IT0ZyOEw2NGpwWDUwM18xbjhhenBwUHNoMlBZbzFUM1l3UmdLQkRINnIyOXY5OGgxY3o3SEo5LVc1aEljOGJZY29zZVZpN3IzaXJkcmNSa3hNRk9hajV3VGpzd0tQaUVhbTBvdkpFd25nOjtXaGF0IElzIDxiPlN1Y2Nlc3Npb24gUGxhbm5pbmc8L2I-IGFuZCBXaHkgSXMgSXQgSW1wb3J0YW50P0KXAVNpbXBseSBwdXQsIDxiPnN1Y2Nlc3Npb24gcGxhbm5pbmc8L2I-IG1lYW5zIGlkZW50aWZ5aW5nIGFuZCBkZXZlbG9waW5nIGVtcGxveWVlcyB0byBmaWxsIGtleSByb2xlcyB3aGVuIHRoZXkgYmVjb21lIHZhY2FudC4gVGhlIGltcG9ydGFuY2Ugb2YmbmJzcDsuLi4iAhABSABYAGgA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CqABL2dvdG8_dXJsPUNBRVNiQUhyT3pBVm4xVlhqMDZRVy1Ud0dTU3ZCb3lIRXRtNi1seGxQQ1VOSE9GcjhMNjRqcFg1MDNfMW44YXpwcFBzaDJQWW8xVDNZd1JnS0JESDZyMjl2OThoMWN6N0hKOS1XNWhJYzhiWWNvc2VWaTdyM2lyZHJjUmt4TUZPYWo1d1Rqc3dLUGlFYW0wb3ZKRXduZxIEGgIIABqKBhICCAAaACIAKgAyBggCEgJpZDoAQgQIAhAmSgBaAHIAegCCQOQFCAAQABgAIAAqNgoKc3VjY2Vzc2lvbhVxUKVAGhJzdWNjZXNzaW9ucGxhbm5pbmcaD2l2O2Q7c3VjY2Vzc2lvbipwCghwbGFubmluZxXMHotAGgptYW5hZ2VtZW50GgRwbGFuGhJzdWNjZXNzaW9ucGxhbm5pbmcaDnBsYW5uaW5nc3lzdGVtGg1pdjtkO3BsYW5uaW5nGg9pdjtkO21hbmFnZW1lbnQaCWl2O2Q7cGxhbiq1AQoGc3lzdGVtFQAAAAAaCGNvbXB1dGVyGgdzeXN0ZW1zGg5wbGFubmluZ3N5c3RlbRoLaXY7ZDtzeXN0ZW0aDGl2O2Q7c3lzdGVtcxoIc29mdHdhcmUaB3Byb2Nlc3MaCHN0cmF0ZWd5GglmcmFtZXdvcmsaCm1hbmFnZW1lbnQaBW1vZGVsGgV0b29scxoEcGxhbhoKc3RyYXRlZ2llcxoIcGxhdGZvcm0aCnRlY2hub2xvZ3kyoAEvZ290bz91cmw9Q0FFU2JBSHJPekFWbjFWWGowNlFXLVR3R1NTdkJveUhFdG02LWx4bFBDVU5IT0ZyOEw2NGpwWDUwM18xbjhhenBwUHNoMlBZbzFUM1l3UmdLQkRINnIyOXY5OGgxY3o3SEo5LVc1aEljOGJZY29zZVZpN3IzaXJkcmNSa3hNRk9hajV3VGpzd0tQaUVhbTBvdkpFd25nOjtXaGF0IElzIDxiPlN1Y2Nlc3Npb24gUGxhbm5pbmc8L2I-IGFuZCBXaHkgSXMgSXQgSW1wb3J0YW50P0KXAVNpbXBseSBwdXQsIDxiPnN1Y2Nlc3Npb24gcGxhbm5pbmc8L2I-IG1lYW5zIGlkZW50aWZ5aW5nIGFuZCBkZXZlbG9waW5nIGVtcGxveWVlcyB0byBmaWxsIGtleSByb2xlcyB3aGVuIHRoZXkgYmVjb21lIHZhY2FudC4gVGhlIGltcG9ydGFuY2Ugb2YmbmJzcDsuLi4iAhABSABYAGgA",
+      "source": "BambooHR"
+    },
+    {
+      "position": 2,
+      "title": "Succession Planning and Management Five-Step Process",
+      "link": "https://www.tbs-sct.canada.ca/gui/spgr/spg-gpgr-02-eng.asp?for=hrps",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESfgHrOzAVQO_Kbu5wR8Rsx46q5ojNb3B709_CHg3HZ0pX1vIKv92D8ZeIF9NPGgqzqBJ-PSIhr73paSZRKr5g3PsB6h-E8Ktx5PM55fqZcyjQcl9eWplgPtjs1Ak_08Vs3hTqbGJdzelTYfANCvOBRIDoM5sDbJEXHA5bnl5oDA&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQFnoECB8QAQ&uoh=1",
+      "displayed_link": "https://www.tbs-sct.canada.ca › ...",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAhFBMVEX____9-PjmtrfGREf68fHjrq_BNDfSenv039_AMDPEPkHnuru8DRO7ICTCODu9JSn25ua9FhvsysvAMjXLW13epKW0AADQdXfXiIrCRki9Jyu6HSG6Gx--Ki7RcHK4GBvGUVPUjY3bl5i4Fxr36enOaGrThYa2BAqrAADqxcbdpabXlJUgtMw1AAAA9UlEQVR4AZXOVQKDMBAE0MWCk-ri7nD_-3VT95b5ibzIwIJIX0yWv6CifAAVQGNMpskb1HTDtCzL0O03aDiuR2jy1buia8Y8YvZKG2pjbkm9HS3uQFZhjyvwuVAzAGNtg2qfMcTIiTnsk9Q0GdckZnkhz864xyR286JMUtKoKhj1YvLlP8xJk5pHKTE3Ra_UuGKdJ8QuF2yaW6oVnbFBrOs8v1fqxdSTSuFJBZMSb-MWrslI7592ArhLR3p7GiuAdyrYeTIA3veIfd87dRI-mzRgmJWZX2Yh4jM2BlDGESiGCu9i2_A5mvwFp_0XrOYv-PTn1xwAzhUWBsX0--IAAAAASUVORK5CYII.png",
+      "date": "21 Mei 2009",
+      "snippet": "Succession planning and management is an essential component of the broader human resources planning process. It involves an integrated, ...",
+      "snippet_highlighted_words": [
+        "Succession planning and management"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "Succession planning and management is an essential component of the broader human resources planning process. It involves an integrated, ...",
+          "source_info_link": "https://www.tbs-sct.canada.ca/gui/spgr/spg-gpgr-02-eng.asp?for=hrps",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAhFBMVEX____9-PjmtrfGREf68fHjrq_BNDfSenv039_AMDPEPkHnuru8DRO7ICTCODu9JSn25ua9FhvsysvAMjXLW13epKW0AADQdXfXiIrCRki9Jyu6HSG6Gx--Ki7RcHK4GBvGUVPUjY3bl5i4Fxr36enOaGrThYa2BAqrAADqxcbdpabXlJUgtMw1AAAA9UlEQVR4AZXOVQKDMBAE0MWCk-ri7nD_-3VT95b5ibzIwIJIX0yWv6CifAAVQGNMpskb1HTDtCzL0O03aDiuR2jy1buia8Y8YvZKG2pjbkm9HS3uQFZhjyvwuVAzAGNtg2qfMcTIiTnsk9Q0GdckZnkhz864xyR286JMUtKoKhj1YvLlP8xJk5pHKTE3Ra_UuGKdJ8QuF2yaW6oVnbFBrOs8v1fqxdSTSuFJBZMSb-MWrslI7592ArhLR3p7GiuAdyrYeTIA3veIfd87dRI-mzRgmJWZX2Yh4jM2BlDGESiGCu9i2_A5mvwFp_0XrOYv-PTn1xwAzhUWBsX0--IAAAAASUVORK5CYII.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CrgBL2dvdG8_dXJsPUNBRVNmZ0hyT3pBVjJYSjB4eWpWTVEzWjR2QklwNmlSaGFKSHU1R0ZIYmkzUnR6Wk5zbG93MlpEVnpEZ0hlV3B6Yks3YURlS3NQbkN4cHRWQ3o0YmtTU3FsV29qZXpsSUpyUjlSTEFkaHRaSkZlNmpfNUt2bUpuSElGbWpSeGVFZ3Bha3l4bEpRX1pjeFFvWV9EVVdNcjN6aWZzbE9HTUYzV3dvQUZiUEdtRVZwZxIEGgIIABqjBhICCAAaACIAKgAyBggCEgJpZDoAQgQIAhAmSgBaAHIAegCCQP0FCAAQABgAIAAqNgoKc3VjY2Vzc2lvbhXaxYBAGhJzdWNjZXNzaW9ucGxhbm5pbmcaD2l2O2Q7c3VjY2Vzc2lvbipwCghwbGFubmluZxXlKoVAGgptYW5hZ2VtZW50GgRwbGFuGhJzdWNjZXNzaW9ucGxhbm5pbmcaDnBsYW5uaW5nc3lzdGVtGg1pdjtkO3BsYW5uaW5nGg9pdjtkO21hbmFnZW1lbnQaCWl2O2Q7cGxhbiq1AQoGc3lzdGVtFQAAAAAaCGNvbXB1dGVyGgdzeXN0ZW1zGg5wbGFubmluZ3N5c3RlbRoLaXY7ZDtzeXN0ZW0aDGl2O2Q7c3lzdGVtcxoIc29mdHdhcmUaB3Byb2Nlc3MaCHN0cmF0ZWd5GglmcmFtZXdvcmsaCm1hbmFnZW1lbnQaBW1vZGVsGgV0b29scxoEcGxhbhoKc3RyYXRlZ2llcxoIcGxhdGZvcm0aCnRlY2hub2xvZ3kyuAEvZ290bz91cmw9Q0FFU2ZnSHJPekFWMlhKMHh5alZNUTNaNHZCSXA2aVJoYUpIdTVHRkhiaTNSdHpaTnNsb3cyWkRWekRnSGVXcHpiSzdhRGVLc1BuQ3hwdFZDejRia1NTcWxXb2plemxJSnJSOVJMQWRodFpKRmU2al81S3ZtSm5ISUZtalJ4ZUVncGFreXhsSlFfWmN4UW9ZX0RVV01yM3ppZnNsT0dNRjNXd29BRmJQR21FVnBnOjs8Yj5TdWNjZXNzaW9uIFBsYW5uaW5nPC9iPiBhbmQgTWFuYWdlbWVudCBGaXZlLVN0ZXAgUHJvY2Vzc0KYATxiPlN1Y2Nlc3Npb24gcGxhbm5pbmcgYW5kIG1hbmFnZW1lbnQ8L2I-IGlzIGFuIGVzc2VudGlhbCBjb21wb25lbnQgb2YgdGhlIGJyb2FkZXIgaHVtYW4gcmVzb3VyY2VzIHBsYW5uaW5nIHByb2Nlc3MuIEl0IGludm9sdmVzIGFuIGludGVncmF0ZWQsJm5ic3A7Li4uIgIQAUgAWABoAA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CrgBL2dvdG8_dXJsPUNBRVNmZ0hyT3pBVjJYSjB4eWpWTVEzWjR2QklwNmlSaGFKSHU1R0ZIYmkzUnR6Wk5zbG93MlpEVnpEZ0hlV3B6Yks3YURlS3NQbkN4cHRWQ3o0YmtTU3FsV29qZXpsSUpyUjlSTEFkaHRaSkZlNmpfNUt2bUpuSElGbWpSeGVFZ3Bha3l4bEpRX1pjeFFvWV9EVVdNcjN6aWZzbE9HTUYzV3dvQUZiUEdtRVZwZxIEGgIIABqjBhICCAAaACIAKgAyBggCEgJpZDoAQgQIAhAmSgBaAHIAegCCQP0FCAAQABgAIAAqNgoKc3VjY2Vzc2lvbhXaxYBAGhJzdWNjZXNzaW9ucGxhbm5pbmcaD2l2O2Q7c3VjY2Vzc2lvbipwCghwbGFubmluZxXlKoVAGgptYW5hZ2VtZW50GgRwbGFuGhJzdWNjZXNzaW9ucGxhbm5pbmcaDnBsYW5uaW5nc3lzdGVtGg1pdjtkO3BsYW5uaW5nGg9pdjtkO21hbmFnZW1lbnQaCWl2O2Q7cGxhbiq1AQoGc3lzdGVtFQAAAAAaCGNvbXB1dGVyGgdzeXN0ZW1zGg5wbGFubmluZ3N5c3RlbRoLaXY7ZDtzeXN0ZW0aDGl2O2Q7c3lzdGVtcxoIc29mdHdhcmUaB3Byb2Nlc3MaCHN0cmF0ZWd5GglmcmFtZXdvcmsaCm1hbmFnZW1lbnQaBW1vZGVsGgV0b29scxoEcGxhbhoKc3RyYXRlZ2llcxoIcGxhdGZvcm0aCnRlY2hub2xvZ3kyuAEvZ290bz91cmw9Q0FFU2ZnSHJPekFWMlhKMHh5alZNUTNaNHZCSXA2aVJoYUpIdTVHRkhiaTNSdHpaTnNsb3cyWkRWekRnSGVXcHpiSzdhRGVLc1BuQ3hwdFZDejRia1NTcWxXb2plemxJSnJSOVJMQWRodFpKRmU2al81S3ZtSm5ISUZtalJ4ZUVncGFreXhsSlFfWmN4UW9ZX0RVV01yM3ppZnNsT0dNRjNXd29BRmJQR21FVnBnOjs8Yj5TdWNjZXNzaW9uIFBsYW5uaW5nPC9iPiBhbmQgTWFuYWdlbWVudCBGaXZlLVN0ZXAgUHJvY2Vzc0KYATxiPlN1Y2Nlc3Npb24gcGxhbm5pbmcgYW5kIG1hbmFnZW1lbnQ8L2I-IGlzIGFuIGVzc2VudGlhbCBjb21wb25lbnQgb2YgdGhlIGJyb2FkZXIgaHVtYW4gcmVzb3VyY2VzIHBsYW5uaW5nIHByb2Nlc3MuIEl0IGludm9sdmVzIGFuIGludGVncmF0ZWQsJm5ic3A7Li4uIgIQAUgAWABoAA",
+      "source": "Canada.ca"
+    },
+    {
+      "position": 3,
+      "title": "Apa Itu Succession Planning? Konsep, Tahapan, dan ...",
+      "link": "https://www.ppmschool.ac.id/apa-itu-succession-planning/",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAEScwHrOzAV8tA67jmdkpm5NYxvsFf7EdSYntkerH56DFX0OCRO8sq-A2vSSxBjovXNHkJVFe5GDrYcKuY2BLGqIYnv1Q94fVeS4fNkGojA7M-K1nO3WBG8Rdh9_lCskB3FQIHsmPkR8vbmpxKJSaghV5N2R-4&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQFnoECCMQAQ&uoh=1",
+      "displayed_link": "https://www.ppmschool.ac.id › Artikel Manajemen",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAqFBMVEXTtTtHcEydpkbwwy72xyz0xS3zxC33xyv3xyz4yCvwxC_wwi_5ySn1xiz3xyz2xivzyD72xiz3xyz2xi33yCf8yym0mUdFUmEEN2gHOGf80UoALXIAL2UAN2gBN2j3xyz81WScn8Ssr8rHyeCMk7MALGF1dqz7-_zy1IHQ0N8AN2j0xS0MOWZ9iqgRO2YAEF4DN2j_0CQAK2oZPmYPOmaUiEoUPGUwSWKwlb5xAAAAOHRSTlMCAAET4z0s_8CxCxukNfSGYXfQm5D_k6GagfzT___e7fv9_P______hv_yVVD_Oa3BlLJvRAQtEG9PWxYAAAEVSURBVHgBddIFgoNADEBRMpXUcfe6u9z_ZjuExeG36MNBKAU8JrQHvf6g3-EgwBBxBONJQ7nAFHmzOQhNHA8XmCQC1BiAQR_TJFGuKExlGCVAG9QOzHrSEJNoCyXDTEEkVGkssOrNg0arZURd12lNdkKVl6KEY8M0LZ79r_PsgI4jSa7nU0GKQBhqGMXLeLXetCAqYrSNt7s2VGaI--UuPnA8WscKcj1htNqtl-tNcG4eVp05y3i5vHjXymF7SA1Qu2023t0mvGc3uiCUwseTr30FhK8MZUJtTPj2qU-CpOMExxrhlexKRsFJQRzJhF-f38sPqh_eB0TCH7DGt8BYhu2fX4ZCK866kU2kVzuSArye9xL-ATXwITgLw5C4AAAAAElFTkSuQmCC.png",
+      "date": "5 Feb 2026",
+      "snippet": "Jika diibaratkan sebagai fondasi bangunan organisasi, succession planning adalah sistem yang memastikan struktur kepemimpinan tetap kokoh ...",
+      "snippet_highlighted_words": [
+        "succession planning"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "Jika diibaratkan sebagai fondasi bangunan organisasi, succession planning adalah sistem yang memastikan struktur kepemimpinan tetap kokoh ...",
+          "source_info_link": "https://www.ppmschool.ac.id/apa-itu-succession-planning/",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAqFBMVEXTtTtHcEydpkbwwy72xyz0xS3zxC33xyv3xyz4yCvwxC_wwi_5ySn1xiz3xyz2xivzyD72xiz3xyz2xi33yCf8yym0mUdFUmEEN2gHOGf80UoALXIAL2UAN2gBN2j3xyz81WScn8Ssr8rHyeCMk7MALGF1dqz7-_zy1IHQ0N8AN2j0xS0MOWZ9iqgRO2YAEF4DN2j_0CQAK2oZPmYPOmaUiEoUPGUwSWKwlb5xAAAAOHRSTlMCAAET4z0s_8CxCxukNfSGYXfQm5D_k6GagfzT___e7fv9_P______hv_yVVD_Oa3BlLJvRAQtEG9PWxYAAAEVSURBVHgBddIFgoNADEBRMpXUcfe6u9z_ZjuExeG36MNBKAU8JrQHvf6g3-EgwBBxBONJQ7nAFHmzOQhNHA8XmCQC1BiAQR_TJFGuKExlGCVAG9QOzHrSEJNoCyXDTEEkVGkssOrNg0arZURd12lNdkKVl6KEY8M0LZ79r_PsgI4jSa7nU0GKQBhqGMXLeLXetCAqYrSNt7s2VGaI--UuPnA8WscKcj1htNqtl-tNcG4eVp05y3i5vHjXymF7SA1Qu2023t0mvGc3uiCUwseTr30FhK8MZUJtTPj2qU-CpOMExxrhlexKRsFJQRzJhF-f38sPqh_eB0TCH7DGt8BYhu2fX4ZCK866kU2kVzuSArye9xL-ATXwITgLw5C4AAAAAElFTkSuQmCC.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CqkBL2dvdG8_dXJsPUNBRVNjd0hyT3pBVkxqZWtDN2hBdWdVZGlCTkJBNlFEZzlzQ3M3M1ItblItOEVNdXpHSW1vYld1TlR6ME5lVGVQTkM1NDk4VkRZUGVvLXA4T1BFQWhTaGJrZWRvUnd0SjB2Qk9saks3VE4ta3p0NDZNdnhremRqOTlKYjZtTWVjeUxTQjhKb3FPek8wbG1Hc3dJOHB5RDdKcHdkdFZuSRIEGgIIABqUBhIAGgAiACoAMgYIARICaWQ6AEIECAEQJkoAWgByAHoAgkDwBQgAEAAYACAAKjYKCnN1Y2Nlc3Npb24VMeWDQBoSc3VjY2Vzc2lvbnBsYW5uaW5nGg9pdjtkO3N1Y2Nlc3Npb24qcAoIcGxhbm5pbmcVthOFQBoKbWFuYWdlbWVudBoEcGxhbhoSc3VjY2Vzc2lvbnBsYW5uaW5nGg5wbGFubmluZ3N5c3RlbRoNaXY7ZDtwbGFubmluZxoPaXY7ZDttYW5hZ2VtZW50GglpdjtkO3BsYW4qtQEKBnN5c3RlbRUAAAAAGghjb21wdXRlchoHc3lzdGVtcxoOcGxhbm5pbmdzeXN0ZW0aC2l2O2Q7c3lzdGVtGgxpdjtkO3N5c3RlbXMaCHNvZnR3YXJlGgdwcm9jZXNzGghzdHJhdGVneRoJZnJhbWV3b3JrGgptYW5hZ2VtZW50GgVtb2RlbBoFdG9vbHMaBHBsYW4aCnN0cmF0ZWdpZXMaCHBsYXRmb3JtGgp0ZWNobm9sb2d5MqkBL2dvdG8_dXJsPUNBRVNjd0hyT3pBVkxqZWtDN2hBdWdVZGlCTkJBNlFEZzlzQ3M3M1ItblItOEVNdXpHSW1vYld1TlR6ME5lVGVQTkM1NDk4VkRZUGVvLXA4T1BFQWhTaGJrZWRvUnd0SjB2Qk9saks3VE4ta3p0NDZNdnhremRqOTlKYjZtTWVjeUxTQjhKb3FPek8wbG1Hc3dJOHB5RDdKcHdkdFZuSTo8QXBhIEl0dSA8Yj5TdWNjZXNzaW9uIFBsYW5uaW5nPC9iPj8gS29uc2VwLCBUYWhhcGFuLCBkYW4gLi4uQpkBSmlrYSBkaWliYXJhdGthbiBzZWJhZ2FpIGZvbmRhc2kgYmFuZ3VuYW4gb3JnYW5pc2FzaSwgPGI-c3VjY2Vzc2lvbiBwbGFubmluZzwvYj4gYWRhbGFoIHNpc3RlbSB5YW5nIG1lbWFzdGlrYW4gc3RydWt0dXIga2VwZW1pbXBpbmFuIHRldGFwIGtva29oJm5ic3A7Li4uIgIQAUgAWABoAA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CqkBL2dvdG8_dXJsPUNBRVNjd0hyT3pBVkxqZWtDN2hBdWdVZGlCTkJBNlFEZzlzQ3M3M1ItblItOEVNdXpHSW1vYld1TlR6ME5lVGVQTkM1NDk4VkRZUGVvLXA4T1BFQWhTaGJrZWRvUnd0SjB2Qk9saks3VE4ta3p0NDZNdnhremRqOTlKYjZtTWVjeUxTQjhKb3FPek8wbG1Hc3dJOHB5RDdKcHdkdFZuSRIEGgIIABqUBhIAGgAiACoAMgYIARICaWQ6AEIECAEQJkoAWgByAHoAgkDwBQgAEAAYACAAKjYKCnN1Y2Nlc3Npb24VMeWDQBoSc3VjY2Vzc2lvbnBsYW5uaW5nGg9pdjtkO3N1Y2Nlc3Npb24qcAoIcGxhbm5pbmcVthOFQBoKbWFuYWdlbWVudBoEcGxhbhoSc3VjY2Vzc2lvbnBsYW5uaW5nGg5wbGFubmluZ3N5c3RlbRoNaXY7ZDtwbGFubmluZxoPaXY7ZDttYW5hZ2VtZW50GglpdjtkO3BsYW4qtQEKBnN5c3RlbRUAAAAAGghjb21wdXRlchoHc3lzdGVtcxoOcGxhbm5pbmdzeXN0ZW0aC2l2O2Q7c3lzdGVtGgxpdjtkO3N5c3RlbXMaCHNvZnR3YXJlGgdwcm9jZXNzGghzdHJhdGVneRoJZnJhbWV3b3JrGgptYW5hZ2VtZW50GgVtb2RlbBoFdG9vbHMaBHBsYW4aCnN0cmF0ZWdpZXMaCHBsYXRmb3JtGgp0ZWNobm9sb2d5MqkBL2dvdG8_dXJsPUNBRVNjd0hyT3pBVkxqZWtDN2hBdWdVZGlCTkJBNlFEZzlzQ3M3M1ItblItOEVNdXpHSW1vYld1TlR6ME5lVGVQTkM1NDk4VkRZUGVvLXA4T1BFQWhTaGJrZWRvUnd0SjB2Qk9saks3VE4ta3p0NDZNdnhremRqOTlKYjZtTWVjeUxTQjhKb3FPek8wbG1Hc3dJOHB5RDdKcHdkdFZuSTo8QXBhIEl0dSA8Yj5TdWNjZXNzaW9uIFBsYW5uaW5nPC9iPj8gS29uc2VwLCBUYWhhcGFuLCBkYW4gLi4uQpkBSmlrYSBkaWliYXJhdGthbiBzZWJhZ2FpIGZvbmRhc2kgYmFuZ3VuYW4gb3JnYW5pc2FzaSwgPGI-c3VjY2Vzc2lvbiBwbGFubmluZzwvYj4gYWRhbGFoIHNpc3RlbSB5YW5nIG1lbWFzdGlrYW4gc3RydWt0dXIga2VwZW1pbXBpbmFuIHRldGFwIGtva29oJm5ic3A7Li4uIgIQAUgAWABoAA",
+      "source": "PPM School"
+    },
+    {
+      "position": 4,
+      "title": "The Importance of Succession Planning for Business ...",
+      "link": "https://www.investopedia.com/terms/s/succession-planning.asp",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESdwHrOzAVdYMfHm7l9Vg0P5S04mVB6ymf93dnXAtu9ZDs3ESmKbmlmJlzQHtxB3LGMeukL5cDbE46HH81z9C0cwv4FeQZHmGv-UDjTud-Bqj_ALMVEnobfjH27KAVETAHt8IbgE3kHuHOzTjaOTR5BMqjXxBQSN-V&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQFnoECDcQAQ&uoh=1",
+      "displayed_link": "https://www.investopedia.com › ...",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAjVBMVEX____s7e-nqrRma38yO1kbJ0ro6ex6f48UIUYiLEwrNFIwOFUyOla7vcUnME8sOFURH0UuN1Q2PVhtXGpDRFzeiHb_kWz6lHpPSV7CxMtkVWT_lnd8XGbWhnbri3Q8Q12XmqZDTWbZ2t_39_m0tr5wdIWJjZsdKEtcYnbP0dZQVmwABTkAFj_Ky9KPkqBNES8MAAABNElEQVR4Aa2SVYLEMAhAkzqQpjLu7nL_4y2U8fnceZXgxMwPsEEYxXEUBsm3K80AyREhZKl99-XgHUOF_D3kr76gJLFWdastbiqDl7zSCVR3ur1-JWI5ePTz5IRiOOp2x01l8ve-KffTzMlo2lbZp-pLtCgD0JpVTsk0NQBVEeeDhX8EBkYIUZQKwqUxK1YUHxohIgmcrY2wUedDz7gibKXFowzu7npW7fYHEQaJMXt2UrznDoqnpneS1tbYReV8rboR5k2FgGDPFsQ4VT00dw7HHSGry9Px0Oj7c2AUuwVuhRs2zlc3PbPqu1RAsrKrUdYz0O0Tkp0uTVe23EPlCOz7kYEc02rr8XFkSiBe4iXkMxApC96uyc6zzde-kuZS4_2ClYDEIJTp9_1LghDLkuRq_p8_NDMW4C5bXRoAAAAASUVORK5CYII.png",
+      "snippet": "Succession planning ensures seamless business transitions and prepares future leaders, and it can maintain company stability during leadership changes.",
+      "snippet_highlighted_words": [
+        "Succession planning ensures seamless business transitions"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "Succession planning ensures seamless business transitions and prepares future leaders, and it can maintain company stability during leadership changes.",
+          "source_info_link": "https://www.investopedia.com/terms/s/succession-planning.asp",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAjVBMVEX____s7e-nqrRma38yO1kbJ0ro6ex6f48UIUYiLEwrNFIwOFUyOla7vcUnME8sOFURH0UuN1Q2PVhtXGpDRFzeiHb_kWz6lHpPSV7CxMtkVWT_lnd8XGbWhnbri3Q8Q12XmqZDTWbZ2t_39_m0tr5wdIWJjZsdKEtcYnbP0dZQVmwABTkAFj_Ky9KPkqBNES8MAAABNElEQVR4Aa2SVYLEMAhAkzqQpjLu7nL_4y2U8fnceZXgxMwPsEEYxXEUBsm3K80AyREhZKl99-XgHUOF_D3kr76gJLFWdastbiqDl7zSCVR3ur1-JWI5ePTz5IRiOOp2x01l8ve-KffTzMlo2lbZp-pLtCgD0JpVTsk0NQBVEeeDhX8EBkYIUZQKwqUxK1YUHxohIgmcrY2wUedDz7gibKXFowzu7npW7fYHEQaJMXt2UrznDoqnpneS1tbYReV8rboR5k2FgGDPFsQ4VT00dw7HHSGry9Px0Oj7c2AUuwVuhRs2zlc3PbPqu1RAsrKrUdYz0O0Tkp0uTVe23EPlCOz7kYEc02rr8XFkSiBe4iXkMxApC96uyc6zzde-kuZS4_2ClYDEIJTp9_1LghDLkuRq_p8_NDMW4C5bXRoAAAAASUVORK5CYII.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=Cq4BL2dvdG8_dXJsPUNBRVNkd0hyT3pBVko2U01HNVBiWFFsWGs5UEZCR2QtZWZ3SGhyb1ppazViWERSckNOcjFPYWJYY2xwUWdIMkJ0WlBYYzQ4aEo1bFA1U2tPZEVTNkwzS0ppLThINHdENDVVSi1KWHdSQjhKOWN2elNwclpMQmN5eUxlb0ROT1pWMG8wQmwxV2xmdHRJRlZSYndwUEJkZEw5bjlYbnNLNWZHME9VEgQaAggAGqgGEgIIARoAIgAqADIGCAISAmlkOgBCBAgCECZKAFoAcgB6AIJAggYIABAAGAAgACo2CgpzdWNjZXNzaW9uFdavkEAaEnN1Y2Nlc3Npb25wbGFubmluZxoPaXY7ZDtzdWNjZXNzaW9uKnAKCHBsYW5uaW5nFTR9jEAaCm1hbmFnZW1lbnQaBHBsYW4aEnN1Y2Nlc3Npb25wbGFubmluZxoOcGxhbm5pbmdzeXN0ZW0aDWl2O2Q7cGxhbm5pbmcaD2l2O2Q7bWFuYWdlbWVudBoJaXY7ZDtwbGFuKrUBCgZzeXN0ZW0VAAAAABoIY29tcHV0ZXIaB3N5c3RlbXMaDnBsYW5uaW5nc3lzdGVtGgtpdjtkO3N5c3RlbRoMaXY7ZDtzeXN0ZW1zGghzb2Z0d2FyZRoHcHJvY2VzcxoIc3RyYXRlZ3kaCWZyYW1ld29yaxoKbWFuYWdlbWVudBoFbW9kZWwaBXRvb2xzGgRwbGFuGgpzdHJhdGVnaWVzGghwbGF0Zm9ybRoKdGVjaG5vbG9neTKuAS9nb3RvP3VybD1DQUVTZHdIck96QVZKNlNNRzVQYlhRbFhrOVBGQkdkLWVmd0hocm9aaWs1YlhEUnJDTnIxT2FiWGNscFFnSDJCdFpQWGM0OGhKNWxQNVNrT2RFUzZMM0tKaS04SDR3RDQ1VUotSlh3UkI4SjljdnpTcHJaTEJjeXlMZW9ETk9aVjBvMEJsMVdsZnR0SUZWUmJ3cFBCZGRMOW45WG5zSzVmRzBPVTpEVGhlIEltcG9ydGFuY2Ugb2YgPGI-U3VjY2Vzc2lvbiBQbGFubmluZzwvYj4gZm9yIEJ1c2luZXNzIENvbnRpbnVpdHlCngE8Yj5TdWNjZXNzaW9uIHBsYW5uaW5nIGVuc3VyZXMgc2VhbWxlc3MgYnVzaW5lc3MgdHJhbnNpdGlvbnM8L2I-IGFuZCBwcmVwYXJlcyBmdXR1cmUgbGVhZGVycywgYW5kIGl0IGNhbiBtYWludGFpbiBjb21wYW55IHN0YWJpbGl0eSBkdXJpbmcgbGVhZGVyc2hpcCBjaGFuZ2VzLiICEAFIAFgAaAA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=Cq4BL2dvdG8_dXJsPUNBRVNkd0hyT3pBVko2U01HNVBiWFFsWGs5UEZCR2QtZWZ3SGhyb1ppazViWERSckNOcjFPYWJYY2xwUWdIMkJ0WlBYYzQ4aEo1bFA1U2tPZEVTNkwzS0ppLThINHdENDVVSi1KWHdSQjhKOWN2elNwclpMQmN5eUxlb0ROT1pWMG8wQmwxV2xmdHRJRlZSYndwUEJkZEw5bjlYbnNLNWZHME9VEgQaAggAGqgGEgIIARoAIgAqADIGCAISAmlkOgBCBAgCECZKAFoAcgB6AIJAggYIABAAGAAgACo2CgpzdWNjZXNzaW9uFdavkEAaEnN1Y2Nlc3Npb25wbGFubmluZxoPaXY7ZDtzdWNjZXNzaW9uKnAKCHBsYW5uaW5nFTR9jEAaCm1hbmFnZW1lbnQaBHBsYW4aEnN1Y2Nlc3Npb25wbGFubmluZxoOcGxhbm5pbmdzeXN0ZW0aDWl2O2Q7cGxhbm5pbmcaD2l2O2Q7bWFuYWdlbWVudBoJaXY7ZDtwbGFuKrUBCgZzeXN0ZW0VAAAAABoIY29tcHV0ZXIaB3N5c3RlbXMaDnBsYW5uaW5nc3lzdGVtGgtpdjtkO3N5c3RlbRoMaXY7ZDtzeXN0ZW1zGghzb2Z0d2FyZRoHcHJvY2VzcxoIc3RyYXRlZ3kaCWZyYW1ld29yaxoKbWFuYWdlbWVudBoFbW9kZWwaBXRvb2xzGgRwbGFuGgpzdHJhdGVnaWVzGghwbGF0Zm9ybRoKdGVjaG5vbG9neTKuAS9nb3RvP3VybD1DQUVTZHdIck96QVZKNlNNRzVQYlhRbFhrOVBGQkdkLWVmd0hocm9aaWs1YlhEUnJDTnIxT2FiWGNscFFnSDJCdFpQWGM0OGhKNWxQNVNrT2RFUzZMM0tKaS04SDR3RDQ1VUotSlh3UkI4SjljdnpTcHJaTEJjeXlMZW9ETk9aVjBvMEJsMVdsZnR0SUZWUmJ3cFBCZGRMOW45WG5zSzVmRzBPVTpEVGhlIEltcG9ydGFuY2Ugb2YgPGI-U3VjY2Vzc2lvbiBQbGFubmluZzwvYj4gZm9yIEJ1c2luZXNzIENvbnRpbnVpdHlCngE8Yj5TdWNjZXNzaW9uIHBsYW5uaW5nIGVuc3VyZXMgc2VhbWxlc3MgYnVzaW5lc3MgdHJhbnNpdGlvbnM8L2I-IGFuZCBwcmVwYXJlcyBmdXR1cmUgbGVhZGVycywgYW5kIGl0IGNhbiBtYWludGFpbiBjb21wYW55IHN0YWJpbGl0eSBkdXJpbmcgbGVhZGVyc2hpcCBjaGFuZ2VzLiICEAFIAFgAaAA",
+      "source": "Investopedia"
+    },
+    {
+      "position": 5,
+      "title": "A manager's ultimate guide to effective succession planning",
+      "link": "https://www.atlassian.com/blog/leadership/guide-to-effective-succession-planning",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESiwEB6zswFdeLjzTJVy4afFYWZiwggwYX3tC4PYqmRF35DFbsV99e3fKmL1Qd_4SAQV27_x_9r3a0_RgeDy5AvRHfL5fzNHF3fIhSC8dlvUc4g2OzggnhNYTv-j9hpjcViAGnS1s7M7EDjB4oKCxAKN9weUouyZux9QxJDISZAi_8p4289GZz6z_p4HOk&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQFnoECD4QAQ&uoh=1",
+      "displayed_link": "https://www.atlassian.com › ...",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAbFBMVEVHcEwlhP8hdPQmhP8mhP8mhP8mhP8mhP8mhP8lhP8lgv4mhP8mhP8lhP8NYtwBVM4Ya-YlhP8lgv4HXNYKYNsGWtUCV9Inf_0LYdwTbOYQaOMXcewcdvIUbegRauYZc-4defQif_ofevUmhP9Q21KyAAAAJHRSTlMARAXSZPzC_-L0cxyYrFvKI4BWDuL8oQr_ef9o0v9I____5DYM4-ROAAAAtklEQVR4AbzRtREEQQwAwWUdMzPkn-Mfs9yX2zWL5B9DKW6Mc9yElAJVBaAYtqMGoBsIGjpMqfmNFkyjI7vaAHg6IZayCbHUcT1fLiiDp4VRnBj6mvL0GWZxnHNY55lGWZYl9obaIyyKIotK_StlVV1P2uwpZxcs27aduPQ2vH5OWnXdrDk50vTy4n03c07M1S6fYyqAvp-0IcyCxzMJCTDz4BEy6o9dR3-dYNooDX6DcpRpl4wBY-ENj5AjYfIAAAAASUVORK5CYII.png",
+      "date": "22 Jan 2025",
+      "snippet": "Succession planning is the process of identifying key roles on your team and determining how you'll fill them when they're left vacant.",
+      "snippet_highlighted_words": [
+        "identifying key roles on your team"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "Succession planning is the process of identifying key roles on your team and determining how you'll fill them when they're left vacant.",
+          "source_info_link": "https://www.atlassian.com/blog/leadership/guide-to-effective-succession-planning",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAbFBMVEVHcEwlhP8hdPQmhP8mhP8mhP8mhP8mhP8mhP8lhP8lgv4mhP8mhP8lhP8NYtwBVM4Ya-YlhP8lgv4HXNYKYNsGWtUCV9Inf_0LYdwTbOYQaOMXcewcdvIUbegRauYZc-4defQif_ofevUmhP9Q21KyAAAAJHRSTlMARAXSZPzC_-L0cxyYrFvKI4BWDuL8oQr_ef9o0v9I____5DYM4-ROAAAAtklEQVR4AbzRtREEQQwAwWUdMzPkn-Mfs9yX2zWL5B9DKW6Mc9yElAJVBaAYtqMGoBsIGjpMqfmNFkyjI7vaAHg6IZayCbHUcT1fLiiDp4VRnBj6mvL0GWZxnHNY55lGWZYl9obaIyyKIotK_StlVV1P2uwpZxcs27aduPQ2vH5OWnXdrDk50vTy4n03c07M1S6fYyqAvp-0IcyCxzMJCTDz4BEy6o9dR3-dYNooDX6DcpRpl4wBY-ENj5AjYfIAAAAASUVORK5CYII.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CsoBL2dvdG8_dXJsPUNBRVNpd0VCNnpzd0ZUc3pYVUJqa3c1MHBQeVhOamxUdXBOZjR0X2lGSXdQdHZHMVpKSzAzQXdzU0Zidkh6QnhtX1VBajUxRFRLLXg5ZGNhQnNNenc0TlBDaU5zdHRGT2drSjVfcTJXb2RJa3BubTNRQVUweGk5WXhwUzBoR1I0RmJLaWxnckNVcW9ZemhJUExoRkNIeDlENEFreHRQaXRYS3FteFZBZzR2ME5OZklnRUItbld1RWpXb3Y1WWFUWBIEGgIIABq-BhICCAAaACIAKgAyBggCEgJpZDoAQgQIAhAmSgBaAHIAegCCQJgGCAAQABgAIAAqNgoKc3VjY2Vzc2lvbhUOLGlAGhJzdWNjZXNzaW9ucGxhbm5pbmcaD2l2O2Q7c3VjY2Vzc2lvbipwCghwbGFubmluZxVaW2FAGgptYW5hZ2VtZW50GgRwbGFuGhJzdWNjZXNzaW9ucGxhbm5pbmcaDnBsYW5uaW5nc3lzdGVtGg1pdjtkO3BsYW5uaW5nGg9pdjtkO21hbmFnZW1lbnQaCWl2O2Q7cGxhbiq1AQoGc3lzdGVtFQAAAAAaCGNvbXB1dGVyGgdzeXN0ZW1zGg5wbGFubmluZ3N5c3RlbRoLaXY7ZDtzeXN0ZW0aDGl2O2Q7c3lzdGVtcxoIc29mdHdhcmUaB3Byb2Nlc3MaCHN0cmF0ZWd5GglmcmFtZXdvcmsaCm1hbmFnZW1lbnQaBW1vZGVsGgV0b29scxoEcGxhbhoKc3RyYXRlZ2llcxoIcGxhdGZvcm0aCnRlY2hub2xvZ3kyygEvZ290bz91cmw9Q0FFU2l3RUI2enN3RlRzelhVQmprdzUwcFB5WE5qbFR1cE5mNHRfaUZJd1B0dkcxWkpLMDNBd3NTRmJ2SHpCeG1fVUFqNTFEVEsteDlkY2FCc016dzROUENpTnN0dEZPZ2tKNV9xMldvZElrcG5tM1FBVTB4aTlZeHBTMGhHUjRGYktpbGdyQ1Vxb1l6aElQTGhGQ0h4OUQ0QWt4dFBpdFhLcW14VkFnNHYwTk5mSWdFQi1uV3VFaldvdjVZYVRYOkZBIG1hbmFnZXImIzM5O3MgdWx0aW1hdGUgZ3VpZGUgdG8gZWZmZWN0aXZlIDxiPnN1Y2Nlc3Npb24gcGxhbm5pbmc8L2I-QpYBU3VjY2Vzc2lvbiBwbGFubmluZyBpcyB0aGUgcHJvY2VzcyBvZiA8Yj5pZGVudGlmeWluZyBrZXkgcm9sZXMgb24geW91ciB0ZWFtPC9iPiBhbmQgZGV0ZXJtaW5pbmcgaG93IHlvdSYjMzk7bGwgZmlsbCB0aGVtIHdoZW4gdGhleSYjMzk7cmUgbGVmdCB2YWNhbnQuIgIQAUgAWABoAA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CsoBL2dvdG8_dXJsPUNBRVNpd0VCNnpzd0ZUc3pYVUJqa3c1MHBQeVhOamxUdXBOZjR0X2lGSXdQdHZHMVpKSzAzQXdzU0Zidkh6QnhtX1VBajUxRFRLLXg5ZGNhQnNNenc0TlBDaU5zdHRGT2drSjVfcTJXb2RJa3BubTNRQVUweGk5WXhwUzBoR1I0RmJLaWxnckNVcW9ZemhJUExoRkNIeDlENEFreHRQaXRYS3FteFZBZzR2ME5OZklnRUItbld1RWpXb3Y1WWFUWBIEGgIIABq-BhICCAAaACIAKgAyBggCEgJpZDoAQgQIAhAmSgBaAHIAegCCQJgGCAAQABgAIAAqNgoKc3VjY2Vzc2lvbhUOLGlAGhJzdWNjZXNzaW9ucGxhbm5pbmcaD2l2O2Q7c3VjY2Vzc2lvbipwCghwbGFubmluZxVaW2FAGgptYW5hZ2VtZW50GgRwbGFuGhJzdWNjZXNzaW9ucGxhbm5pbmcaDnBsYW5uaW5nc3lzdGVtGg1pdjtkO3BsYW5uaW5nGg9pdjtkO21hbmFnZW1lbnQaCWl2O2Q7cGxhbiq1AQoGc3lzdGVtFQAAAAAaCGNvbXB1dGVyGgdzeXN0ZW1zGg5wbGFubmluZ3N5c3RlbRoLaXY7ZDtzeXN0ZW0aDGl2O2Q7c3lzdGVtcxoIc29mdHdhcmUaB3Byb2Nlc3MaCHN0cmF0ZWd5GglmcmFtZXdvcmsaCm1hbmFnZW1lbnQaBW1vZGVsGgV0b29scxoEcGxhbhoKc3RyYXRlZ2llcxoIcGxhdGZvcm0aCnRlY2hub2xvZ3kyygEvZ290bz91cmw9Q0FFU2l3RUI2enN3RlRzelhVQmprdzUwcFB5WE5qbFR1cE5mNHRfaUZJd1B0dkcxWkpLMDNBd3NTRmJ2SHpCeG1fVUFqNTFEVEsteDlkY2FCc016dzROUENpTnN0dEZPZ2tKNV9xMldvZElrcG5tM1FBVTB4aTlZeHBTMGhHUjRGYktpbGdyQ1Vxb1l6aElQTGhGQ0h4OUQ0QWt4dFBpdFhLcW14VkFnNHYwTk5mSWdFQi1uV3VFaldvdjVZYVRYOkZBIG1hbmFnZXImIzM5O3MgdWx0aW1hdGUgZ3VpZGUgdG8gZWZmZWN0aXZlIDxiPnN1Y2Nlc3Npb24gcGxhbm5pbmc8L2I-QpYBU3VjY2Vzc2lvbiBwbGFubmluZyBpcyB0aGUgcHJvY2VzcyBvZiA8Yj5pZGVudGlmeWluZyBrZXkgcm9sZXMgb24geW91ciB0ZWFtPC9iPiBhbmQgZGV0ZXJtaW5pbmcgaG93IHlvdSYjMzk7bGwgZmlsbCB0aGVtIHdoZW4gdGhleSYjMzk7cmUgbGVmdCB2YWNhbnQuIgIQAUgAWABoAA",
+      "source": "Atlassian"
+    },
+    {
+      "position": 6,
+      "title": "Modernize Succession Planning for Better Results",
+      "link": "https://www.shrm.org/topics-tools/tools/toolkits/modernize-succession-planning",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESiQEB6zswFavZEzvuT6KQwcmEzL40GLgaSheNbEb5IG3irqCRfPq8CPYsaYygQF8xENM07_vzgW2T1fzjejT0Mj17rrv4syDlqyv5wVMSG9Ezu5-Vqs_rK9TN8JnEuBDvC7RLu0LS--OIUSHHLSsIiz4vU1cDeL_fnewiRRTy1NIcuoGCNd4jz45WbA&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQFnoECDgQAQ&uoh=1",
+      "displayed_link": "https://www.shrm.org › toolkits",
+      "snippet": "Succession planning is a key tool for organizations striving to remain competitive in an ever-changing market. With proper planning, leaders can identify a ...",
+      "snippet_highlighted_words": [
+        "Succession planning is a key tool for organizations striving to remain competitive"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "Succession planning is a key tool for organizations striving to remain competitive in an ever-changing market. With proper planning, leaders can identify a ...",
+          "source_info_link": "https://www.shrm.org/topics-tools/tools/toolkits/modernize-succession-planning"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CsgBL2dvdG8_dXJsPUNBRVNpUUVCNnpzd0ZUNlowN2xxWlROSXNYMEF5SWVFNDNpZGFuS0pDM2ROUV91cG9RMXJlajcwSTU3QkN4X1RXazljSUJhdndpR1R6amtoZkg4RDZYSW55Sk5WQnNVdFVkUXdRNHFrbXpfM0FtMVVRdHJYR2otUjR2RGhjOGZreFJycEVkdlZQUVVOdmdjY0xBYlBNMVhXeG9Lb3pCd0p1cUwyOUFRaUVDOTZZaXN1dFpIdUpTcldrZzhkMXcSBBoCCAAayQYSAggBGgAiACoAMgYIAhICaWQ6AEIECAIQJkoAWgByAHoAgkCjBggAEAAYACAAKjYKCnN1Y2Nlc3Npb24VAAAQQBoSc3VjY2Vzc2lvbnBsYW5uaW5nGg9pdjtkO3N1Y2Nlc3Npb24qcAoIcGxhbm5pbmcVAAAQQBoKbWFuYWdlbWVudBoEcGxhbhoSc3VjY2Vzc2lvbnBsYW5uaW5nGg5wbGFubmluZ3N5c3RlbRoNaXY7ZDtwbGFubmluZxoPaXY7ZDttYW5hZ2VtZW50GglpdjtkO3BsYW4qtQEKBnN5c3RlbRUAAAAAGghjb21wdXRlchoHc3lzdGVtcxoOcGxhbm5pbmdzeXN0ZW0aC2l2O2Q7c3lzdGVtGgxpdjtkO3N5c3RlbXMaCHNvZnR3YXJlGgdwcm9jZXNzGghzdHJhdGVneRoJZnJhbWV3b3JrGgptYW5hZ2VtZW50GgVtb2RlbBoFdG9vbHMaBHBsYW4aCnN0cmF0ZWdpZXMaCHBsYXRmb3JtGgp0ZWNobm9sb2d5MsgBL2dvdG8_dXJsPUNBRVNpUUVCNnpzd0ZUNlowN2xxWlROSXNYMEF5SWVFNDNpZGFuS0pDM2ROUV91cG9RMXJlajcwSTU3QkN4X1RXazljSUJhdndpR1R6amtoZkg4RDZYSW55Sk5WQnNVdFVkUXdRNHFrbXpfM0FtMVVRdHJYR2otUjR2RGhjOGZreFJycEVkdlZQUVVOdmdjY0xBYlBNMVhXeG9Lb3pCd0p1cUwyOUFRaUVDOTZZaXN1dFpIdUpTcldrZzhkMXc6Pk1vZGVybml6ZSA8Yj5TdWNjZXNzaW9uIFBsYW5uaW5nPC9iPiBmb3IgQmV0dGVyIFJlc3VsdHMgLSBTSFJNQqsBPGI-U3VjY2Vzc2lvbiBwbGFubmluZyBpcyBhIGtleSB0b29sIGZvciBvcmdhbml6YXRpb25zIHN0cml2aW5nIHRvIHJlbWFpbiBjb21wZXRpdGl2ZTwvYj4gaW4gYW4gZXZlci1jaGFuZ2luZyBtYXJrZXQuIFdpdGggcHJvcGVyIHBsYW5uaW5nLCBsZWFkZXJzIGNhbiBpZGVudGlmeSBhJm5ic3A7Li4uIgIQAUgAWABoAA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CsgBL2dvdG8_dXJsPUNBRVNpUUVCNnpzd0ZUNlowN2xxWlROSXNYMEF5SWVFNDNpZGFuS0pDM2ROUV91cG9RMXJlajcwSTU3QkN4X1RXazljSUJhdndpR1R6amtoZkg4RDZYSW55Sk5WQnNVdFVkUXdRNHFrbXpfM0FtMVVRdHJYR2otUjR2RGhjOGZreFJycEVkdlZQUVVOdmdjY0xBYlBNMVhXeG9Lb3pCd0p1cUwyOUFRaUVDOTZZaXN1dFpIdUpTcldrZzhkMXcSBBoCCAAayQYSAggBGgAiACoAMgYIAhICaWQ6AEIECAIQJkoAWgByAHoAgkCjBggAEAAYACAAKjYKCnN1Y2Nlc3Npb24VAAAQQBoSc3VjY2Vzc2lvbnBsYW5uaW5nGg9pdjtkO3N1Y2Nlc3Npb24qcAoIcGxhbm5pbmcVAAAQQBoKbWFuYWdlbWVudBoEcGxhbhoSc3VjY2Vzc2lvbnBsYW5uaW5nGg5wbGFubmluZ3N5c3RlbRoNaXY7ZDtwbGFubmluZxoPaXY7ZDttYW5hZ2VtZW50GglpdjtkO3BsYW4qtQEKBnN5c3RlbRUAAAAAGghjb21wdXRlchoHc3lzdGVtcxoOcGxhbm5pbmdzeXN0ZW0aC2l2O2Q7c3lzdGVtGgxpdjtkO3N5c3RlbXMaCHNvZnR3YXJlGgdwcm9jZXNzGghzdHJhdGVneRoJZnJhbWV3b3JrGgptYW5hZ2VtZW50GgVtb2RlbBoFdG9vbHMaBHBsYW4aCnN0cmF0ZWdpZXMaCHBsYXRmb3JtGgp0ZWNobm9sb2d5MsgBL2dvdG8_dXJsPUNBRVNpUUVCNnpzd0ZUNlowN2xxWlROSXNYMEF5SWVFNDNpZGFuS0pDM2ROUV91cG9RMXJlajcwSTU3QkN4X1RXazljSUJhdndpR1R6amtoZkg4RDZYSW55Sk5WQnNVdFVkUXdRNHFrbXpfM0FtMVVRdHJYR2otUjR2RGhjOGZreFJycEVkdlZQUVVOdmdjY0xBYlBNMVhXeG9Lb3pCd0p1cUwyOUFRaUVDOTZZaXN1dFpIdUpTcldrZzhkMXc6Pk1vZGVybml6ZSA8Yj5TdWNjZXNzaW9uIFBsYW5uaW5nPC9iPiBmb3IgQmV0dGVyIFJlc3VsdHMgLSBTSFJNQqsBPGI-U3VjY2Vzc2lvbiBwbGFubmluZyBpcyBhIGtleSB0b29sIGZvciBvcmdhbml6YXRpb25zIHN0cml2aW5nIHRvIHJlbWFpbiBjb21wZXRpdGl2ZTwvYj4gaW4gYW4gZXZlci1jaGFuZ2luZyBtYXJrZXQuIFdpdGggcHJvcGVyIHBsYW5uaW5nLCBsZWFkZXJzIGNhbiBpZGVudGlmeSBhJm5ic3A7Li4uIgIQAUgAWABoAA",
+      "source": "SHRM"
+    },
+    {
+      "position": 7,
+      "title": "Effective Succession Planning Strategies",
+      "link": "https://hrintervals.ca/resources/succession-planning-process/",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESeAHrOzAV9Xkxv7d2suFYfMSq18oZ1KgsNb05Rcz7b-yZ_z5kVRIdl8JX_pcdaC7EdZtqyB9moCKe6gRqrjl9hXQPHaMdQjw4Bf1RzuDeJT9ECaDMsOJfVZnrtzQnemYj8Zdw0PYqF-YCBpQ7U6W1rHqqgL0Z2Tvsaw&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQFnoECDMQAQ&uoh=1",
+      "displayed_link": "https://hrintervals.ca › succe...",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd-UAAABFUlEQVR4AWJwL_AhCjMsDQT0WgY3EIJAFG1iG7AjrnRAWzRgAVZiAVw5cnbZxMPPxDwmK3r4ycZHmMUHOJuPcbzF1p6jJ48Zx1Ms9hySKCwZFsYFudiik8nvz5lLdqdgPSdJZkV7T5EVKyvjguxtvXou3pRtI58jbxWYOlPeDOOCxs0CTo0zGQM-0RuwSM6QsTdi4AyY11sC1uz5JJ9-b8rYGTLrJoC34LiNyojZc9XsLpzM8q9glge1p0kOYJqqY4Hlc9l6TU1_pUkZbxplMzeN-ZdtfNXx1iemA9Tn9vTB14HltavN43P65c0-53-e2Ke4EZ_3P8DqE1qMXdj_LQY4i-qG2Ow2MRCb1Qjn1xphndjNIF-MlQcLWG8CHgAAAABJRU5ErkJggg.png",
+      "snippet": "Implement a successful succession planning process to ensure continuity and growth within your organization.",
+      "snippet_highlighted_words": [
+        "successful succession planning process"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "Implement a successful succession planning process to ensure continuity and growth within your organization.",
+          "source_info_link": "https://hrintervals.ca/resources/succession-planning-process/",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd-UAAABFUlEQVR4AWJwL_AhCjMsDQT0WgY3EIJAFG1iG7AjrnRAWzRgAVZiAVw5cnbZxMPPxDwmK3r4ycZHmMUHOJuPcbzF1p6jJ48Zx1Ms9hySKCwZFsYFudiik8nvz5lLdqdgPSdJZkV7T5EVKyvjguxtvXou3pRtI58jbxWYOlPeDOOCxs0CTo0zGQM-0RuwSM6QsTdi4AyY11sC1uz5JJ9-b8rYGTLrJoC34LiNyojZc9XsLpzM8q9glge1p0kOYJqqY4Hlc9l6TU1_pUkZbxplMzeN-ZdtfNXx1iemA9Tn9vTB14HltavN43P65c0-53-e2Ke4EZ_3P8DqE1qMXdj_LQY4i-qG2Ow2MRCb1Qjn1xphndjNIF-MlQcLWG8CHgAAAABJRU5ErkJggg.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CrABL2dvdG8_dXJsPUNBRVNlQUhyT3pBVng4TFliUWQwWmQyaER6SThUU1ZDLVAtUS1PQU1RTHVOcHc4ZHN4SzhHVF9ydlpYM29OYUNXUGZoUkozWnE2LTlfWXhIdThiWVNYakNfZ0lGQWRkdUxHem9zeHNHYjlfOWNaRnJRRHFXOVA3X0JrZk8tdUJZVHVtNHFpRS1hY0tfdkNZVDdLb181LVlvVVZ2MHF0dVlrRThic2cSBBoCCAAa9gUSABoAIgAqADIGCAISAmlkOgBCBAgCECZKAFoAcgB6AIJA0gUIABAAGAAgACo2CgpzdWNjZXNzaW9uFZ6Bj0AaEnN1Y2Nlc3Npb25wbGFubmluZxoPaXY7ZDtzdWNjZXNzaW9uKnAKCHBsYW5uaW5nFcS3jkAaCm1hbmFnZW1lbnQaBHBsYW4aEnN1Y2Nlc3Npb25wbGFubmluZxoOcGxhbm5pbmdzeXN0ZW0aDWl2O2Q7cGxhbm5pbmcaD2l2O2Q7bWFuYWdlbWVudBoJaXY7ZDtwbGFuKrUBCgZzeXN0ZW0VAAAAABoIY29tcHV0ZXIaB3N5c3RlbXMaDnBsYW5uaW5nc3lzdGVtGgtpdjtkO3N5c3RlbRoMaXY7ZDtzeXN0ZW1zGghzb2Z0d2FyZRoHcHJvY2VzcxoIc3RyYXRlZ3kaCWZyYW1ld29yaxoKbWFuYWdlbWVudBoFbW9kZWwaBXRvb2xzGgRwbGFuGgpzdHJhdGVnaWVzGghwbGF0Zm9ybRoKdGVjaG5vbG9neTKwAS9nb3RvP3VybD1DQUVTZUFIck96QVZ4OExZYlFkMFpkMmhEekk4VFNWQy1QLVEtT0FNUUx1TnB3OGRzeEs4R1RfcnZaWDNvTmFDV1BmaFJKM1pxNi05X1l4SHU4YllTWGpDX2dJRkFkZHVMR3pvc3hzR2I5XzljWkZyUURxVzlQN19Ca2ZPLXVCWVR1bTRxaUUtYWNLX3ZDWVQ3S29fNS1Zb1VWdjBxdHVZa0U4YnNnOj5FZmZlY3RpdmUgPGI-U3VjY2Vzc2lvbiBQbGFubmluZzwvYj4gU3RyYXRlZ2llcyAtIEhSIEludGVydmFsc0JzSW1wbGVtZW50IGEgPGI-c3VjY2Vzc2Z1bCBzdWNjZXNzaW9uIHBsYW5uaW5nIHByb2Nlc3M8L2I-IHRvIGVuc3VyZSBjb250aW51aXR5IGFuZCBncm93dGggd2l0aGluIHlvdXIgb3JnYW5pemF0aW9uLiICEAFIAFgAaAA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CrABL2dvdG8_dXJsPUNBRVNlQUhyT3pBVng4TFliUWQwWmQyaER6SThUU1ZDLVAtUS1PQU1RTHVOcHc4ZHN4SzhHVF9ydlpYM29OYUNXUGZoUkozWnE2LTlfWXhIdThiWVNYakNfZ0lGQWRkdUxHem9zeHNHYjlfOWNaRnJRRHFXOVA3X0JrZk8tdUJZVHVtNHFpRS1hY0tfdkNZVDdLb181LVlvVVZ2MHF0dVlrRThic2cSBBoCCAAa9gUSABoAIgAqADIGCAISAmlkOgBCBAgCECZKAFoAcgB6AIJA0gUIABAAGAAgACo2CgpzdWNjZXNzaW9uFZ6Bj0AaEnN1Y2Nlc3Npb25wbGFubmluZxoPaXY7ZDtzdWNjZXNzaW9uKnAKCHBsYW5uaW5nFcS3jkAaCm1hbmFnZW1lbnQaBHBsYW4aEnN1Y2Nlc3Npb25wbGFubmluZxoOcGxhbm5pbmdzeXN0ZW0aDWl2O2Q7cGxhbm5pbmcaD2l2O2Q7bWFuYWdlbWVudBoJaXY7ZDtwbGFuKrUBCgZzeXN0ZW0VAAAAABoIY29tcHV0ZXIaB3N5c3RlbXMaDnBsYW5uaW5nc3lzdGVtGgtpdjtkO3N5c3RlbRoMaXY7ZDtzeXN0ZW1zGghzb2Z0d2FyZRoHcHJvY2VzcxoIc3RyYXRlZ3kaCWZyYW1ld29yaxoKbWFuYWdlbWVudBoFbW9kZWwaBXRvb2xzGgRwbGFuGgpzdHJhdGVnaWVzGghwbGF0Zm9ybRoKdGVjaG5vbG9neTKwAS9nb3RvP3VybD1DQUVTZUFIck96QVZ4OExZYlFkMFpkMmhEekk4VFNWQy1QLVEtT0FNUUx1TnB3OGRzeEs4R1RfcnZaWDNvTmFDV1BmaFJKM1pxNi05X1l4SHU4YllTWGpDX2dJRkFkZHVMR3pvc3hzR2I5XzljWkZyUURxVzlQN19Ca2ZPLXVCWVR1bTRxaUUtYWNLX3ZDWVQ3S29fNS1Zb1VWdjBxdHVZa0U4YnNnOj5FZmZlY3RpdmUgPGI-U3VjY2Vzc2lvbiBQbGFubmluZzwvYj4gU3RyYXRlZ2llcyAtIEhSIEludGVydmFsc0JzSW1wbGVtZW50IGEgPGI-c3VjY2Vzc2Z1bCBzdWNjZXNzaW9uIHBsYW5uaW5nIHByb2Nlc3M8L2I-IHRvIGVuc3VyZSBjb250aW51aXR5IGFuZCBncm93dGggd2l0aGluIHlvdXIgb3JnYW5pemF0aW9uLiICEAFIAFgAaAA",
+      "source": "HR Intervals"
+    },
+    {
+      "position": 8,
+      "title": "Succession Planning: Definition, Benefits & Best Practices ...",
+      "link": "https://www.visier.com/blog/succession-planning-guide/",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAEScQHrOzAVfGb0EX8a1aVw21UUBcTz84FDWZZ7zxXMNrUITwyRqiEIFw7r_8mPGLXzyPipKeLVXXf8ss6qcfPtwPU6bnil2yrnWNaIejlfs1aFprbzwsqCAVH6bhnzmzOV_P-NboBb50fvViTpCZYQO1C8&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQFnoECDIQAQ&uoh=1",
+      "displayed_link": "https://www.visier.com › blog",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAM1BMVEVHcEzxSB3xSBzxSB3xQQ7xZ0jxOADxkHrxe2LxVC_x7-Pxs6Hx69_xxLXx2czx59vxn4s83T_iAAAABHRSTlMAt_9Mn8x-xgAAANNJREFUeAF901EOhCAMBFAXa4FSrfc_7aaM0JCsO1_oE0oDbtsnveSzbXt6zf4DqSeQDg7MnkITq7RQUVU5eSBfCgWamU7kpmaSH60LUvZHk4NQvmMbeHe0izuWjjfNZTH1dqWsCyY-1VWT4-1jGa143FAIH8qRBo49KXlbfcSB41UmdGLXxJh6MUpqGwg1j9S-BPYTyE37ugU983pk6L2hdgtEsN9n9bQiikW_C6J5JCGB6GEeTyACVC2wFQ8TFTnrsAWJSy6V364mbuQLIoF_f4cvMt8SJYX4z1QAAAAASUVORK5CYII.png",
+      "snippet": "Succession planning is a two-pronged approach that includes identifying mission-critical positions and skill sets within your company and creating a plan to ...",
+      "snippet_highlighted_words": [
+        "Succession planning"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "Succession planning is a two-pronged approach that includes identifying mission-critical positions and skill sets within your company and creating a plan to ...",
+          "source_info_link": "https://www.visier.com/blog/succession-planning-guide/",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAM1BMVEVHcEzxSB3xSBzxSB3xQQ7xZ0jxOADxkHrxe2LxVC_x7-Pxs6Hx69_xxLXx2czx59vxn4s83T_iAAAABHRSTlMAt_9Mn8x-xgAAANNJREFUeAF901EOhCAMBFAXa4FSrfc_7aaM0JCsO1_oE0oDbtsnveSzbXt6zf4DqSeQDg7MnkITq7RQUVU5eSBfCgWamU7kpmaSH60LUvZHk4NQvmMbeHe0izuWjjfNZTH1dqWsCyY-1VWT4-1jGa143FAIH8qRBo49KXlbfcSB41UmdGLXxJh6MUpqGwg1j9S-BPYTyE37ugU983pk6L2hdgtEsN9n9bQiikW_C6J5JCGB6GEeTyACVC2wFQ8TFTnrsAWJSy6V364mbuQLIoF_f4cvMt8SJYX4z1QAAAAASUVORK5CYII.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CqYBL2dvdG8_dXJsPUNBRVNjUUhyT3pBVjJ0UWNsZlBjM2lFTFBzLWczYnFMUGkteTZCMm5zZ1dlVkJEMHFJNTNNQ3REM1FPZy1TeGV5aWVnbkdNYl85dTFlNGg0b2Q1dnN3Ums3NmVYRDJKdnhfTnVfc1M5a2Q1VEUyZTVLUm00QU5hZ2lRRlJ0Y3RtLThhdFVHNHo4REQxWlRET3pkWkowZU15b2dlUxIEGgIIABqzBhICCAAaACIAKgAyBggCEgJpZDoAQgQIAhAmSgBaAHIAegCCQI0GCAAQABgAIAAqNgoKc3VjY2Vzc2lvbhXsGYxAGhJzdWNjZXNzaW9ucGxhbm5pbmcaD2l2O2Q7c3VjY2Vzc2lvbipwCghwbGFubmluZxUplopAGgptYW5hZ2VtZW50GgRwbGFuGhJzdWNjZXNzaW9ucGxhbm5pbmcaDnBsYW5uaW5nc3lzdGVtGg1pdjtkO3BsYW5uaW5nGg9pdjtkO21hbmFnZW1lbnQaCWl2O2Q7cGxhbiq1AQoGc3lzdGVtFQAAAAAaCGNvbXB1dGVyGgdzeXN0ZW1zGg5wbGFubmluZ3N5c3RlbRoLaXY7ZDtzeXN0ZW0aDGl2O2Q7c3lzdGVtcxoIc29mdHdhcmUaB3Byb2Nlc3MaCHN0cmF0ZWd5GglmcmFtZXdvcmsaCm1hbmFnZW1lbnQaBW1vZGVsGgV0b29scxoEcGxhbhoKc3RyYXRlZ2llcxoIcGxhdGZvcm0aCnRlY2hub2xvZ3kypgEvZ290bz91cmw9Q0FFU2NRSHJPekFWMnRRY2xmUGMzaUVMUHMtZzNicUxQaS15NkIybnNnV2VWQkQwcUk1M01DdEQzUU9nLVN4ZXlpZWduR01iXzl1MWU0aDRvZDV2c3dSazc2ZVhEMkp2eF9OdV9zUzlrZDVURTJlNUtSbTRBTmFnaVFGUnRjdG0tOGF0VUc0ejhERDFaVERPemRaSjBlTXlvZ2VTOkk8Yj5TdWNjZXNzaW9uIFBsYW5uaW5nPC9iPjogRGVmaW5pdGlvbiwgQmVuZWZpdHMgJmFtcDsgQmVzdCBQcmFjdGljZXMgLi4uQqwBPGI-U3VjY2Vzc2lvbiBwbGFubmluZzwvYj4gaXMgYSB0d28tcHJvbmdlZCBhcHByb2FjaCB0aGF0IGluY2x1ZGVzIGlkZW50aWZ5aW5nIG1pc3Npb24tY3JpdGljYWwgcG9zaXRpb25zIGFuZCBza2lsbCBzZXRzIHdpdGhpbiB5b3VyIGNvbXBhbnkgYW5kIGNyZWF0aW5nIGEgcGxhbiB0byZuYnNwOy4uLiICEAFIAFgAaAA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CqYBL2dvdG8_dXJsPUNBRVNjUUhyT3pBVjJ0UWNsZlBjM2lFTFBzLWczYnFMUGkteTZCMm5zZ1dlVkJEMHFJNTNNQ3REM1FPZy1TeGV5aWVnbkdNYl85dTFlNGg0b2Q1dnN3Ums3NmVYRDJKdnhfTnVfc1M5a2Q1VEUyZTVLUm00QU5hZ2lRRlJ0Y3RtLThhdFVHNHo4REQxWlRET3pkWkowZU15b2dlUxIEGgIIABqzBhICCAAaACIAKgAyBggCEgJpZDoAQgQIAhAmSgBaAHIAegCCQI0GCAAQABgAIAAqNgoKc3VjY2Vzc2lvbhXsGYxAGhJzdWNjZXNzaW9ucGxhbm5pbmcaD2l2O2Q7c3VjY2Vzc2lvbipwCghwbGFubmluZxUplopAGgptYW5hZ2VtZW50GgRwbGFuGhJzdWNjZXNzaW9ucGxhbm5pbmcaDnBsYW5uaW5nc3lzdGVtGg1pdjtkO3BsYW5uaW5nGg9pdjtkO21hbmFnZW1lbnQaCWl2O2Q7cGxhbiq1AQoGc3lzdGVtFQAAAAAaCGNvbXB1dGVyGgdzeXN0ZW1zGg5wbGFubmluZ3N5c3RlbRoLaXY7ZDtzeXN0ZW0aDGl2O2Q7c3lzdGVtcxoIc29mdHdhcmUaB3Byb2Nlc3MaCHN0cmF0ZWd5GglmcmFtZXdvcmsaCm1hbmFnZW1lbnQaBW1vZGVsGgV0b29scxoEcGxhbhoKc3RyYXRlZ2llcxoIcGxhdGZvcm0aCnRlY2hub2xvZ3kypgEvZ290bz91cmw9Q0FFU2NRSHJPekFWMnRRY2xmUGMzaUVMUHMtZzNicUxQaS15NkIybnNnV2VWQkQwcUk1M01DdEQzUU9nLVN4ZXlpZWduR01iXzl1MWU0aDRvZDV2c3dSazc2ZVhEMkp2eF9OdV9zUzlrZDVURTJlNUtSbTRBTmFnaVFGUnRjdG0tOGF0VUc0ejhERDFaVERPemRaSjBlTXlvZ2VTOkk8Yj5TdWNjZXNzaW9uIFBsYW5uaW5nPC9iPjogRGVmaW5pdGlvbiwgQmVuZWZpdHMgJmFtcDsgQmVzdCBQcmFjdGljZXMgLi4uQqwBPGI-U3VjY2Vzc2lvbiBwbGFubmluZzwvYj4gaXMgYSB0d28tcHJvbmdlZCBhcHByb2FjaCB0aGF0IGluY2x1ZGVzIGlkZW50aWZ5aW5nIG1pc3Npb24tY3JpdGljYWwgcG9zaXRpb25zIGFuZCBza2lsbCBzZXRzIHdpdGhpbiB5b3VyIGNvbXBhbnkgYW5kIGNyZWF0aW5nIGEgcGxhbiB0byZuYnNwOy4uLiICEAFIAFgAaAA",
+      "source": "Visier"
+    }
+  ],
+  "related_searches": [
+    {
+      "block_position": 1,
+      "query": "Succession planning examples",
+      "link": "https://www.google.co.id/search?sca_esv=353cea88b42a76a3&gl=id&hl=id&sxsrf=AKL5yDgLlpK4zR9DTmfiMtDTeszMkPPpQg:1793266452162&q=Succession+planning+examples&sa=X&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQ1QJ6BAgqEAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=Succession+planning+examples"
+    },
+    {
+      "block_position": 1,
+      "query": "Succession planning strategies",
+      "link": "https://www.google.co.id/search?sca_esv=353cea88b42a76a3&gl=id&hl=id&sxsrf=AKL5yDgLlpK4zR9DTmfiMtDTeszMkPPpQg:1793266452162&q=Succession+planning+strategies&sa=X&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQ1QJ6BAgxEAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=Succession+planning+strategies"
+    },
+    {
+      "block_position": 1,
+      "query": "Succession planning tools",
+      "link": "https://www.google.co.id/search?sca_esv=353cea88b42a76a3&gl=id&hl=id&sxsrf=AKL5yDgLlpK4zR9DTmfiMtDTeszMkPPpQg:1793266452162&q=Succession+planning+tools&sa=X&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQ1QJ6BAgwEAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=Succession+planning+tools"
+    },
+    {
+      "block_position": 1,
+      "query": "Succession plan template",
+      "link": "https://www.google.co.id/search?sca_esv=353cea88b42a76a3&gl=id&hl=id&sxsrf=AKL5yDgLlpK4zR9DTmfiMtDTeszMkPPpQg:1793266452162&q=Succession+plan+template&sa=X&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQ1QJ6BAgvEAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=Succession+plan+template"
+    },
+    {
+      "block_position": 1,
+      "query": "Succession planning framework",
+      "link": "https://www.google.co.id/search?sca_esv=353cea88b42a76a3&gl=id&hl=id&sxsrf=AKL5yDgLlpK4zR9DTmfiMtDTeszMkPPpQg:1793266452162&q=Succession+planning+framework&sa=X&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQ1QJ6BAguEAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=Succession+planning+framework"
+    },
+    {
+      "block_position": 1,
+      "query": "Succession planning process in HRM",
+      "link": "https://www.google.co.id/search?sca_esv=353cea88b42a76a3&gl=id&hl=id&sxsrf=AKL5yDgLlpK4zR9DTmfiMtDTeszMkPPpQg:1793266452162&q=Succession+planning+process+in+HRM&sa=X&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQ1QJ6BAgtEAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=Succession+planning+process+in+HRM"
+    },
+    {
+      "block_position": 1,
+      "query": "What is succession planning in business",
+      "link": "https://www.google.co.id/search?sca_esv=353cea88b42a76a3&gl=id&hl=id&sxsrf=AKL5yDgLlpK4zR9DTmfiMtDTeszMkPPpQg:1793266452162&q=What+is+succession+planning+in+business&sa=X&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQ1QJ6BAgrEAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=What+is+succession+planning+in+business"
+    },
+    {
+      "block_position": 1,
+      "query": "4 stages of succession planning",
+      "link": "https://www.google.co.id/search?sca_esv=353cea88b42a76a3&gl=id&hl=id&sxsrf=AKL5yDgLlpK4zR9DTmfiMtDTeszMkPPpQg:1793266452162&q=4+stages+of+succession+planning&sa=X&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQ1QJ6BAgsEAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=4+stages+of+succession+planning"
+    }
+  ],
+  "scholarly_articles": {
+    "title": "Artikel cendekiawan bagi succession planning system",
+    "link": "https://scholar.google.co.id/scholar?q=succession+planning+system&hl=id&as_sdt=0&as_vis=1&oi=scholart",
+    "serpapi_link": "https://serpapi.com/search.json?as_sdt=0&as_vis=1&engine=google_scholar&hl=id&q=succession+planning+system",
+    "articles": [
+      {
+        "title": "Succession planning: Preparing the next generation …",
+        "link": "https://www.academia.edu/download/83751806/Succession_planning_Preparing_the_next_g20220410-27599-b3420z.pdf",
+        "highlighted_words": [
+          "Succession planning"
+        ],
+        "author": "‎Seniwoliba"
+      },
+      {
+        "title": "Strategies for succession planning in universities: a …",
+        "link": "https://mjes.um.edu.my/index.php/MOJEM/article/download/17306/9958",
+        "highlighted_words": [
+          "succession planning"
+        ],
+        "author": "‎Torabi"
+      },
+      {
+        "title": "Classic Issues in Family Succession Planning",
+        "link": "https://www.americanbar.org/content/dam/aba/publications/probate_property_magazine/v17/02/2003_aba_rpte_pp_v17_2_mar_apr_whitaker.authcheckdam.pdf",
+        "highlighted_words": [
+          "Succession Planning"
+        ],
+        "author": "‎Whitaker"
+      }
+    ]
+  },
+  "pagination": {
+    "current": 1,
+    "next": "https://www.google.co.id/search?q=succession+planning+system&sca_esv=353cea88b42a76a3&gl=id&hl=id&sxsrf=AKL5yDgLlpK4zR9DTmfiMtDTeszMkPPpQg:1793266452162&ei=FBPjati5Ceqn5NoP0cPAgAo&start=10&sa=N&sstk=AS6-VmLIpN_rTBAIljGQppo14AFvIwBxbVq5hGp4i-PRKI8sejKL2_5ECV9SDm-uRQhztPBrj1Vllty_hhnb89c0bZiWKfJbGyOeNg&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQ8NMDegQIJxAW",
+    "other_pages": {
+      "2": "https://www.google.co.id/search?q=succession+planning+system&sca_esv=353cea88b42a76a3&gl=id&hl=id&sxsrf=AKL5yDgLlpK4zR9DTmfiMtDTeszMkPPpQg:1793266452162&ei=FBPjati5Ceqn5NoP0cPAgAo&start=10&sa=N&sstk=AS6-VmLIpN_rTBAIljGQppo14AFvIwBxbVq5hGp4i-PRKI8sejKL2_5ECV9SDm-uRQhztPBrj1Vllty_hhnb89c0bZiWKfJbGyOeNg&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQ8tMDegQIJxAE",
+      "3": "https://www.google.co.id/search?q=succession+planning+system&sca_esv=353cea88b42a76a3&gl=id&hl=id&sxsrf=AKL5yDgLlpK4zR9DTmfiMtDTeszMkPPpQg:1793266452162&ei=FBPjati5Ceqn5NoP0cPAgAo&start=20&sa=N&sstk=AS6-VmLIpN_rTBAIljGQppo14AFvIwBxbVq5hGp4i-PRKI8sejKL2_5ECV9SDm-uRQhztPBrj1Vllty_hhnb89c0bZiWKfJbGyOeNg&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQ8tMDegQIJxAG",
+      "4": "https://www.google.co.id/search?q=succession+planning+system&sca_esv=353cea88b42a76a3&gl=id&hl=id&sxsrf=AKL5yDgLlpK4zR9DTmfiMtDTeszMkPPpQg:1793266452162&ei=FBPjati5Ceqn5NoP0cPAgAo&start=30&sa=N&sstk=AS6-VmLIpN_rTBAIljGQppo14AFvIwBxbVq5hGp4i-PRKI8sejKL2_5ECV9SDm-uRQhztPBrj1Vllty_hhnb89c0bZiWKfJbGyOeNg&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQ8tMDegQIJxAI",
+      "5": "https://www.google.co.id/search?q=succession+planning+system&sca_esv=353cea88b42a76a3&gl=id&hl=id&sxsrf=AKL5yDgLlpK4zR9DTmfiMtDTeszMkPPpQg:1793266452162&ei=FBPjati5Ceqn5NoP0cPAgAo&start=40&sa=N&sstk=AS6-VmLIpN_rTBAIljGQppo14AFvIwBxbVq5hGp4i-PRKI8sejKL2_5ECV9SDm-uRQhztPBrj1Vllty_hhnb89c0bZiWKfJbGyOeNg&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQ8tMDegQIJxAK",
+      "6": "https://www.google.co.id/search?q=succession+planning+system&sca_esv=353cea88b42a76a3&gl=id&hl=id&sxsrf=AKL5yDgLlpK4zR9DTmfiMtDTeszMkPPpQg:1793266452162&ei=FBPjati5Ceqn5NoP0cPAgAo&start=50&sa=N&sstk=AS6-VmLIpN_rTBAIljGQppo14AFvIwBxbVq5hGp4i-PRKI8sejKL2_5ECV9SDm-uRQhztPBrj1Vllty_hhnb89c0bZiWKfJbGyOeNg&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQ8tMDegQIJxAM",
+      "7": "https://www.google.co.id/search?q=succession+planning+system&sca_esv=353cea88b42a76a3&gl=id&hl=id&sxsrf=AKL5yDgLlpK4zR9DTmfiMtDTeszMkPPpQg:1793266452162&ei=FBPjati5Ceqn5NoP0cPAgAo&start=60&sa=N&sstk=AS6-VmLIpN_rTBAIljGQppo14AFvIwBxbVq5hGp4i-PRKI8sejKL2_5ECV9SDm-uRQhztPBrj1Vllty_hhnb89c0bZiWKfJbGyOeNg&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQ8tMDegQIJxAO",
+      "8": "https://www.google.co.id/search?q=succession+planning+system&sca_esv=353cea88b42a76a3&gl=id&hl=id&sxsrf=AKL5yDgLlpK4zR9DTmfiMtDTeszMkPPpQg:1793266452162&ei=FBPjati5Ceqn5NoP0cPAgAo&start=70&sa=N&sstk=AS6-VmLIpN_rTBAIljGQppo14AFvIwBxbVq5hGp4i-PRKI8sejKL2_5ECV9SDm-uRQhztPBrj1Vllty_hhnb89c0bZiWKfJbGyOeNg&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQ8tMDegQIJxAQ",
+      "9": "https://www.google.co.id/search?q=succession+planning+system&sca_esv=353cea88b42a76a3&gl=id&hl=id&sxsrf=AKL5yDgLlpK4zR9DTmfiMtDTeszMkPPpQg:1793266452162&ei=FBPjati5Ceqn5NoP0cPAgAo&start=80&sa=N&sstk=AS6-VmLIpN_rTBAIljGQppo14AFvIwBxbVq5hGp4i-PRKI8sejKL2_5ECV9SDm-uRQhztPBrj1Vllty_hhnb89c0bZiWKfJbGyOeNg&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQ8tMDegQIJxAS",
+      "10": "https://www.google.co.id/search?q=succession+planning+system&sca_esv=353cea88b42a76a3&gl=id&hl=id&sxsrf=AKL5yDgLlpK4zR9DTmfiMtDTeszMkPPpQg:1793266452162&ei=FBPjati5Ceqn5NoP0cPAgAo&start=90&sa=N&sstk=AS6-VmLIpN_rTBAIljGQppo14AFvIwBxbVq5hGp4i-PRKI8sejKL2_5ECV9SDm-uRQhztPBrj1Vllty_hhnb89c0bZiWKfJbGyOeNg&ved=2ahUKEwjYk_mO9t6XAxXqE1kFHdEhEKAQ8tMDegQIJxAU"
+    }
+  },
+  "serpapi_pagination": {
+    "current": 1,
+    "next_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=succession+planning+system&start=10",
+    "next": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=succession+planning+system&start=10",
+    "other_pages": {
+      "2": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=succession+planning+system&start=10",
+      "3": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=succession+planning+system&start=20",
+      "4": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=succession+planning+system&start=30",
+      "5": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=succession+planning+system&start=40",
+      "6": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=succession+planning+system&start=50",
+      "7": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=succession+planning+system&start=60",
+      "8": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=succession+planning+system&start=70",
+      "9": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=succession+planning+system&start=80",
+      "10": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=succession+planning+system&start=90"
+    }
+  }
+}
