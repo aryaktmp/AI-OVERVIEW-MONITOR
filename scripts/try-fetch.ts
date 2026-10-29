@@ -30,14 +30,14 @@ async function main() {
 
   const targetUrl = process.argv.slice(2).find((arg) => !arg.startsWith("-"));
   if (!targetUrl) {
-    console.error('Cara pakai: npm run try:fetch -- "<url>"');
+    console.error('Usage: npm run try:fetch -- "<url>"');
     process.exit(1);
   }
 
   const brandDomain = process.env.BRAND_DOMAIN || "linovhr.com";
 
-  console.log("=== Uji Fetch Halaman Pihak Ketiga (Mode Nyata) ===");
-  console.log(`Target Domain Merek : ${brandDomain}`);
+  console.log("=== Third-Party Page Fetch Test (Live Mode) ===");
+  console.log(`Brand Domain Target : ${brandDomain}`);
 
   try {
     const fetched = await fetchSafeHtmlPage(targetUrl);
@@ -46,32 +46,32 @@ async function main() {
       baseUrl: fetched.finalUrl,
     });
 
-    console.log(`Hasil Pengambilan   : BERHASIL`);
-    console.log(`Alasan Penolakan    : -`);
-    console.log(`Status HTTP         : ${fetched.status}`);
+    console.log(`Fetch Result        : SUCCESS`);
+    console.log(`Rejection Reason    : -`);
+    console.log(`HTTP Status         : ${fetched.status}`);
     console.log(
-      `Ukuran Setelah Baca : ${fetched.byteLength} byte (${(
+      `Size After Read     : ${fetched.byteLength} bytes (${(
         fetched.byteLength / 1024
-      ).toFixed(1)} KB)${fetched.truncatedAtLimit ? " [Terpotong pada batas 500 KB]" : ""}`
+      ).toFixed(1)} KB)${fetched.truncatedAtLimit ? " [Truncated at 500 KB limit]" : ""}`
     );
-    console.log(`Jumlah Pengalihan   : ${fetched.redirectCount}`);
+    console.log(`Redirect Count      : ${fetched.redirectCount}`);
     console.log(
-      `Merek di Teks       : ${analysis.matchedBrandText ? "YA (Ditemukan)" : "TIDAK"}`
-    );
-    console.log(
-      `Link ke ${brandDomain} : ${analysis.matchedBrandLink ? "YA (Ditemukan)" : "TIDAK"}`
+      `Brand in Text       : ${analysis.matchedBrandText ? "YES (Found)" : "NO"}`
     );
     console.log(
-      `Kesimpulan Tingkat 3: ${analysis.mentionsBrand ? "TERDETEKSI" : "TIDAK TERDETEKSI"}`
+      `Link to ${brandDomain} : ${analysis.matchedBrandLink ? "YES (Found)" : "NO"}`
+    );
+    console.log(
+      `Tier 3 Conclusion   : ${analysis.mentionsBrand ? "DETECTED" : "NOT DETECTED"}`
     );
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
-    console.log(`Hasil Pengambilan   : DITOLAK / GAGAL`);
-    console.log(`Alasan Penolakan    : ${reason}`);
-    console.log(`Status HTTP         : -`);
-    console.log(`Ukuran Setelah Baca : 0 byte`);
-    console.log(`Merek di Teks       : TIDAK`);
-    console.log(`Link ke ${brandDomain} : TIDAK`);
+    console.log(`Fetch Result        : REJECTED / FAILED`);
+    console.log(`Rejection Reason    : ${reason}`);
+    console.log(`HTTP Status         : -`);
+    console.log(`Size After Read     : 0 bytes`);
+    console.log(`Brand in Text       : NO`);
+    console.log(`Link to ${brandDomain} : NO`);
     process.exitCode = 1;
   }
 }

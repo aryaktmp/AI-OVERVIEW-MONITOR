@@ -59,7 +59,7 @@ async function main() {
   const ownDomain = process.env.BRAND_DOMAIN || "linovhr.com";
 
   if (!supabaseUrl || !secretKey) {
-    console.error("SUPABASE_URL dan SUPABASE_SECRET_KEY wajib diisi di .env.local");
+    console.error("SUPABASE_URL and SUPABASE_SECRET_KEY are required in .env.local");
     process.exit(1);
   }
 
@@ -67,7 +67,7 @@ async function main() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  console.log("=== Mengisi Data Contoh 8 Minggu (is_demo = true) ===");
+  console.log("=== Seeding 8 Weeks of Demo Data (is_demo = true) ===");
 
   // 1. Bersihkan data contoh lama di keempat tabel agar idempoten
   await clearAllDemoData(supabase);
@@ -116,7 +116,7 @@ async function main() {
       )
       .select("id, name");
     if (grpFallback.error || !grpFallback.data) {
-      throw new Error(`Gagal menyimpan grup keyword: ${grpFallback.error?.message}`);
+      throw new Error(`Failed to save keyword groups: ${grpFallback.error?.message}`);
     }
     groupRows = grpFallback.data as Array<{ id: string; name: string }>;
   }
@@ -156,7 +156,7 @@ async function main() {
       )
       .select("id, text");
     if (kwFallback.error || !kwFallback.data) {
-      throw new Error(`Gagal menyimpan keyword contoh: ${kwFallback.error?.message}`);
+      throw new Error(`Failed to save demo keywords: ${kwFallback.error?.message}`);
     }
     kwRows = kwFallback.data as Array<{ id: string; text: string }>;
   }
@@ -232,7 +232,7 @@ async function main() {
         .single();
       if (fallbackInsert.error || !fallbackInsert.data) {
         throw new Error(
-          `Gagal membuat check_run minggu ${w + 1}: ${fallbackInsert.error?.message}`
+          `Failed to create check_run for week ${w + 1}: ${fallbackInsert.error?.message}`
         );
       }
       runId = (fallbackInsert.data as { id: string }).id;
@@ -295,7 +295,7 @@ async function main() {
       .select("id, keyword_id");
 
     if (chkErr || !insertedChecks) {
-      throw new Error(`Gagal menyimpan checks minggu ${w + 1}: ${chkErr?.message}`);
+      throw new Error(`Failed to save checks for week ${w + 1}: ${chkErr?.message}`);
     }
     totalChecksInserted += insertedChecks.length;
 
@@ -346,8 +346,8 @@ async function main() {
           position: sIdx + 1,
           title:
             domain === ownDomain
-              ? `Panduan Lengkap ${kw.text} — LinovHR`
-              : `Artikel Referensi ${kw.text} (${domain})`,
+              ? `Comprehensive Guide: ${kw.text} — LinovHR`
+              : `Reference Article: ${kw.text} (${domain})`,
           url: `https://${domain}/artikel/${slug}`,
           domain,
           is_own: domain === ownDomain,
@@ -363,20 +363,20 @@ async function main() {
         .from("check_sources")
         .insert(weekSourceRows);
       if (srcErr) {
-        throw new Error(`Gagal menyimpan check_sources: ${srcErr.message}`);
+        throw new Error(`Failed to save check_sources: ${srcErr.message}`);
       }
       totalSourcesInserted += weekSourceRows.length;
     }
   }
 
-  console.log(`Selesai mengisi data contoh 8 minggu (is_demo = true):`);
-  console.log(`- ${DEMO_GROUP_NAMES.length} keyword_groups contoh`);
-  console.log(`- ${DEMO_KEYWORDS.length} keywords contoh`);
-  console.log(`- ${DEMO_COMPETITORS.length} competitors contoh`);
+  console.log(`Finished seeding 8 weeks of demo data (is_demo = true):`);
+  console.log(`- ${DEMO_GROUP_NAMES.length} demo keyword_groups`);
+  console.log(`- ${DEMO_KEYWORDS.length} demo keywords`);
+  console.log(`- ${DEMO_COMPETITORS.length} demo competitors`);
   console.log(`- 8 check_runs (${totalChecksInserted} checks & ${totalSourcesInserted} check_sources)`);
 }
 
 main().catch((err) => {
-  console.error("Gagal menjalankan seed:demo:", err);
+  console.error("Failed to run seed:demo:", err);
   process.exit(1);
 });

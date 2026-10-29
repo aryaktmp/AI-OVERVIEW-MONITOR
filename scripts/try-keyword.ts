@@ -41,7 +41,7 @@ function parseArgs(argv: string[]): {
     if (arg === "--save-fixture") {
       const next = argv[i + 1];
       if (!next || next.startsWith("--")) {
-        throw new Error("Opsi --save-fixture membutuhkan argumen <nama>.");
+        throw new Error("Option --save-fixture requires a <name> argument.");
       }
       saveFixtureName = next.replace(/\.json$/i, "").trim();
       i++;
@@ -58,7 +58,7 @@ function parseArgs(argv: string[]): {
   const keyword = positional.join(" ").trim();
   if (!keyword) {
     throw new Error(
-      'Penggunaan: npm run try:keyword -- "<keyword>" [--save-fixture <nama>]'
+      'Usage: npm run try:keyword -- "<keyword>" [--save-fixture <name>]'
     );
   }
 
@@ -77,24 +77,24 @@ async function main() {
   const sourceDomains = result.parsed.sources.map((s) => s.domain);
   const answerPreview = result.parsed.answerText
     ? result.parsed.answerText.replace(/\s+/g, " ").trim().slice(0, 200)
-    : "(kosong)";
+    : "(empty)";
 
-  console.log("=== Hasil Uji Keyword SerpApi ===");
+  console.log("=== SerpApi Keyword Test Results ===");
   console.log(`Keyword                        : ${keyword}`);
   console.log(
-    `Panggilan kedua (page_token)   : ${result.usedFollowUpPageToken ? "Ya" : "Tidak"}`
+    `Follow-up call (page_token)    : ${result.usedFollowUpPageToken ? "Yes" : "No"}`
   );
-  console.log(`Jumlah panggilan SerpApi       : ${result.apiCallsCount}`);
+  console.log(`SerpApi calls count            : ${result.apiCallsCount}`);
   console.log(`hasAiOverview                  : ${result.parsed.hasAiOverview}`);
-  console.log(`Jumlah sumber                  : ${result.parsed.sources.length}`);
+  console.log(`Sources count                  : ${result.parsed.sources.length}`);
   console.log(
-    `Daftar domain sumber           : ${sourceDomains.length > 0 ? sourceDomains.join(", ") : "-"}`
+    `Source domains list            : ${sourceDomains.length > 0 ? sourceDomains.join(", ") : "-"}`
   );
-  console.log(`Status akhir                   : ${evaluation.status}`);
+  console.log(`Final status                   : ${evaluation.status}`);
   console.log(
-    `Flag deteksi                   : detected_domain=${evaluation.detected_domain}, detected_text=${evaluation.detected_text}, detected_third_party=${evaluation.detected_third_party}`
+    `Detection flags                : detected_domain=${evaluation.detected_domain}, detected_text=${evaluation.detected_text}, detected_third_party=${evaluation.detected_third_party}`
   );
-  console.log(`200 karakter pertama jawaban   : ${answerPreview}`);
+  console.log(`First 200 chars of answer      : ${answerPreview}`);
 
   if (saveFixtureName) {
     const fixturesDir = path.join(process.cwd(), "tests", "fixtures");
@@ -109,7 +109,7 @@ async function main() {
       "utf-8"
     );
     console.log(
-      `Fixture panggilan ke-1 disimpan: tests/fixtures/${safeBaseName}.json`
+      `1st call fixture saved: tests/fixtures/${safeBaseName}.json`
     );
 
     if (result.usedFollowUpPageToken && result.secondRaw) {
@@ -122,7 +122,7 @@ async function main() {
         "utf-8"
       );
       console.log(
-        `Fixture panggilan ke-2 disimpan: tests/fixtures/${followUpName}`
+        `2nd call fixture saved: tests/fixtures/${followUpName}`
       );
     }
   }
@@ -130,7 +130,7 @@ async function main() {
 
 main().catch((err) => {
   console.error(
-    "Gagal menjalankan try:keyword:",
+    "Failed to execute try:keyword:",
     err instanceof Error ? err.message : String(err)
   );
   process.exit(1);

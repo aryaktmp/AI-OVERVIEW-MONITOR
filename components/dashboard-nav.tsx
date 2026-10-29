@@ -4,10 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/ringkasan", label: "Ringkasan" },
-  { href: "/keyword", label: "Keyword" },
-  { href: "/kompetitor", label: "Kompetitor" },
-  { href: "/pengaturan", label: "Pengaturan" },
+  { href: "/ringkasan", label: "Overview" },
+  { href: "/keyword", label: "Keywords" },
+  { href: "/kompetitor", label: "Competitors" },
+  { href: "/pengaturan", label: "Settings" },
 ];
 
 export function DashboardNav() {
@@ -15,7 +15,7 @@ export function DashboardNav() {
 
   return (
     <nav
-      aria-label="Navigasi utama"
+      aria-label="Main navigation"
       className="my-5 flex gap-1 overflow-x-auto border-b border-[var(--line)]"
     >
       {navItems.map((item) => {

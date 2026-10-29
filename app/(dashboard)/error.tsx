@@ -19,17 +19,17 @@ export default function DashboardError({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Gagal memuat halaman</CardTitle>
+        <CardTitle>Failed to load page</CardTitle>
         <CardDescription>
-          Terjadi kendala saat mengambil data dari database.
+          An error occurred while retrieving data from the database.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="rounded-md border border-[#C0392B]/30 bg-[#C0392B]/10 px-3 py-2 text-xs text-[#C0392B]">
-          {error.message || "Galat tidak diketahui."}
+          {error.message || "Unknown error occurred."}
         </p>
         <Button type="button" variant="primary" onClick={() => reset()}>
-          Muat ulang halaman
+          Reload page
         </Button>
       </CardContent>
     </Card>

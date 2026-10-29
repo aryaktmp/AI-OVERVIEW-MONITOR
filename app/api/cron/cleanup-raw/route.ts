@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 async function handleCleanupRaw(request: Request) {
   if (!verifyCronSecret(request)) {
     return NextResponse.json(
-      { error: "Tidak diizinkan. Header Authorization Bearer tidak valid." },
+      { error: "Unauthorized. Invalid Authorization Bearer header." },
       { status: 401, headers: { "Cache-Control": "no-store, max-age=0" } }
     );
   }
@@ -26,7 +26,7 @@ async function handleCleanupRaw(request: Request) {
         error:
           err instanceof Error
             ? err.message
-            : "Gagal membersihkan data raw yang melebihi 90 hari.",
+            : "Failed to clean up raw data older than 90 days.",
       },
       { status: 500, headers: { "Cache-Control": "no-store, max-age=0" } }
     );

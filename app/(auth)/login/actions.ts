@@ -25,18 +25,18 @@ export async function loginAction(
     const firstIssue = parsed.error.issues[0];
     return {
       status: "error",
-      message: firstIssue?.message ?? "Input tidak valid.",
+      message: firstIssue?.message ?? "Invalid input.",
     };
   }
 
   const { email, password, mode } = parsed.data;
 
-  // Periksa allowlist terlebih dahulu: tolak pengguna di luar ALLOWED_EMAILS
+  // Check allowlist first: reject users outside ALLOWED_EMAILS
   if (!isEmailAllowed(email)) {
     return {
       status: "error",
       message:
-        "Email Anda tidak ada dalam daftar izin akses. Hubungi administrator.",
+        "Your email is not on the access allowlist. Please contact the administrator.",
     };
   }
 
@@ -59,14 +59,14 @@ export async function loginAction(
     if (error) {
       return {
         status: "error",
-        message: "Gagal mengirim tautan masuk. Periksa email Anda atau coba lagi.",
+        message: "Failed to send sign-in link. Please check your email or try again later.",
       };
     }
 
     return {
       status: "success",
       message:
-        "Tautan masuk telah dikirim ke email Anda. Buka kotak masuk untuk melanjutkan.",
+        "Sign-in link sent to your email. Please check your inbox to continue.",
     };
   }
 
@@ -78,7 +78,7 @@ export async function loginAction(
   if (error || !data.user) {
     return {
       status: "error",
-      message: "Email atau kata sandi salah. Periksa kembali data Anda.",
+      message: "Invalid email or password. Please verify your credentials.",
     };
   }
 
@@ -87,7 +87,7 @@ export async function loginAction(
     return {
       status: "error",
       message:
-        "Email Anda tidak ada dalam daftar izin akses. Hubungi administrator.",
+        "Your email is not on the access allowlist. Please contact the administrator.",
     };
   }
 

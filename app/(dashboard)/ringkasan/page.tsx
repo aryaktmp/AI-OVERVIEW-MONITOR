@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Search, Sparkles, CheckCircle2, TrendingUp } from "lucide-react";
 import { getDashboardOverviewData } from "@/lib/dashboard-data";
 import { DemoDataBanner } from "@/components/demo-banner";
 import { ExportCsvButton } from "@/components/export-csv-button";
@@ -31,7 +32,7 @@ function DeltaBadge({
     >
       {isPositive ? "+" : ""}
       {delta}
-      {suffix} vs minggu lalu
+      {suffix} vs last week
     </i>
   );
 }
@@ -53,18 +54,18 @@ export default async function RingkasanPage() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Belum ada keyword yang dipantau</CardTitle>
+          <CardTitle>No monitored keywords yet</CardTitle>
           <CardDescription>
-            Tambahkan keyword terlebih dahulu untuk mulai memantau kutipan LinovHR
-            di Google AI Overview.
+            Add keywords first to start monitoring LinovHR citations in Google AI
+            Overview.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
           <Button asChild variant="primary">
-            <Link href="/keyword">Tambah keyword pertama</Link>
+            <Link href="/keyword">Add first keyword</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/pengaturan">Buka pengaturan</Link>
+            <Link href="/pengaturan">Open settings</Link>
           </Button>
         </CardContent>
       </Card>
@@ -86,56 +87,65 @@ export default async function RingkasanPage() {
   }
 
   return (
-    <div>
+    <div className="space-y-5">
       <DemoDataBanner visible={analytics.hasDemoData} />
 
-      <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-4 py-3.5">
-          <b className="block text-[28px] leading-[1.1] font-extrabold">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="p-4">
+          <div className="flex items-center justify-between text-[var(--muted)]">
+            <span className="text-xs font-semibold">Monitored keywords</span>
+            <Search className="h-4 w-4" />
+          </div>
+          <div className="mt-2 text-[28px] font-extrabold leading-none tracking-tight">
             {analytics.activeKeywords}
-          </b>
-          <span className="text-[13px] text-[var(--muted)]">
-            Keyword dipantau
-          </span>
-        </div>
+          </div>
+        </Card>
 
-        <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-4 py-3.5">
-          <b className="block text-[28px] leading-[1.1] font-extrabold">
-            {analytics.currentAiOverviewCount}
-          </b>
-          <span className="text-[13px] text-[var(--muted)]">
-            AI Overview muncul
-          </span>
-          <DeltaBadge delta={analytics.aiOverviewDelta} />
-        </div>
+        <Card className="p-4">
+          <div className="flex items-center justify-between text-[var(--muted)]">
+            <span className="text-xs font-semibold">AI Overview present</span>
+            <Sparkles className="h-4 w-4 text-[var(--seen)]" />
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-[28px] font-extrabold leading-none tracking-tight">
+              {analytics.currentAiOverviewCount}
+            </span>
+            <DeltaBadge delta={analytics.aiOverviewDelta} />
+          </div>
+        </Card>
 
-        <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-4 py-3.5">
-          <b className="block text-[28px] leading-[1.1] font-extrabold">
-            {analytics.currentDetectedCount}
-          </b>
-          <span className="text-[13px] text-[var(--muted)]">
-            LinovHR terdeteksi
-          </span>
-          <DeltaBadge delta={analytics.detectedDelta} />
-        </div>
+        <Card className="p-4">
+          <div className="flex items-center justify-between text-[var(--muted)]">
+            <span className="text-xs font-semibold">LinovHR detected</span>
+            <CheckCircle2 className="h-4 w-4 text-[var(--cite)]" />
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-[28px] font-extrabold leading-none tracking-tight">
+              {analytics.currentDetectedCount}
+            </span>
+            <DeltaBadge delta={analytics.detectedDelta} />
+          </div>
+        </Card>
 
-        <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-4 py-3.5">
-          <b className="block text-[28px] leading-[1.1] font-extrabold">
-            {analytics.currentDetectionRate}%
-          </b>
-          <span className="text-[13px] text-[var(--muted)]">
-            Tingkat deteksi
-          </span>
-          <DeltaBadge delta={analytics.detectionRateDelta} suffix=" poin" />
-        </div>
+        <Card className="p-4">
+          <div className="flex items-center justify-between text-[var(--muted)]">
+            <span className="text-xs font-semibold">Detection rate</span>
+            <TrendingUp className="h-4 w-4 text-[var(--cite)]" />
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-[28px] font-extrabold leading-none tracking-tight">
+              {analytics.currentDetectionRate}%
+            </span>
+            <DeltaBadge delta={analytics.detectionRateDelta} suffix=" pts" />
+          </div>
+        </Card>
       </div>
 
-      <Card className="mb-5">
+      <Card>
         <CardHeader>
-          <CardTitle>Tingkat deteksi per minggu</CardTitle>
+          <CardTitle>Weekly detection rate</CardTitle>
           <CardDescription>
-            Keyword yang menampilkan LinovHR, dibanding keyword yang memunculkan
-            AI Overview.
+            Keywords citing LinovHR compared to keywords triggering Google AI Overview.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -147,9 +157,9 @@ export default async function RingkasanPage() {
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <CardTitle>Status tiap keyword, 8 minggu terakhir</CardTitle>
+              <CardTitle>Keyword status over the last 8 weeks</CardTitle>
               <CardDescription>
-                Tiap kolom adalah satu minggu. Kolom paling kanan adalah minggu ini.
+                Each column represents one week. The rightmost column is this week.
               </CardDescription>
             </div>
             <ExportCsvButton />
@@ -193,10 +203,10 @@ export default async function RingkasanPage() {
                           className={cellClassName(st)}
                           title={`${row.keyword} (${analytics.weeks[idx]?.label}): ${
                             st === 2
-                              ? "LinovHR terdeteksi"
+                              ? "LinovHR detected"
                               : st === 1
-                                ? "AI Overview muncul, LinovHR tidak terdeteksi"
-                                : "AI Overview tidak muncul"
+                                ? "AI Overview present, LinovHR not detected"
+                                : "AI Overview not present"
                           }`}
                         />
                       ))}
@@ -210,15 +220,15 @@ export default async function RingkasanPage() {
           <div className="mt-3.5 flex flex-wrap gap-4 text-xs text-[var(--muted)]">
             <span className="inline-flex items-center gap-1.5">
               <span className="inline-block h-3 w-3 rounded-[3px] bg-[var(--cite)]" />
-              LinovHR terdeteksi
+              LinovHR detected
             </span>
             <span className="inline-flex items-center gap-1.5">
               <span className="inline-block h-3 w-3 rounded-[3px] bg-[var(--seen-bg)] inset-ring inset-ring-[var(--seen)]" />
-              AI Overview muncul, LinovHR tidak terdeteksi
+              AI Overview present, LinovHR not detected
             </span>
             <span className="inline-flex items-center gap-1.5">
               <span className="inline-block h-3 w-3 rounded-[3px] bg-[var(--none)]" />
-              AI Overview tidak muncul
+              AI Overview not present
             </span>
           </div>
         </CardContent>

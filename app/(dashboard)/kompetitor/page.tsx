@@ -1,8 +1,16 @@
 import Link from "next/link";
+import { ArrowRight, Settings } from "lucide-react";
 import { getCompetitorPageData } from "@/lib/dashboard-data";
 import { DemoDataBanner } from "@/components/demo-banner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
 
@@ -11,133 +19,138 @@ export default async function KompetitorPage() {
     await getCompetitorPageData();
 
   return (
-    <div>
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-[20px] font-semibold tracking-[-0.01em] text-[var(--ink)]">
-            Domain yang Paling Sering Dikutip
+          <h1 className="text-xl font-extrabold tracking-tight text-[var(--ink)]">
+            Most Frequently Cited Domains
           </h1>
-          <p className="mt-0.5 text-[13px] text-[var(--muted)]">
-            Dari keyword yang sama ({totalChecksAnalyzed} keyword yang sudah
-            dicek), domain mana yang paling sering muncul di AI Overview.
+          <p className="mt-0.5 text-xs text-[var(--muted)]">
+            Across the same keywords ({totalChecksAnalyzed} keywords checked),
+            which domains appear most often in AI Overview.
           </p>
         </div>
 
-        <Link href="/pengaturan">
-          <Button variant="secondary" size="sm">
-            Kelola daftar kompetitor
-          </Button>
-        </Link>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/pengaturan" className="inline-flex items-center gap-1.5">
+            <Settings className="h-3.5 w-3.5" />
+            Manage competitors list
+          </Link>
+        </Button>
       </div>
 
       <DemoDataBanner visible={hasDemoData} />
 
       {ranking.length === 0 || totalChecksAnalyzed === 0 ? (
-        <div className="rounded-lg border border-dashed border-[var(--line)] bg-[var(--surface)] p-8 text-center">
-          <h2 className="text-[15px] font-semibold text-[var(--ink)]">
-            Belum ada kutipan domain yang tercatat
-          </h2>
-          <p className="mx-auto mt-1 max-w-md text-[13px] text-[var(--muted)]">
-            Jalankan pengecekan keyword terlebih dahulu atau muat data contoh
-            untuk melihat peringkat domain yang dikutip oleh Google AI Overview.
-          </p>
-          <div className="mt-4 flex justify-center gap-2.5">
-            <Link href="/pengaturan">
-              <Button variant="primary">Buka pengaturan &amp; jalankan cek</Button>
-            </Link>
-            <Link href="/keyword">
-              <Button variant="secondary">Lihat daftar keyword</Button>
-            </Link>
-          </div>
-        </div>
+        <Card className="border-dashed p-8 text-center">
+          <CardHeader>
+            <CardTitle>No domain citations recorded yet</CardTitle>
+            <CardDescription className="mx-auto max-w-md">
+              Run keyword checks first or load demo data to view domain rankings
+              cited by Google AI Overview.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center gap-2.5">
+            <Button asChild variant="primary">
+              <Link href="/pengaturan">Open settings &amp; run check</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/keyword">View keywords list</Link>
+            </Button>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="mb-3.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-[14px] font-semibold text-[var(--ink)]">
-              Domain Dikutip per Jumlah Keyword
-            </h2>
-            <span className="text-[12px] text-[var(--muted)]">
-              Dihitung dari hasil cek terbaru tiap keyword
-            </span>
-          </div>
+        <Card>
+          <CardHeader>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <CardTitle>Domains Cited by Keyword Count</CardTitle>
+              <span className="text-xs text-[var(--muted)]">
+                Calculated from the latest check result of each keyword
+              </span>
+            </div>
+          </CardHeader>
 
-          <div className="space-y-2">
+          <CardContent className="space-y-2.5">
             {ranking.map((row) => (
               <div
                 key={row.domain}
-                className="grid grid-cols-1 items-center gap-2 text-[13px] sm:grid-cols-[200px_1fr_90px] sm:gap-2.5"
+                className="grid grid-cols-1 items-center gap-2 text-xs sm:grid-cols-[200px_1fr_90px] sm:gap-2.5"
               >
                 <div className="flex items-center gap-2 truncate">
                   <span
                     className={
                       row.isOwn
-                        ? "font-semibold text-[var(--cite)]"
-                        : "font-medium text-[var(--ink)]"
+                        ? "font-bold text-[var(--cite)]"
+                        : "font-semibold text-[var(--ink)]"
                     }
                   >
                     {row.domain}
-                    {row.isOwn ? " (Anda)" : ""}
+                    {row.isOwn ? " (You)" : ""}
                   </span>
                   {row.isCompetitor && (
-                    <Badge variant="notDetected">Kompetitor</Badge>
+                    <Badge variant="notDetected">Competitor</Badge>
                   )}
                 </div>
 
-                <div className="h-[18px] overflow-hidden rounded bg-[#F1F5F9]">
+                <div className="h-4 overflow-hidden rounded-full bg-[var(--none)]">
                   <div
-                    className="h-full rounded transition-all"
+                    className="h-full rounded-full transition-all"
                     style={{
                       width: `${Math.max(row.keywordCount > 0 ? 4 : 0, row.percentageOfMax)}%`,
-                      backgroundColor: row.isOwn ? "var(--cite)" : "#64748B",
+                      backgroundColor: row.isOwn ? "var(--cite)" : "var(--muted)",
                     }}
                   />
                 </div>
 
-                <div className="font-mono text-[12px] text-[var(--muted)] sm:text-right">
-                  {row.keywordCount} keyword
+                <div className="font-mono text-xs text-[var(--muted)] sm:text-right">
+                  {row.keywordCount} {row.keywordCount === 1 ? "keyword" : "keywords"}
                 </div>
               </div>
             ))}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Daftar Kompetitor Terdaftar */}
-      <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
-        <div className="mb-2.5 flex items-center justify-between">
-          <h2 className="text-[14px] font-semibold text-[var(--ink)]">
-            Kompetitor yang Dipantau ({competitors.length})
-          </h2>
-          <Link
-            href="/pengaturan"
-            className="text-[12px] font-medium text-[var(--brand)] hover:underline"
-          >
-            Tambah atau ubah di Pengaturan →
-          </Link>
-        </div>
-
-        {competitors.length === 0 ? (
-          <p className="text-[13px] text-[var(--muted)]">
-            Belum ada kompetitor yang didaftarkan. Tambahkan domain kompetitor
-            di halaman Pengaturan untuk menandai kutipan kompetitor secara
-            otomatis.
-          </p>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {competitors.map((c) => (
-              <div
-                key={c.id}
-                className="inline-flex items-center gap-2 rounded-md border border-[var(--line)] bg-[#F8FAFC] px-3 py-1.5 text-[12.5px]"
-              >
-                <span className="font-medium text-[var(--ink)]">{c.name}</span>
-                <span className="font-mono text-[11.5px] text-[var(--muted)]">
-                  {c.domain}
-                </span>
-              </div>
-            ))}
+      {/* Monitored Competitors */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>
+              Monitored Competitors ({competitors.length})
+            </CardTitle>
+            <Link
+              href="/pengaturan"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--cite)] hover:underline"
+            >
+              Add or manage in Settings
+              <ArrowRight className="h-3 w-3" />
+            </Link>
           </div>
-        )}
-      </div>
+        </CardHeader>
+
+        <CardContent>
+          {competitors.length === 0 ? (
+            <p className="text-xs text-[var(--muted)]">
+              No competitors registered yet. Add competitor domains on the
+              Settings page to automatically tag competitor citations.
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {competitors.map((c) => (
+                <div
+                  key={c.id}
+                  className="inline-flex items-center gap-2 rounded-md border border-[var(--line)] bg-[var(--bg)] px-3 py-1.5 text-xs"
+                >
+                  <span className="font-semibold text-[var(--ink)]">{c.name}</span>
+                  <span className="font-mono text-[11px] text-[var(--muted)]">
+                    {c.domain}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

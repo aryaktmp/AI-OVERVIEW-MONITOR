@@ -18,7 +18,7 @@ export default async function LoginPage({
     <main className="mx-auto flex min-h-screen max-w-[420px] flex-col justify-center px-4 py-12">
       <div className="mb-6 text-center">
         <h1 className="text-[22px] font-extrabold tracking-tight">
-          Pemantau kutipan AI Overview
+          AI Overview Citation Monitor
         </h1>
         <p className="text-sm text-[var(--muted)]">
           linovhr.com · Google Indonesia
@@ -27,9 +27,9 @@ export default async function LoginPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Masuk ke akun Anda</CardTitle>
+          <CardTitle>Sign in to your account</CardTitle>
           <CardDescription>
-            Hanya email yang terdaftar di daftar izin yang dapat masuk.
+            Only email addresses registered on the allowlist can sign in.
           </CardDescription>
         </CardHeader>
         <CardContent>

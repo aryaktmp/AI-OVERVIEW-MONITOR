@@ -1,8 +1,43 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Database,
+  Play,
+  Trash2,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   addBrandTermAction,
   addCompetitorAction,
@@ -101,7 +136,7 @@ export function SettingsClient({
 
   const remainingHourlyQuota = Math.max(0, maxPerHour - hourlyCallsUsed);
 
-  // Lanjutkan pemrosesan batch secara berkala selama halaman terbuka dan masih ada item pending
+  // Continue batch processing periodically while page is open and items are pending
   useEffect(() => {
     if (!liveRun) return;
     if (liveRun.status !== "running") return;
@@ -125,7 +160,7 @@ export function SettingsClient({
           );
           setFeedback({
             ok: true,
-            message: "Seluruh antrean pengecekan telah selesai diproses.",
+            message: "All check queue items have finished processing.",
           });
           return;
         }
@@ -146,14 +181,14 @@ export function SettingsClient({
             ok: res.status === "done",
             message:
               res.status === "done"
-                ? `Pengecekan selesai (${res.done}/${res.total} keyword selesai, ${res.serpApiCallsUsed} panggilan SerpApi dipakai).`
-                : `Pengecekan berakhir dengan status ${res.status}.`,
+                ? `Check completed (${res.done}/${res.total} keywords completed, ${res.serpApiCallsUsed} SerpApi calls used).`
+                : `Check ended with status ${res.status}.`,
           });
         } else if (res.stoppedReason === "rate_limit") {
           setFeedback({
             ok: false,
             message:
-              "Batas panggilan SerpApi per jam tercapai. Item sisa akan dilanjutkan pada jam berikutnya.",
+              "Hourly SerpApi call limit reached. Remaining items will resume in the next hour.",
           });
         }
       } catch (err) {
@@ -162,7 +197,7 @@ export function SettingsClient({
           message:
             err instanceof Error
               ? err.message
-              : "Gagal melanjutkan batch pemrosesan antrean.",
+              : "Failed to continue queue batch processing.",
         });
       } finally {
         setIsBatchProcessing(false);
@@ -192,12 +227,12 @@ export function SettingsClient({
         if (res.status === "done") {
           setFeedback({
             ok: true,
-            message: `Pengecekan selesai diproses (${res.done}/${res.total} item selesai, ${res.serpApiCallsUsed} panggilan SerpApi dipakai).`,
+            message: `Check completed (${res.done}/${res.total} items completed, ${res.serpApiCallsUsed} SerpApi calls used).`,
           });
         } else {
           setFeedback({
             ok: true,
-            message: `Batch pertama selesai (${res.done}/${res.total} item). Melanjutkan sisa antrean secara otomatis...`,
+            message: `First batch completed (${res.done}/${res.total} items). Automatically processing remaining queue...`,
           });
         }
       } catch (err) {
@@ -207,7 +242,7 @@ export function SettingsClient({
           message:
             err instanceof Error
               ? err.message
-              : "Gagal menjalankan pengecekan sekarang.",
+              : "Failed to run checks now.",
         });
       }
     });
@@ -226,7 +261,7 @@ export function SettingsClient({
         setFeedback({
           ok: false,
           message:
-            err instanceof Error ? err.message : "Gagal menghapus data contoh.",
+            err instanceof Error ? err.message : "Failed to delete demo data.",
         });
       }
     });
@@ -316,525 +351,537 @@ export function SettingsClient({
   return (
     <div className="space-y-4">
       {feedback && (
-        <div
-          className={`rounded-lg border px-4 py-2.5 text-[13px] ${
-            feedback.ok
-              ? "border-[#A7F3D0] bg-[#ECFDF5] text-[#065F46]"
-              : "border-[#FECACA] bg-[#FEF2F2] text-[#991B1B]"
-          }`}
-        >
-          {feedback.message}
-        </div>
+        <Alert variant={feedback.ok ? "success" : "destructive"}>
+          {feedback.ok ? (
+            <CheckCircle2 className="h-4 w-4" />
+          ) : (
+            <AlertCircle className="h-4 w-4" />
+          )}
+          <AlertDescription>{feedback.message}</AlertDescription>
+        </Alert>
       )}
 
-      {/* Kartu Progres Run Berjalan */}
-      {liveRun && (
-        <div className="rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <h3 className="text-[14px] font-semibold text-[#1E3A8A]">
-                Progres Pengecekan
-              </h3>
-              <Badge
-                variant={
-                  liveRun.status === "done"
-                    ? "detected"
-                    : liveRun.status === "running"
-                      ? "notDetected"
-                      : "none"
-                }
-              >
-                {liveRun.status === "done"
-                  ? "Selesai"
-                  : liveRun.status === "running"
-                    ? "Sedang Memproses..."
-                    : "Gagal"}
-              </Badge>
+      {/* Dialog Confirmation: Run Checks Now */}
+      <Dialog open={showRunConfirm} onOpenChange={setShowRunConfirm}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Confirm Run Checks Now</DialogTitle>
+            <DialogDescription>
+              You are about to start a check run for{" "}
+              <strong>{activeKeywordsCount} active keywords</strong>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2 py-2 text-xs text-[var(--muted)]">
+            <div className="rounded-md border border-[var(--line)] bg-[var(--bg)] p-3 space-y-1.5 text-xs">
+              <div>
+                • Estimated SerpApi calls:{" "}
+                <strong className="font-mono text-[var(--ink)]">
+                  ~{estimatedCallsForNextRun} calls
+                </strong>{" "}
+                (1–2 calls per keyword)
+              </div>
+              <div>
+                • Current hourly quota remaining:{" "}
+                <strong className="font-mono text-[var(--ink)]">
+                  {remainingHourlyQuota} of {maxPerHour} calls/hour
+                </strong>{" "}
+                ({hourlyCallsUsed} used in the last 60 minutes)
+              </div>
+              <div>
+                • Current mode:{" "}
+                <strong className="text-[var(--ink)]">
+                  {isDryRunEnv
+                    ? "Simulation / Dry Run (SERPAPI_DRY_RUN=true)"
+                    : "SerpApi Live Search"}
+                </strong>
+              </div>
             </div>
-            <span className="font-mono text-[12px] font-semibold text-[#1E3A8A]">
-              {liveRun.done} / {liveRun.total} keyword ({progressPercentage}%)
-            </span>
           </div>
 
-          <div className="mt-2.5 h-2.5 w-full overflow-hidden rounded-full bg-[#DBEAFE]">
-            <div
-              className="h-full rounded-full bg-[var(--cite)] transition-all duration-300"
-              style={{ width: `${progressPercentage}%` }}
-            />
-          </div>
-
-          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[12px] text-[#1E40AF]">
-            <span>
-              Tersisa: <strong>{liveRun.pending}</strong> keyword • Galat:{" "}
-              <strong>{liveRun.errors}</strong> • Panggilan SerpApi:{" "}
-              <strong className="font-mono">{liveRun.serpApiCallsUsed}</strong>
-            </span>
-            {liveRun.status === "running" && (
-              <span className="italic">
-                Memproses batch berikutnya secara otomatis selama halaman terbuka...
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Dialog Konfirmasi: Jalankan Cek Sekarang */}
-      {showRunConfirm && (
-        <div className="rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] p-4">
-          <h3 className="text-[14px] font-semibold text-[#1E3A8A]">
-            Konfirmasi Jalankan Pengecekan Sekarang
-          </h3>
-          <p className="mt-1 text-[13px] text-[#1E40AF]">
-            Anda akan memulai antrean pengecekan untuk{" "}
-            <strong>{activeKeywordsCount} keyword aktif</strong>.
-          </p>
-          <ul className="mt-2 space-y-1 text-[12.5px] text-[#1E3A8A]">
-            <li>
-              • Perkiraan panggilan SerpApi:{" "}
-              <strong className="font-mono">
-                ~{estimatedCallsForNextRun} panggilan
-              </strong>{" "}
-              (1–2 panggilan per keyword)
-            </li>
-            <li>
-              • Sisa batas per jam saat ini:{" "}
-              <strong className="font-mono">
-                {remainingHourlyQuota} dari {maxPerHour} panggilan/jam
-              </strong>{" "}
-              ({hourlyCallsUsed} terpakai dalam 60 menit terakhir)
-            </li>
-            <li>
-              • Mode saat ini:{" "}
-              <strong>
-                {isDryRunEnv
-                  ? "Simulasi / Dry Run (SERPAPI_DRY_RUN=true — tidak memotong kuota nyata)"
-                  : "Pencarian Nyata SerpApi (keyword contoh is_demo=true diabaikan otomatis)"}
-              </strong>
-            </li>
-          </ul>
-          <div className="mt-3.5 flex flex-wrap gap-2">
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isPending}
+              onClick={() => setShowRunConfirm(false)}
+            >
+              Cancel
+            </Button>
             <Button
               type="button"
               variant="primary"
               disabled={isPending || activeKeywordsCount === 0}
               onClick={handleRunCheckConfirm}
             >
-              {isPending ? "Memulai antrean..." : "Ya, jalankan cek sekarang"}
+              {isPending ? "Starting queue..." : "Yes, run checks now"}
             </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={isPending}
-              onClick={() => setShowRunConfirm(false)}
-            >
-              Batal
-            </Button>
-          </div>
-        </div>
-      )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      {/* Dialog Konfirmasi: Hapus Data Contoh */}
-      {showClearDemoConfirm && (
-        <div className="rounded-lg border border-[#FDE68A] bg-[#FFFBEB] p-4">
-          <h3 className="text-[14px] font-semibold text-[#92400E]">
-            Konfirmasi Hapus Data Contoh
-          </h3>
-          <p className="mt-1 text-[13px] text-[#B45309]">
-            Semua data contoh (<code>is_demo = true</code>) di tabel{" "}
-            <code>check_runs</code>, <code>keywords</code>,{" "}
-            <code>keyword_groups</code>, dan <code>competitors</code> akan dihapus
-            permanen. Data nyata buatan Anda tidak akan terhapus.
-          </p>
-          <div className="mt-3.5 flex flex-wrap gap-2">
+      {/* Dialog Confirmation: Clear Demo Data */}
+      <Dialog open={showClearDemoConfirm} onOpenChange={setShowClearDemoConfirm}>
+        <DialogContent className="sm:max-w-[460px]">
+          <DialogHeader>
+            <DialogTitle>Confirm Clear Demo Data</DialogTitle>
+            <DialogDescription>
+              All demo data (<code>is_demo = true</code>) in <code>check_runs</code>,{" "}
+              <code>keywords</code>, <code>keyword_groups</code>, and{" "}
+              <code>competitors</code> tables will be permanently deleted. Your
+              real data will not be affected.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
             <Button
               type="button"
-              variant="primary"
-              disabled={isPending}
-              onClick={handleClearDemoConfirm}
-            >
-              {isPending ? "Menghapus..." : "Ya, hapus data contoh"}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
+              variant="outline"
               disabled={isPending}
               onClick={() => setShowClearDemoConfirm(false)}
             >
-              Batal
+              Cancel
             </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Panel Kontrol Eksekusi Manual & Kuota */}
-      <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-[14px] font-semibold text-[var(--ink)]">
-              Eksekusi Pengecekan &amp; Data Contoh
-            </h2>
-            <p className="mt-0.5 text-[12.5px] text-[var(--muted)]">
-              Jadwal otomatis berjalan setiap Senin pukul 07:00 WIB. Anda juga
-              dapat memicu pengecekan manual kapan saja.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {hasDemoData && (
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={isPending || isBatchProcessing}
-                onClick={() => {
-                  setShowRunConfirm(false);
-                  setShowClearDemoConfirm(true);
-                }}
-              >
-                Hapus data contoh
-              </Button>
-            )}
             <Button
               type="button"
-              variant="primary"
-              disabled={isPending || isBatchProcessing}
-              onClick={() => {
-                setShowClearDemoConfirm(false);
-                setShowRunConfirm(true);
-              }}
+              variant="destructive"
+              disabled={isPending}
+              onClick={handleClearDemoConfirm}
             >
-              Jalankan cek sekarang
+              {isPending ? "Deleting..." : "Yes, clear demo data"}
             </Button>
-          </div>
-        </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-        <div className="mt-3 grid grid-cols-1 gap-2.5 border-t border-[var(--line)] pt-3 text-[12.5px] sm:grid-cols-3">
-          <div>
-            <span className="text-[var(--muted)]">Keyword aktif: </span>
-            <strong className="font-mono text-[var(--ink)]">
-              {activeKeywordsCount} keyword
-            </strong>
-          </div>
-          <div>
-            <span className="text-[var(--muted)]">Pemakaian 60 menit terakhir: </span>
-            <strong className="font-mono text-[var(--ink)]">
-              {hourlyCallsUsed} / {maxPerHour} panggilan
-            </strong>
-          </div>
-          <div>
-            <span className="text-[var(--muted)]">Mode SerpApi: </span>
-            <Badge variant={isDryRunEnv ? "notDetected" : "detected"}>
-              {isDryRunEnv ? "Dry Run (Contoh)" : "Produksi (Nyata)"}
-            </Badge>
-          </div>
-        </div>
-      </div>
-
-      {/* Penyimpanan Database terhadap Kuota 500 MB */}
-      <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 className="text-[14px] font-semibold text-[var(--ink)]">
-              Penyimpanan Database
-            </h2>
-            <p className="text-[12px] text-[var(--muted)]">
-              Hanya blok <code>ai_overview</code> dan metadata panggilan yang
-              disimpan di <code>checks.raw</code>. Data mentah lebih tua dari 90
-              hari dikosongkan otomatis setiap minggu.
-            </p>
-          </div>
-          <div className="text-right font-mono text-[13px] font-semibold text-[var(--ink)]">
-            {databaseStorage.usedMb.toFixed(2)} MB / {databaseStorage.quotaMb} MB (
-            {databaseStorage.percentUsed}%)
-          </div>
-        </div>
-
-        <div className="mt-2.5 h-2.5 w-full overflow-hidden rounded-full bg-[#F1F5F9]">
-          <div
-            className="h-full rounded-full transition-all"
-            style={{
-              width: `${Math.max(1, databaseStorage.percentUsed)}%`,
-              backgroundColor:
-                databaseStorage.percentUsed > 80
-                  ? "#DC2626"
-                  : databaseStorage.percentUsed > 50
-                    ? "var(--seen)"
-                    : "var(--cite)",
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Dua Kolom Pengaturan Merek & Lokasi */}
-      <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
-        {/* Identitas Merek */}
-        <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
-          <h2 className="mb-3 text-[14px] font-semibold text-[var(--ink)]">
-            Identitas Merek
-          </h2>
-
-          <div className="mb-3 text-[13px]">
-            <div className="text-[var(--muted)]">Domain utama</div>
-            <div className="mt-0.5 font-mono font-medium text-[var(--ink)]">
-              {brandDomain}
-            </div>
-          </div>
-
-          <div className="mb-3 text-[13px]">
-            <div className="mb-1.5 text-[var(--muted)]">
-              Variasi nama merek di teks jawaban
-            </div>
-            {brandTerms.length === 0 ? (
-              <p className="text-[12.5px] text-[var(--muted)]">
-                Belum ada istilah merek terdaftar.
-              </p>
-            ) : (
-              <div className="space-y-1.5">
-                {brandTerms.map((bt) => (
-                  <div
-                    key={bt.id}
-                    className="flex items-center justify-between rounded border border-[var(--line)] bg-[#F8FAFC] px-2.5 py-1.5"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-[12.5px] font-medium text-[var(--ink)]">
-                        {bt.term}
-                      </span>
-                      <Badge variant={bt.enabled ? "detected" : "none"}>
-                        {bt.enabled ? "Aktif" : "Nonaktif"}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        disabled={isPending}
-                        onClick={() =>
-                          handleToggleBrandTerm(bt.id, !bt.enabled)
-                        }
-                        className="text-[11.5px] font-medium text-[var(--muted)] hover:text-[var(--ink)]"
-                      >
-                        {bt.enabled ? "Matikan" : "Aktifkan"}
-                      </button>
-                      <span className="text-[var(--line)]">|</span>
-                      <button
-                        type="button"
-                        disabled={isPending}
-                        onClick={() => handleDeleteBrandTerm(bt.id)}
-                        className="text-[11.5px] font-medium text-[#DC2626] hover:underline"
-                      >
-                        Hapus
-                      </button>
-                    </div>
-                  </div>
-                ))}
+      {/* Live Run Progress Card */}
+      {liveRun && (
+        <Card className="border-[#BFDBFE] bg-[#EFF6FF] dark:border-[#1E3A8A]/50 dark:bg-[#1E3A8A]/20">
+          <CardHeader className="pb-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-sm font-semibold text-[#1E3A8A] dark:text-[#93C5FD]">
+                  Check Progress
+                </CardTitle>
+                <Badge
+                  variant={
+                    liveRun.status === "done"
+                      ? "detected"
+                      : liveRun.status === "running"
+                        ? "notDetected"
+                        : "none"
+                  }
+                >
+                  {liveRun.status === "done"
+                    ? "Completed"
+                    : liveRun.status === "running"
+                      ? "Processing..."
+                      : "Failed"}
+                </Badge>
               </div>
-            )}
-          </div>
+              <span className="font-mono text-xs font-semibold text-[#1E3A8A] dark:text-[#93C5FD]">
+                {liveRun.done} / {liveRun.total} keywords ({progressPercentage}%)
+              </span>
+            </div>
+          </CardHeader>
 
-          <form onSubmit={handleAddBrandTerm} className="flex gap-2">
-            <input
+          <CardContent className="space-y-2">
+            <Progress
+              value={liveRun.done}
+              max={Math.max(1, liveRun.total)}
+              className="bg-[#DBEAFE] dark:bg-[#1E3A8A]/40"
+            />
+
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#1E40AF] dark:text-[#BFDBFE]">
+              <span>
+                Remaining: <strong>{liveRun.pending}</strong> keywords • Errors:{" "}
+                <strong>{liveRun.errors}</strong> • SerpApi calls:{" "}
+                <strong className="font-mono">{liveRun.serpApiCallsUsed}</strong>
+              </span>
+              {liveRun.status === "running" && (
+                <span className="italic">
+                  Processing next batch automatically while page remains open...
+                </span>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Manual Execution & Quota Card */}
+      <Card>
+        <CardHeader>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <CardTitle>Check Execution &amp; Demo Data</CardTitle>
+              <CardDescription>
+                Automatic schedule runs every Monday at 07:00 WIB. You can also
+                trigger a manual check anytime.
+              </CardDescription>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {hasDemoData && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isPending || isBatchProcessing}
+                  onClick={() => {
+                    setShowRunConfirm(false);
+                    setShowClearDemoConfirm(true);
+                  }}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Clear demo data
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                disabled={isPending || isBatchProcessing}
+                onClick={() => {
+                  setShowClearDemoConfirm(false);
+                  setShowRunConfirm(true);
+                }}
+              >
+                <Play className="h-3.5 w-3.5" />
+                Run checks now
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent>
+          <div className="grid grid-cols-1 gap-2.5 border-t border-[var(--line)] pt-3 text-xs sm:grid-cols-3">
+            <div>
+              <span className="text-[var(--muted)]">Active keywords: </span>
+              <strong className="font-mono text-[var(--ink)]">
+                {activeKeywordsCount} keywords
+              </strong>
+            </div>
+            <div>
+              <span className="text-[var(--muted)]">Last 60 minutes usage: </span>
+              <strong className="font-mono text-[var(--ink)]">
+                {hourlyCallsUsed} / {maxPerHour} calls
+              </strong>
+            </div>
+            <div>
+              <span className="text-[var(--muted)]">SerpApi mode: </span>
+              <Badge variant={isDryRunEnv ? "notDetected" : "detected"}>
+                {isDryRunEnv ? "Dry Run (Demo)" : "Production (Live)"}
+              </Badge>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Database Storage Card */}
+      <Card>
+        <CardHeader>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-4 w-4 text-[var(--cite)]" />
+                Database Storage
+              </CardTitle>
+              <CardDescription>
+                Only <code>ai_overview</code> blocks and call metadata are
+                stored in <code>checks.raw</code>. Raw data older than 90
+                days is purged automatically each week.
+              </CardDescription>
+            </div>
+            <div className="text-right font-mono text-xs font-semibold text-[var(--ink)]">
+              {databaseStorage.usedMb.toFixed(2)} MB / {databaseStorage.quotaMb} MB (
+              {databaseStorage.percentUsed}%)
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent>
+          <Progress
+            value={databaseStorage.usedMb}
+            max={databaseStorage.quotaMb}
+            indicatorClassName={
+              databaseStorage.percentUsed > 80
+                ? "bg-[#DC2626]"
+                : databaseStorage.percentUsed > 50
+                  ? "bg-[var(--seen)]"
+                  : "bg-[var(--cite)]"
+            }
+          />
+        </CardContent>
+      </Card>
+
+      {/* Brand Identity & Location Settings */}
+      <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
+        {/* Brand Identity */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Brand Identity</CardTitle>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            <div className="text-xs">
+              <Label className="text-[var(--muted)]">Primary domain</Label>
+              <div className="mt-1 font-mono font-medium text-[var(--ink)]">
+                {brandDomain}
+              </div>
+            </div>
+
+            <div className="text-xs space-y-2">
+              <Label className="text-[var(--muted)]">
+                Brand name variations in answer text
+              </Label>
+              {brandTerms.length === 0 ? (
+                <p className="text-xs text-[var(--muted)]">
+                  No brand terms registered yet.
+                </p>
+              ) : (
+                <div className="space-y-1.5">
+                  {brandTerms.map((bt) => (
+                    <div
+                      key={bt.id}
+                      className="flex items-center justify-between rounded-md border border-[var(--line)] bg-[var(--bg)] px-2.5 py-1.5"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs font-medium text-[var(--ink)]">
+                          {bt.term}
+                        </span>
+                        <Badge variant={bt.enabled ? "detected" : "none"}>
+                          {bt.enabled ? "Active" : "Inactive"}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          disabled={isPending}
+                          onClick={() =>
+                            handleToggleBrandTerm(bt.id, !bt.enabled)
+                          }
+                          className="text-xs font-medium text-[var(--muted)] hover:text-[var(--ink)] cursor-pointer"
+                        >
+                          {bt.enabled ? "Disable" : "Enable"}
+                        </button>
+                        <span className="text-[var(--line)]">|</span>
+                        <button
+                          type="button"
+                          disabled={isPending}
+                          onClick={() => handleDeleteBrandTerm(bt.id)}
+                          className="text-xs font-medium text-[#DC2626] hover:underline cursor-pointer"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <form onSubmit={handleAddBrandTerm} className="flex gap-2">
+              <Input
+                type="text"
+                value={termInput}
+                onChange={(e) => setTermInput(e.target.value)}
+                placeholder="Add term (e.g. LinovHR)"
+                className="flex-1"
+                required
+              />
+              <Button type="submit" size="sm" disabled={isPending}>
+                Add term
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Search Parameters */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Search Parameters</CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <form onSubmit={handleSaveSearchSettings} className="space-y-3">
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="space-y-1.5">
+                  <Label htmlFor="loc-input">Search location</Label>
+                  <Input
+                    id="loc-input"
+                    type="text"
+                    value={locationInput}
+                    onChange={(e) => setLocationInput(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="gdomain-input">Google domain</Label>
+                  <Input
+                    id="gdomain-input"
+                    type="text"
+                    value={googleDomainInput}
+                    onChange={(e) => setGoogleDomainInput(e.target.value)}
+                    className="font-mono"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="space-y-1.5">
+                  <Label htmlFor="gl-input">Country code (gl)</Label>
+                  <Input
+                    id="gl-input"
+                    type="text"
+                    maxLength={2}
+                    value={glInput}
+                    onChange={(e) => setGlInput(e.target.value)}
+                    className="font-mono"
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="hl-input">Language code (hl)</Label>
+                  <Input
+                    id="hl-input"
+                    type="text"
+                    value={hlInput}
+                    onChange={(e) => setHlInput(e.target.value)}
+                    className="font-mono"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <Switch
+                  id="third-party-toggle"
+                  checked={thirdPartyEnabled}
+                  onCheckedChange={setThirdPartyEnabled}
+                />
+                <Label
+                  htmlFor="third-party-toggle"
+                  className="cursor-pointer font-medium"
+                >
+                  Check third-party sources
+                </Label>
+              </div>
+
+              <div className="pt-1">
+                <Button type="submit" size="sm" disabled={isPending}>
+                  Save settings
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Competitor List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Competitor List</CardTitle>
+          <CardDescription>
+            Competitor domains will be tagged automatically in AI Overview
+            sources and on the Competitors page.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-3.5">
+          <form
+            onSubmit={handleAddCompetitor}
+            className="flex flex-wrap gap-2"
+          >
+            <Input
               type="text"
-              value={termInput}
-              onChange={(e) => setTermInput(e.target.value)}
-              placeholder="Tambah istilah (mis. LinovHR)"
-              className="flex-1 rounded-md border border-[var(--line)] bg-white px-2.5 py-1.5 text-[13px]"
+              value={compNameInput}
+              onChange={(e) => setCompNameInput(e.target.value)}
+              placeholder="Competitor name (e.g. Mekari Talenta)"
+              className="min-w-[200px] flex-1"
+              required
+            />
+            <Input
+              type="text"
+              value={compDomainInput}
+              onChange={(e) => setCompDomainInput(e.target.value)}
+              placeholder="Domain (e.g. talenta.co)"
+              className="min-w-[180px] flex-1 font-mono"
               required
             />
             <Button type="submit" size="sm" disabled={isPending}>
-              Tambah istilah
+              Save competitor
             </Button>
           </form>
-        </div>
 
-        {/* Parameter Pencarian (Tabel settings) */}
-        <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
-          <h2 className="mb-3 text-[14px] font-semibold text-[var(--ink)]">
-            Parameter Pencarian
-          </h2>
-
-          <form onSubmit={handleSaveSearchSettings} className="space-y-2.5">
-            <div className="grid grid-cols-2 gap-2.5">
-              <div>
-                <label className="mb-1 block text-[12px] text-[var(--muted)]">
-                  Lokasi pencarian
-                </label>
-                <input
-                  type="text"
-                  value={locationInput}
-                  onChange={(e) => setLocationInput(e.target.value)}
-                  className="w-full rounded-md border border-[var(--line)] bg-white px-2.5 py-1.5 text-[13px]"
-                  required
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-[12px] text-[var(--muted)]">
-                  Domain Google
-                </label>
-                <input
-                  type="text"
-                  value={googleDomainInput}
-                  onChange={(e) => setGoogleDomainInput(e.target.value)}
-                  className="w-full rounded-md border border-[var(--line)] bg-white px-2.5 py-1.5 font-mono text-[13px]"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2.5">
-              <div>
-                <label className="mb-1 block text-[12px] text-[var(--muted)]">
-                  Kode negara (gl)
-                </label>
-                <input
-                  type="text"
-                  maxLength={2}
-                  value={glInput}
-                  onChange={(e) => setGlInput(e.target.value)}
-                  className="w-full rounded-md border border-[var(--line)] bg-white px-2.5 py-1.5 font-mono text-[13px]"
-                  required
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-[12px] text-[var(--muted)]">
-                  Kode bahasa (hl)
-                </label>
-                <input
-                  type="text"
-                  value={hlInput}
-                  onChange={(e) => setHlInput(e.target.value)}
-                  className="w-full rounded-md border border-[var(--line)] bg-white px-2.5 py-1.5 font-mono text-[13px]"
-                  required
-                />
-              </div>
-            </div>
-
-            <label className="flex items-center gap-2 pt-1 text-[12.5px] font-medium text-[var(--ink)]">
-              <input
-                type="checkbox"
-                checked={thirdPartyEnabled}
-                onChange={(e) => setThirdPartyEnabled(e.target.checked)}
-                className="rounded border-[var(--line)]"
-              />
-              Cek sumber pihak ketiga
-            </label>
-
-            <div className="pt-1">
-              <Button type="submit" size="sm" disabled={isPending}>
-                Simpan pengaturan
-              </Button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      {/* Daftar Kompetitor */}
-      <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
-        <h2 className="mb-2.5 text-[14px] font-semibold text-[var(--ink)]">
-          Daftar Kompetitor
-        </h2>
-        <p className="mb-3 text-[12.5px] text-[var(--muted)]">
-          Domain kompetitor akan ditandai secara otomatis pada daftar sumber AI
-          Overview dan halaman Kompetitor.
-        </p>
-
-        <form
-          onSubmit={handleAddCompetitor}
-          className="mb-3.5 flex flex-wrap gap-2"
-        >
-          <input
-            type="text"
-            value={compNameInput}
-            onChange={(e) => setCompNameInput(e.target.value)}
-            placeholder="Nama kompetitor (mis. Mekari Talenta)"
-            className="min-w-[200px] flex-1 rounded-md border border-[var(--line)] bg-white px-2.5 py-1.5 text-[13px]"
-            required
-          />
-          <input
-            type="text"
-            value={compDomainInput}
-            onChange={(e) => setCompDomainInput(e.target.value)}
-            placeholder="Domain (mis. talenta.co)"
-            className="min-w-[180px] flex-1 rounded-md border border-[var(--line)] bg-white px-2.5 py-1.5 font-mono text-[13px]"
-            required
-          />
-          <Button type="submit" size="sm" disabled={isPending}>
-            Simpan kompetitor
-          </Button>
-        </form>
-
-        {competitors.length === 0 ? (
-          <p className="text-[13px] text-[var(--muted)]">
-            Belum ada kompetitor yang ditambahkan.
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
-            {competitors.map((c) => (
-              <div
-                key={c.id}
-                className="flex items-center justify-between rounded border border-[var(--line)] bg-[#F8FAFC] px-3 py-2 text-[13px]"
-              >
-                <div className="truncate">
-                  <div className="font-medium text-[var(--ink)]">{c.name}</div>
-                  <div className="font-mono text-[11.5px] text-[var(--muted)]">
-                    {c.domain}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  disabled={isPending}
-                  onClick={() => handleDeleteCompetitor(c.id)}
-                  className="ml-2 text-[12px] font-medium text-[#DC2626] hover:underline"
-                >
-                  Hapus
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Riwayat Run & Jumlah Panggilan SerpApi per Run */}
-      <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 className="text-[14px] font-semibold text-[var(--ink)]">
-              Riwayat Run &amp; Pemakaian Panggilan SerpApi
-            </h2>
-            <p className="text-[12px] text-[var(--muted)]">
-              Menampilkan jumlah panggilan SerpApi per run (termasuk panggilan
-              kedua untuk page_token).
+          {competitors.length === 0 ? (
+            <p className="text-xs text-[var(--muted)]">
+              No competitors registered yet.
             </p>
-          </div>
-        </div>
-
-        {recentRuns.length === 0 ? (
-          <p className="py-4 text-center text-[13px] text-[var(--muted)]">
-            Belum ada riwayat pengecekan. Klik &ldquo;Jalankan cek sekarang&rdquo; di
-            atas untuk memulai.
-          </p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-[13px]">
-              <thead>
-                <tr className="border-b border-[var(--line)] text-left text-[11px] font-semibold uppercase tracking-[0.04em] text-[var(--muted)]">
-                  <th className="py-2 pr-3">Waktu Mulai</th>
-                  <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2">Jenis Run</th>
-                  <th className="px-3 py-2">Keyword Selesai</th>
-                  <th className="py-2 pl-3 text-right">Panggilan SerpApi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentRuns.map((run) => (
-                  <tr
-                    key={run.id}
-                    className="border-b border-[var(--line)] last:border-b-0"
+          ) : (
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+              {competitors.map((c) => (
+                <div
+                  key={c.id}
+                  className="flex items-center justify-between rounded-md border border-[var(--line)] bg-[var(--bg)] px-3 py-2 text-xs"
+                >
+                  <div className="truncate">
+                    <div className="font-medium text-[var(--ink)]">{c.name}</div>
+                    <div className="font-mono text-[11px] text-[var(--muted)]">
+                      {c.domain}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => handleDeleteCompetitor(c.id)}
+                    className="ml-2 text-xs font-medium text-[#DC2626] hover:underline cursor-pointer"
                   >
-                    <td className="py-2.5 pr-3 font-mono text-[12px] text-[var(--ink)]">
-                      {new Date(run.started_at).toLocaleString("id-ID", {
+                    Delete
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Run History & SerpApi Call Usage */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Run History &amp; SerpApi Call Usage</CardTitle>
+          <CardDescription>
+            Displays the number of SerpApi calls per run (including secondary
+            calls for page_token).
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          {recentRuns.length === 0 ? (
+            <p className="py-4 text-center text-xs text-[var(--muted)]">
+              No check history yet. Click &ldquo;Run checks now&rdquo; above to begin.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Start Time</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Run Type</TableHead>
+                  <TableHead>Keywords Done</TableHead>
+                  <TableHead className="text-right">SerpApi Calls</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recentRuns.map((run) => (
+                  <TableRow key={run.id}>
+                    <TableCell className="font-mono text-xs text-[var(--ink)]">
+                      {new Date(run.started_at).toLocaleString("en-US", {
+                        timeZone: "Asia/Jakarta",
                         dateStyle: "medium",
                         timeStyle: "short",
-                      })}
-                    </td>
-                    <td className="px-3 py-2.5">
+                      }) + " WIB"}
+                    </TableCell>
+                    <TableCell>
                       <Badge
                         variant={
                           run.status === "done"
@@ -845,30 +892,30 @@ export function SettingsClient({
                         }
                       >
                         {run.status === "done"
-                          ? "Selesai"
+                          ? "Completed"
                           : run.status === "running"
-                            ? "Berjalan"
+                            ? "Running"
                             : run.status}
                       </Badge>
-                    </td>
-                    <td className="px-3 py-2.5">
+                    </TableCell>
+                    <TableCell>
                       <Badge variant={run.is_demo ? "notDetected" : "brand"}>
-                        {run.is_demo ? "Data Contoh" : "Pencarian Nyata"}
+                        {run.is_demo ? "Demo Data" : "Live Search"}
                       </Badge>
-                    </td>
-                    <td className="px-3 py-2.5 font-mono text-[12px] text-[var(--muted)]">
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-[var(--muted)]">
                       {run.done} / {run.total}
-                    </td>
-                    <td className="py-2.5 pl-3 text-right font-mono text-[12.5px] font-semibold text-[var(--ink)]">
-                      {run.serpapi_calls} panggilan
-                    </td>
-                  </tr>
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-xs font-semibold text-[var(--ink)]">
+                      {run.serpapi_calls} calls
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

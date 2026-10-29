@@ -24,7 +24,7 @@ export default async function DashboardLayout({
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="m-0 text-[22px] font-extrabold tracking-tight">
-            Pemantau kutipan AI Overview
+            AI Overview Citation Monitor
           </h1>
           <p className="m-0 text-sm text-[var(--muted)]">
             linovhr.com · Google Indonesia
@@ -35,7 +35,7 @@ export default async function DashboardLayout({
           <span className="text-xs text-[var(--muted)]">{user.email}</span>
           <form action={logoutAction}>
             <Button type="submit" variant="outline" size="sm">
-              Keluar dari akun
+              Sign out
             </Button>
           </form>
         </div>

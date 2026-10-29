@@ -33,7 +33,7 @@ async function main() {
   const secretKey = process.env.SUPABASE_SECRET_KEY;
 
   if (!supabaseUrl || !secretKey) {
-    console.error("SUPABASE_URL dan SUPABASE_SECRET_KEY wajib diisi di .env.local");
+    console.error("SUPABASE_URL and SUPABASE_SECRET_KEY are required in .env.local");
     process.exit(1);
   }
 
@@ -41,16 +41,16 @@ async function main() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  console.log("=== Menghapus Data Contoh di Keempat Tabel (is_demo = true) ===");
+  console.log("=== Clearing Demo Data Across Tables (is_demo = true) ===");
 
   const res = await clearAllDemoData(supabase);
 
   console.log(
-    `Selesai menghapus data contoh di check_runs (${res.deletedRunsCount} run), keywords, keyword_groups, dan competitors.`
+    `Finished deleting demo data in check_runs (${res.deletedRunsCount} runs), keywords, keyword_groups, and competitors.`
   );
 }
 
 main().catch((err) => {
-  console.error("Gagal menjalankan seed:clear:", err);
+  console.error("Failed to run seed:clear:", err);
   process.exit(1);
 });

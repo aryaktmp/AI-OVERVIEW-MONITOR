@@ -16,7 +16,7 @@ export function WeeklyTrendChart({ weeks }: { weeks: WeekBucket[] }) {
     <div
       className="h-[210px] w-full"
       role="img"
-      aria-label="Grafik tingkat kutipan per minggu"
+      aria-label="Weekly detection rate chart"
     >
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
@@ -41,8 +41,8 @@ export function WeeklyTrendChart({ weeks }: { weeks: WeekBucket[] }) {
             axisLine={false}
           />
           <Tooltip
-            formatter={(value: unknown) => [`${String(value)}%`, "Tingkat deteksi"]}
-            labelFormatter={(label) => `Minggu ${String(label)}`}
+            formatter={(value: unknown) => [`${String(value)}%`, "Detection rate"]}
+            labelFormatter={(label) => `Week of ${String(label)}`}
             contentStyle={{
               backgroundColor: "var(--surface)",
               borderColor: "var(--line)",

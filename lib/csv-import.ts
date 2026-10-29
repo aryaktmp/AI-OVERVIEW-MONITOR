@@ -17,9 +17,9 @@ export function normalizeWhitespace(input: string): string {
 export const csvKeywordRowSchema = z.object({
   keyword: z
     .string()
-    .min(2, "Keyword minimal 2 karakter")
-    .max(200, "Keyword maksimal 200 karakter"),
-  group: z.string().max(80, "Nama grup maksimal 80 karakter"),
+    .min(2, "Keyword must be at least 2 characters")
+    .max(200, "Keyword must be at most 200 characters"),
+  group: z.string().max(80, "Group name must be at most 80 characters"),
 });
 
 export interface ValidCsvRow {
@@ -144,7 +144,7 @@ export function parseKeywordCsvPreview(
         lineNumber,
         rawKeyword: col0,
         rawGroup: col1,
-        reason: `Melebihi batas maksimal ${MAX_CSV_IMPORT_ROWS} baris per impor`,
+        reason: `Exceeds maximum limit of ${MAX_CSV_IMPORT_ROWS} rows per import`,
       });
       continue;
     }
@@ -155,7 +155,7 @@ export function parseKeywordCsvPreview(
         rawKeyword: col0,
         rawGroup: col1,
         reason:
-          "Format kolom terlalu banyak (gunakan format 2 kolom: keyword,group)",
+          "Too many columns (use 2-column format: keyword,group)",
       });
       continue;
     }
@@ -171,7 +171,7 @@ export function parseKeywordCsvPreview(
         rawKeyword: col0,
         rawGroup: col1,
         reason:
-          validation.error.issues[0]?.message ?? "Baris CSV tidak valid",
+          validation.error.issues[0]?.message ?? "Invalid CSV row",
       });
       continue;
     }
@@ -185,7 +185,7 @@ export function parseKeywordCsvPreview(
         lineNumber,
         keyword,
         group,
-        reason: "Sudah ada di database",
+        reason: "Already exists in database",
       });
       continue;
     }
@@ -195,7 +195,7 @@ export function parseKeywordCsvPreview(
         lineNumber,
         keyword,
         group,
-        reason: "Duplikat di dalam file CSV",
+        reason: "Duplicate inside CSV file",
       });
       continue;
     }

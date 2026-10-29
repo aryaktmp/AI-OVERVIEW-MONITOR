@@ -1,9 +1,13 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { loginAction, type AuthActionState } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const initialState: AuthActionState = {
   status: "idle",
@@ -21,51 +25,35 @@ export function LoginForm({ initialError }: { initialError?: string }) {
     state.status === "error"
       ? state.message
       : initialError === "forbidden"
-        ? "Email Anda tidak ada dalam daftar izin akses. Akses ditolak."
+        ? "Your email is not on the access allowlist. Access denied."
         : initialError === "callback"
-          ? "Tautan masuk tidak valid atau sudah kedaluwarsa. Silakan minta tautan baru."
+          ? "The sign-in link is invalid or has expired. Please request a new link."
           : initialError === "config"
-            ? "Konfigurasi Supabase belum lengkap di server."
+            ? "Supabase configuration is incomplete on the server."
             : "";
 
   return (
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="mode" value={mode} />
 
-      <div className="flex gap-1 rounded-md bg-[var(--none)] p-1">
-        <button
-          type="button"
-          onClick={() => setMode("password")}
-          className={`flex-1 rounded py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
-            mode === "password"
-              ? "bg-[var(--surface)] text-[var(--ink)] shadow-xs"
-              : "text-[var(--muted)]"
-          }`}
-        >
-          Kata sandi
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode("otp")}
-          className={`flex-1 rounded py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
-            mode === "otp"
-              ? "bg-[var(--surface)] text-[var(--ink)] shadow-xs"
-              : "text-[var(--muted)]"
-          }`}
-        >
-          Tautan email (OTP)
-        </button>
-      </div>
+      <Tabs
+        value={mode}
+        onValueChange={(val) => setMode(val as "password" | "otp")}
+        className="w-full"
+      >
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="password">Password</TabsTrigger>
+          <TabsTrigger value="otp">Email link (OTP)</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       <div className="space-y-1.5">
-        <label htmlFor="email" className="block text-xs font-semibold">
-          Alamat email
-        </label>
+        <Label htmlFor="email">Email address</Label>
         <Input
           id="email"
           name="email"
           type="email"
-          placeholder="nama@linovhr.com"
+          placeholder="name@linovhr.com"
           required
           autoComplete="email"
           disabled={isPending}
@@ -74,14 +62,12 @@ export function LoginForm({ initialError }: { initialError?: string }) {
 
       {mode === "password" && (
         <div className="space-y-1.5">
-          <label htmlFor="password" className="block text-xs font-semibold">
-            Kata sandi
-          </label>
+          <Label htmlFor="password">Password</Label>
           <Input
             id="password"
             name="password"
             type="password"
-            placeholder="Masukkan kata sandi"
+            placeholder="Enter your password"
             required
             autoComplete="current-password"
             disabled={isPending}
@@ -90,21 +76,17 @@ export function LoginForm({ initialError }: { initialError?: string }) {
       )}
 
       {errorMessage && (
-        <div
-          role="alert"
-          className="rounded-md border border-[#C0392B]/30 bg-[#C0392B]/10 px-3 py-2 text-xs font-medium text-[#C0392B]"
-        >
-          {errorMessage}
-        </div>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{errorMessage}</AlertDescription>
+        </Alert>
       )}
 
       {state.status === "success" && (
-        <div
-          role="status"
-          className="rounded-md border border-[var(--cite)]/30 bg-[var(--cite-bg)] px-3 py-2 text-xs font-medium text-[var(--cite)]"
-        >
-          {state.message}
-        </div>
+        <Alert variant="success">
+          <CheckCircle2 className="h-4 w-4" />
+          <AlertDescription>{state.message}</AlertDescription>
+        </Alert>
       )}
 
       <Button
@@ -114,10 +96,10 @@ export function LoginForm({ initialError }: { initialError?: string }) {
         disabled={isPending}
       >
         {isPending
-          ? "Memproses permintaan..."
+          ? "Processing request..."
           : mode === "password"
-            ? "Masuk ke dasbor"
-            : "Kirim tautan masuk"}
+            ? "Sign in to dashboard"
+            : "Send sign-in link"}
       </Button>
     </form>
   );

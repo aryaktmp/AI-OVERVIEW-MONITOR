@@ -20,7 +20,7 @@ async function requireAllowedAdminUser() {
   } = await supabase.auth.getUser();
 
   if (!user || !isEmailAllowed(user.email)) {
-    throw new Error("Akses ditolak. Sesi Anda tidak valid atau tidak diizinkan.");
+    throw new Error("Access denied. Your session is invalid or not authorized.");
   }
 
   return user;
@@ -37,8 +37,8 @@ const addKeywordSchema = z.object({
   text: z
     .string()
     .trim()
-    .min(2, "Keyword minimal 2 karakter")
-    .max(200, "Keyword maksimal 200 karakter"),
+    .min(2, "Keyword must be at least 2 characters")
+    .max(200, "Keyword must be at most 200 characters"),
   groupId: z.string().trim().optional(),
   newGroupName: z.string().trim().max(80).optional(),
 });
@@ -55,7 +55,7 @@ export async function addKeywordAction(formData: FormData) {
   if (!parsed.success) {
     return {
       ok: false,
-      message: parsed.error.issues[0]?.message ?? "Input keyword tidak valid.",
+      message: parsed.error.issues[0]?.message ?? "Invalid keyword input.",
     };
   }
 
@@ -72,7 +72,7 @@ export async function addKeywordAction(formData: FormData) {
     if (grpErr || !grp) {
       return {
         ok: false,
-        message: `Gagal menyimpan grup: ${grpErr?.message ?? "unknown"}`,
+        message: `Failed to save group: ${grpErr?.message ?? "unknown"}`,
       };
     }
     targetGroupId = (grp as { id: string }).id;
@@ -86,13 +86,13 @@ export async function addKeywordAction(formData: FormData) {
 
   if (error) {
     if (error.code === "23505") {
-      return { ok: false, message: "Keyword tersebut sudah terdaftar." };
+      return { ok: false, message: "This keyword is already registered." };
     }
-    return { ok: false, message: `Gagal menyimpan keyword: ${error.message}` };
+    return { ok: false, message: `Failed to save keyword: ${error.message}` };
   }
 
   revalidateAllDashboardRoutes();
-  return { ok: true, message: "Keyword berhasil disimpan." };
+  return { ok: true, message: "Keyword saved successfully." };
 }
 
 export async function importKeywordsCsvAction(formData: FormData) {
@@ -102,7 +102,7 @@ export async function importKeywordsCsvAction(formData: FormData) {
   if (!csvText.trim()) {
     return {
       ok: false,
-      message: "Isi file CSV tidak boleh kosong.",
+      message: "CSV file content cannot be empty.",
     };
   }
 
@@ -130,14 +130,14 @@ export async function importKeywordsCsvAction(formData: FormData) {
   if (preview.exceededMaxRows) {
     return {
       ok: false,
-      message: `Impor ditolak: jumlah baris melebihi batas maksimal ${MAX_CSV_IMPORT_ROWS} baris per impor.`,
+      message: `Import rejected: row count exceeds maximum limit of ${MAX_CSV_IMPORT_ROWS} rows per import.`,
     };
   }
 
   if (preview.validRows.length === 0) {
     return {
       ok: false,
-      message: "Tidak ada keyword baru yang valid untuk disimpan.",
+      message: "No new valid keywords to save.",
     };
   }
 
@@ -158,7 +158,7 @@ export async function importKeywordsCsvAction(formData: FormData) {
     if (grpErr) {
       return {
         ok: false,
-        message: `Gagal membuat grup baru: ${grpErr.message}`,
+        message: `Failed to create new group: ${grpErr.message}`,
       };
     }
 
@@ -185,14 +185,14 @@ export async function importKeywordsCsvAction(formData: FormData) {
   if (insertErr) {
     return {
       ok: false,
-      message: `Gagal mengimpor keyword: ${insertErr.message}`,
+      message: `Failed to import keywords: ${insertErr.message}`,
     };
   }
 
   revalidateAllDashboardRoutes();
   return {
     ok: true,
-    message: `Berhasil mengimpor ${preview.validRows.length} keyword baru (${preview.duplicateRows.length} duplikat dilewati, ${preview.invalidRows.length} tidak valid).`,
+    message: `Successfully imported ${preview.validRows.length} new keywords (${preview.duplicateRows.length} duplicates skipped, ${preview.invalidRows.length} invalid).`,
     insertedCount: preview.validRows.length,
     duplicateCount: preview.duplicateRows.length,
     invalidCount: preview.invalidRows.length,
@@ -200,7 +200,7 @@ export async function importKeywordsCsvAction(formData: FormData) {
   };
 }
 
-const uuidSchema = z.string().uuid("ID tidak valid");
+const uuidSchema = z.string().uuid("Invalid ID");
 
 export async function toggleKeywordActiveAction(
   keywordId: string,
@@ -217,7 +217,7 @@ export async function toggleKeywordActiveAction(
     .eq("id", id);
 
   if (error) {
-    return { ok: false, message: `Gagal mengubah status: ${error.message}` };
+    return { ok: false, message: `Failed to update status: ${error.message}` };
   }
 
   revalidateAllDashboardRoutes();
@@ -232,7 +232,7 @@ export async function deleteKeywordAction(keywordId: string) {
   const { error } = await supabase.from("keywords").delete().eq("id", id);
 
   if (error) {
-    return { ok: false, message: `Gagal menghapus keyword: ${error.message}` };
+    return { ok: false, message: `Failed to delete keyword: ${error.message}` };
   }
 
   revalidateAllDashboardRoutes();
@@ -243,8 +243,8 @@ const groupSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, "Nama grup minimal 2 karakter")
-    .max(80, "Nama grup maksimal 80 karakter"),
+    .min(2, "Group name must be at least 2 characters")
+    .max(80, "Group name must be at most 80 characters"),
 });
 
 export async function addKeywordGroupAction(formData: FormData) {
@@ -256,7 +256,7 @@ export async function addKeywordGroupAction(formData: FormData) {
   if (!parsed.success) {
     return {
       ok: false,
-      message: parsed.error.issues[0]?.message ?? "Nama grup tidak valid.",
+      message: parsed.error.issues[0]?.message ?? "Invalid group name.",
     };
   }
 
@@ -267,13 +267,13 @@ export async function addKeywordGroupAction(formData: FormData) {
 
   if (error) {
     if (error.code === "23505") {
-      return { ok: false, message: "Grup dengan nama tersebut sudah ada." };
+      return { ok: false, message: "A group with this name already exists." };
     }
-    return { ok: false, message: `Gagal menambah grup: ${error.message}` };
+    return { ok: false, message: `Failed to add group: ${error.message}` };
   }
 
   revalidateAllDashboardRoutes();
-  return { ok: true, message: "Grup berhasil ditambahkan." };
+  return { ok: true, message: "Group added successfully." };
 }
 
 export async function deleteKeywordGroupAction(groupId: string) {
@@ -287,7 +287,7 @@ export async function deleteKeywordGroupAction(groupId: string) {
     .eq("id", id);
 
   if (error) {
-    return { ok: false, message: `Gagal menghapus grup: ${error.message}` };
+    return { ok: false, message: `Failed to delete group: ${error.message}` };
   }
 
   revalidateAllDashboardRoutes();
@@ -298,8 +298,8 @@ const brandTermSchema = z.object({
   term: z
     .string()
     .trim()
-    .min(2, "Istilah merek minimal 2 karakter")
-    .max(100, "Istilah merek maksimal 100 karakter"),
+    .min(2, "Brand term must be at least 2 characters")
+    .max(100, "Brand term must be at most 100 characters"),
 });
 
 export async function addBrandTermAction(formData: FormData) {
@@ -311,7 +311,7 @@ export async function addBrandTermAction(formData: FormData) {
   if (!parsed.success) {
     return {
       ok: false,
-      message: parsed.error.issues[0]?.message ?? "Istilah merek tidak valid.",
+      message: parsed.error.issues[0]?.message ?? "Invalid brand term.",
     };
   }
 
@@ -323,13 +323,13 @@ export async function addBrandTermAction(formData: FormData) {
 
   if (error) {
     if (error.code === "23505") {
-      return { ok: false, message: "Istilah merek tersebut sudah ada." };
+      return { ok: false, message: "This brand term already exists." };
     }
-    return { ok: false, message: `Gagal menyimpan istilah: ${error.message}` };
+    return { ok: false, message: `Failed to save brand term: ${error.message}` };
   }
 
   revalidateAllDashboardRoutes();
-  return { ok: true, message: "Istilah merek ditambahkan." };
+  return { ok: true, message: "Brand term added successfully." };
 }
 
 export async function toggleBrandTermAction(termId: string, enabled: boolean) {
@@ -344,7 +344,7 @@ export async function toggleBrandTermAction(termId: string, enabled: boolean) {
     .eq("id", id);
 
   if (error) {
-    return { ok: false, message: `Gagal memperbarui istilah: ${error.message}` };
+    return { ok: false, message: `Failed to update brand term: ${error.message}` };
   }
 
   revalidateAllDashboardRoutes();
@@ -359,7 +359,7 @@ export async function deleteBrandTermAction(termId: string) {
   const { error } = await supabase.from("brand_terms").delete().eq("id", id);
 
   if (error) {
-    return { ok: false, message: `Gagal menghapus istilah: ${error.message}` };
+    return { ok: false, message: `Failed to delete brand term: ${error.message}` };
   }
 
   revalidateAllDashboardRoutes();
@@ -367,14 +367,14 @@ export async function deleteBrandTermAction(termId: string) {
 }
 
 const competitorSchema = z.object({
-  name: z.string().trim().min(2, "Nama kompetitor minimal 2 karakter").max(100),
+  name: z.string().trim().min(2, "Competitor name must be at least 2 characters").max(100),
   domain: z
     .string()
     .trim()
     .toLowerCase()
     .regex(
       /^[a-z0-9-]+(\.[a-z0-9-]+)+$/,
-      "Domain harus berupa hostname valid tanpa http atau garis miring (contoh: gadjian.com)"
+      "Domain must be a valid hostname without http or trailing slashes (e.g. talenta.co)"
     ),
 });
 
@@ -394,7 +394,7 @@ export async function addCompetitorAction(formData: FormData) {
     return {
       ok: false,
       message:
-        parsed.error.issues[0]?.message ?? "Data kompetitor tidak valid.",
+        parsed.error.issues[0]?.message ?? "Invalid competitor data.",
     };
   }
 
@@ -406,16 +406,16 @@ export async function addCompetitorAction(formData: FormData) {
 
   if (error) {
     if (error.code === "23505") {
-      return { ok: false, message: "Domain kompetitor tersebut sudah ada." };
+      return { ok: false, message: "This competitor domain already exists." };
     }
     return {
       ok: false,
-      message: `Gagal menyimpan kompetitor: ${error.message}`,
+      message: `Failed to save competitor: ${error.message}`,
     };
   }
 
   revalidateAllDashboardRoutes();
-  return { ok: true, message: "Kompetitor ditambahkan." };
+  return { ok: true, message: "Competitor added successfully." };
 }
 
 export async function deleteCompetitorAction(competitorId: string) {
@@ -428,7 +428,7 @@ export async function deleteCompetitorAction(competitorId: string) {
   if (error) {
     return {
       ok: false,
-      message: `Gagal menghapus kompetitor: ${error.message}`,
+      message: `Failed to delete competitor: ${error.message}`,
     };
   }
 
@@ -437,10 +437,10 @@ export async function deleteCompetitorAction(competitorId: string) {
 }
 
 const searchSettingsSchema = z.object({
-  location: z.string().trim().min(2, "Lokasi wajib diisi"),
-  google_domain: z.string().trim().min(3, "Domain Google wajib diisi"),
-  gl: z.string().trim().length(2, "Kode negara (gl) harus 2 huruf"),
-  hl: z.string().trim().min(2, "Kode bahasa (hl) minimal 2 huruf"),
+  location: z.string().trim().min(2, "Location is required"),
+  google_domain: z.string().trim().min(3, "Google domain is required"),
+  gl: z.string().trim().length(2, "Country code (gl) must be 2 letters"),
+  hl: z.string().trim().min(2, "Language code (hl) must be at least 2 letters"),
   enable_third_party_check: z.boolean(),
 });
 
@@ -459,7 +459,7 @@ export async function saveSearchSettingsAction(formData: FormData) {
   if (!parsed.success) {
     return {
       ok: false,
-      message: parsed.error.issues[0]?.message ?? "Pengaturan tidak valid.",
+      message: parsed.error.issues[0]?.message ?? "Invalid settings.",
     };
   }
 
@@ -476,12 +476,12 @@ export async function saveSearchSettingsAction(formData: FormData) {
   if (error) {
     return {
       ok: false,
-      message: `Gagal menyimpan pengaturan (pastikan tabel settings sudah dimigrasi): ${error.message}`,
+      message: `Failed to save settings (ensure settings table is migrated): ${error.message}`,
     };
   }
 
   revalidateAllDashboardRoutes();
-  return { ok: true, message: "Pengaturan lokasi dan bahasa berhasil disimpan." };
+  return { ok: true, message: "Location and language settings saved successfully." };
 }
 
 export async function runCheckNowAction() {
@@ -644,6 +644,6 @@ export async function clearDemoDataAction() {
   return {
     ok: true,
     message:
-      "Seluruh data contoh di check_runs, keywords, keyword_groups, dan competitors berhasil dihapus.",
+      "All demo data in check_runs, keywords, keyword_groups, and competitors has been permanently cleared.",
   };
 }

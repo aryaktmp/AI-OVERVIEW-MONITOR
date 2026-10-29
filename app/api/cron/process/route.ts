@@ -16,7 +16,7 @@ export const maxDuration = 60;
 async function handleProcessQueue(request: Request) {
   if (!verifyCronSecret(request)) {
     return NextResponse.json(
-      { error: "Tidak diizinkan. Header Authorization Bearer tidak valid." },
+      { error: "Unauthorized. Invalid Authorization Bearer header." },
       { status: 401, headers: { "Cache-Control": "no-store, max-age=0" } }
     );
   }
@@ -47,7 +47,7 @@ async function handleProcessQueue(request: Request) {
         error:
           err instanceof Error
             ? err.message
-            : "Gagal memproses antrean pengecekan.",
+            : "Failed to process check queue.",
       },
       { status: 500, headers: { "Cache-Control": "no-store, max-age=0" } }
     );

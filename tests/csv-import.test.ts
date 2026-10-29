@@ -39,19 +39,19 @@ describe("Parser Impor CSV Keyword (lib/csv-import.ts)", () => {
         lineNumber: 3,
         keyword: "SOFTWARE HR TERBAIK",
         group: "Produk HR",
-        reason: "Duplikat di dalam file CSV",
+        reason: "Duplicate inside CSV file",
       },
       {
         lineNumber: 4,
         keyword: "aplikasi payroll indonesia",
         group: "Produk HR",
-        reason: "Sudah ada di database",
+        reason: "Already exists in database",
       },
     ]);
 
     expect(preview.invalidRows).toHaveLength(1);
     expect(preview.invalidRows[0]?.lineNumber).toBe(6);
-    expect(preview.invalidRows[0]?.reason).toContain("minimal 2 karakter");
+    expect(preview.invalidRows[0]?.reason).toContain("at least 2 characters");
 
     expect(preview.newGroupsToCreate).toEqual(["Manajemen Talenta"]);
   });
@@ -67,7 +67,7 @@ describe("Parser Impor CSV Keyword (lib/csv-import.ts)", () => {
     expect(preview.exceededMaxRows).toBe(true);
     expect(preview.validRows).toHaveLength(MAX_CSV_IMPORT_ROWS);
     expect(preview.invalidRows).toHaveLength(5);
-    expect(preview.invalidRows[0]?.reason).toContain("500 baris");
+    expect(preview.invalidRows[0]?.reason).toContain("500 rows");
   });
 
   it("mendukung nilai dengan tanda kutip ganda dan menolak baris lebih dari 2 kolom", () => {
@@ -87,6 +87,6 @@ describe("Parser Impor CSV Keyword (lib/csv-import.ts)", () => {
       },
     ]);
     expect(preview.invalidRows).toHaveLength(1);
-    expect(preview.invalidRows[0]?.reason).toContain("2 kolom");
+    expect(preview.invalidRows[0]?.reason).toContain("2-column format");
   });
 });

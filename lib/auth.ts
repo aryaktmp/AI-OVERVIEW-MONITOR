@@ -5,8 +5,8 @@ export const loginSchema = z
     email: z
       .string()
       .trim()
-      .min(1, "Email wajib diisi")
-      .email("Format email tidak valid"),
+      .min(1, "Email address is required")
+      .email("Invalid email address format"),
     password: z.string().optional(),
     mode: z.enum(["password", "otp"]).default("password"),
   })
@@ -15,7 +15,7 @@ export const loginSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["password"],
-        message: "Kata sandi wajib diisi",
+        message: "Password is required",
       });
     }
   });

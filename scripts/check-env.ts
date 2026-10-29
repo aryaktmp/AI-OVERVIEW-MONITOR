@@ -992,11 +992,11 @@ async function main() {
   }
 
   // ============================================================================
-  // CETAK TABEL KELUARAN
+  // PRINT OUTPUT TABLE
   // ============================================================================
-  const col1Title = "Pemeriksaan";
+  const col1Title = "Check";
   const col2Title = "Status";
-  const col3Title = "Keterangan";
+  const col3Title = "Description";
 
   const col1Width = Math.max(
     col1Title.length,
@@ -1027,7 +1027,7 @@ async function main() {
   const skipCount = results.filter((r) => r.status === "SKIP").length;
 
   console.log(
-    `\nRingkasan: PASS=${passCount} | WARN=${warnCount} | FAIL=${failCount} | SKIP=${skipCount}`
+    `\nSummary: PASS=${passCount} | WARN=${warnCount} | FAIL=${failCount} | SKIP=${skipCount}`
   );
 
   if (failCount > 0) {
@@ -1037,7 +1037,7 @@ async function main() {
 
 main().catch((err) => {
   console.error(
-    "Gagal menjalankan pemeriksa env:",
+    "Failed to execute env checker:",
     err instanceof Error ? err.message : String(err)
   );
   process.exit(1);

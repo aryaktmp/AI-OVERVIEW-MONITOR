@@ -800,17 +800,17 @@ async function main() {
   let activeMode: "DB_DIRECT" | "DB_FILE" | "API" = "API";
 
   if (fromFilePath) {
-    console.log(`Mode Pemeriksaan     : DB (--from-file ${fromFilePath})`);
+    console.log(`Verification Mode     : DB (--from-file ${fromFilePath})`);
     activeMode = "DB_FILE";
     const parsedFileItems = parseSqlEditorResultsFile(fromFilePath);
     snapshot = buildSnapshotFromSqlEditorItems(parsedFileItems, manifest);
   } else if (databaseUrl) {
-    console.log("Mode Pemeriksaan     : DB (PostgreSQL langsung via DATABASE_URL, BEGIN READ ONLY)");
+    console.log("Verification Mode     : DB (Direct PostgreSQL via DATABASE_URL, BEGIN READ ONLY)");
     activeMode = "DB_DIRECT";
     snapshot = await introspectViaPostgres(databaseUrl);
   } else {
-    console.log("Mode Pemeriksaan     : API (Supabase OpenAPI/REST API)");
-    console.log("                       Perhatian: Kategori yang tidak diekspos oleh API berstatus UNVERIFIED.");
+    console.log("Verification Mode     : API (Supabase OpenAPI/REST API)");
+    console.log("                       Notice: Categories not exposed by the API are marked UNVERIFIED.");
     activeMode = "API";
     if (supabaseUrl && publishableKey && secretKey) {
       snapshot = await introspectViaSupabaseRest(
@@ -823,11 +823,11 @@ async function main() {
   }
 
   if (!snapshot) {
-    console.log("\n[INSTRUKSI SUPABASE SQL EDITOR]");
-    console.log("1. Buka Supabase Dashboard -> SQL Editor.");
-    console.log("2. Buka file supabase/verify/verify.sql, salin isinya, lalu klik Run.");
-    console.log("3. Ekspor hasil tabel sebagai CSV (tombol Export di kanan atas hasil) atau salin barisnya.");
-    console.log("4. Jalankan: npm run verify:db -- --from-file <path-ke-file-hasil>\n");
+    console.log("\n[SUPABASE SQL EDITOR INSTRUCTIONS]");
+    console.log("1. Open Supabase Dashboard -> SQL Editor.");
+    console.log("2. Open supabase/verify/verify.sql, copy content, then click Run.");
+    console.log("3. Export results table as CSV (Export button in top right of results) or copy rows.");
+    console.log("4. Run: npm run verify:db -- --from-file <path-to-results-file>\n");
     process.exit(0);
   }
 
@@ -844,16 +844,16 @@ async function main() {
     generateFixSuggestionsSql(items, manifest),
     "utf-8"
   );
-  console.log(`Saran SQL ditulis di : supabase/verify/fix-suggestions.sql\n`);
+  console.log(`SQL suggestions written to : supabase/verify/fix-suggestions.sql\n`);
 
   // =========================================================================
   // 1. STATUS PENERAPAN PER FILE MIGRASI
   // =========================================================================
   console.log("---------------------------------------------------------------------------------------------------------");
-  console.log(" 1. STATUS PENERAPAN PER FILE MIGRASI (Berdasarkan Definisi Tiap File)");
+  console.log(" 1. MIGRATION APPLIED STATUS PER FILE (Based on Definitions in Each File)");
   console.log("---------------------------------------------------------------------------------------------------------");
   console.log(
-    `| ${"File Migrasi".padEnd(45)} | ${"Status".padEnd(28)} | ${"Objek".padEnd(7)} | Objek yang Hilang / Belum Sesuai`
+    `| ${"Migration File".padEnd(45)} | ${"Status".padEnd(28)} | ${"Objects".padEnd(7)} | Missing / Non-conforming Objects`
   );
   console.log(
     `+-${"-".repeat(45)}-+-${"-".repeat(28)}-+-${"-".repeat(7)}-+----------------------------------`
@@ -872,26 +872,26 @@ async function main() {
   // 1b. STATUS KEADAAN AKHIR (CUMULATIVE FINAL STATE)
   // =========================================================================
   console.log("-------------------------------------------------------------------------------------");
-  console.log(" 1b. STATUS KEADAAN AKHIR KUMULATIF (Cumulative Final State Target)");
+  console.log(" 1b. CUMULATIVE FINAL STATE TARGET STATUS");
   console.log("-------------------------------------------------------------------------------------");
   const finalFailures = items.filter((i) => i.status === "FAIL");
   const finalUnverified = items.filter((i) => i.status === "UNVERIFIED");
   if (finalFailures.length === 0 && finalUnverified.length === 0) {
-    console.log(`Target Keadaan Akhir: TERCAPAI PENUH (FAIL = 0, UNVERIFIED = 0)`);
+    console.log(`Final State Target: FULLY ACHIEVED (FAIL = 0, UNVERIFIED = 0)`);
   } else if (finalFailures.length === 0) {
     console.log(
-      `Target Keadaan Akhir: BELUM TERBUKTI (${finalUnverified.length} item UNVERIFIED)`
+      `Final State Target: UNVERIFIED (${finalUnverified.length} UNVERIFIED items)`
     );
   } else {
     console.log(
-      `Target Keadaan Akhir: BELUM TERCAPAI (${finalFailures.length} selisih terhadap target akhir)`
+      `Final State Target: NOT ACHIEVED (${finalFailures.length} differences against target)`
     );
     for (const f of finalFailures) {
       console.log(`  - [${f.category}] ${f.objectName}: ${f.detail}`);
     }
   }
   if (finalUnverified.length > 0 && finalFailures.length > 0) {
-    console.log(`  (Catatan: ${finalUnverified.length} item berstatus UNVERIFIED karena metode pemeriksaan saat ini adalah API)`);
+    console.log(`  (Note: ${finalUnverified.length} items marked UNVERIFIED because current verification method is API)`);
   }
   console.log("");
 
@@ -899,22 +899,22 @@ async function main() {
   // 2. MATRIKS RINGKASAN MENURUT STATUS DAN METODE
   // =========================================================================
   console.log("-------------------------------------------------------------------------------------");
-  console.log(" 2. RINGKASAN PEMERIKSAAN MENURUT STATUS DAN METODE");
+  console.log(" 2. VERIFICATION SUMMARY BY STATUS AND METHOD");
   console.log("-------------------------------------------------------------------------------------");
   console.log(
-    `| ${"Status".padEnd(16)} | ${"DB".padStart(6)} | ${"API".padStart(6)} | ${"FILE".padStart(6)} | ${"TOTAL".padStart(6)} | Keterangan`
+    `| ${"Status".padEnd(16)} | ${"DB".padStart(6)} | ${"API".padStart(6)} | ${"FILE".padStart(6)} | ${"TOTAL".padStart(6)} | Description`
   );
   console.log(
     `+-${"-".repeat(16)}-+-${"-".repeat(6)}-+-${"-".repeat(6)}-+-${"-".repeat(6)}-+-${"-".repeat(6)}-+----------------------------------`
   );
 
   const statuses: Array<{ status: VerifyStatus; desc: string }> = [
-    { status: "PASS", desc: "Terverifikasi sesuai manifest" },
-    { status: "UNVERIFIED", desc: "Belum dapat diverifikasi tanpa koneksi DB" },
-    { status: "MIGRATION-LINT", desc: "Temuan statis pada file migrasi repositori" },
-    { status: "FAIL", desc: "Selisih antara database dan manifest" },
-    { status: "DRIFT", desc: "Objek ekstra di database di luar manifest" },
-    { status: "INFO", desc: "Informasi tambahan / metadata platform" },
+    { status: "PASS", desc: "Verified against manifest" },
+    { status: "UNVERIFIED", desc: "Cannot be verified without direct DB connection" },
+    { status: "MIGRATION-LINT", desc: "Static findings on repository migration files" },
+    { status: "FAIL", desc: "Differences between database and manifest" },
+    { status: "DRIFT", desc: "Extra objects in database outside manifest" },
+    { status: "INFO", desc: "Additional platform metadata / info" },
   ];
 
   for (const st of statuses) {
@@ -979,13 +979,13 @@ async function main() {
   const lintItems = items.filter((i) => i.status === "MIGRATION-LINT");
   if (lintItems.length > 0) {
     console.log("-------------------------------------------------------------------------------------");
-    console.log(` 3. TEMUAN MIGRATION-LINT (${lintItems.length} temuan pada file repositori)`);
+    console.log(` 3. MIGRATION-LINT FINDINGS (${lintItems.length} findings in repository files)`);
     console.log("-------------------------------------------------------------------------------------");
     for (const li of lintItems) {
-      console.log(`[MIGRATION-LINT] (Metode: ${li.method}) ${li.objectName}`);
-      console.log(`  Keterangan   : ${li.detail}`);
+      console.log(`[MIGRATION-LINT] (Method: ${li.method}) ${li.objectName}`);
+      console.log(`  Description  : ${li.detail}`);
       if (li.fixMigration) {
-        console.log(`  Perbaikan    : Jalankan ${li.fixMigration}`);
+        console.log(`  Fix          : Run ${li.fixMigration}`);
       }
       console.log("");
     }
@@ -996,23 +996,23 @@ async function main() {
   // =========================================================================
   const dbFailures = items.filter((i) => i.status === "FAIL" || i.status === "DRIFT");
   console.log("-------------------------------------------------------------------------------------");
-  console.log(` 4. TEMUAN FAIL & DRIFT DATABASE (${dbFailures.length} temuan)`);
+  console.log(` 4. DATABASE FAIL & DRIFT FINDINGS (${dbFailures.length} findings)`);
   console.log("-------------------------------------------------------------------------------------");
   if (dbFailures.length === 0) {
-    console.log("Tidak ditemukan FAIL maupun DRIFT pada database.");
+    console.log("No FAIL or DRIFT detected in database.");
   } else {
     for (const f of dbFailures) {
-      console.log(`[${f.status}] (Metode: ${f.method}) [${f.category}] ${f.objectName}`);
+      console.log(`[${f.status}] (Method: ${f.method}) [${f.category}] ${f.objectName}`);
       if (f.sourceMigration) {
-        console.log(`  Migrasi asal : ${f.sourceMigration}`);
+        console.log(`  Source migration : ${f.sourceMigration}`);
       }
-      console.log(`  Keterangan   : ${f.detail}`);
-      if (f.expected) console.log(`  Diharapkan   : ${f.expected}`);
-      if (f.found) console.log(`  Ditemukan    : ${f.found}`);
+      console.log(`  Description      : ${f.detail}`);
+      if (f.expected) console.log(`  Expected         : ${f.expected}`);
+      if (f.found) console.log(`  Found            : ${f.found}`);
       if (f.fixMigration) {
-        console.log(`  Solusi       : Jalankan file migrasi ${f.fixMigration}`);
+        console.log(`  Fix migration    : Run ${f.fixMigration}`);
       } else if (f.fixSql) {
-        console.log(`  Solusi SQL   : ${f.fixSql}`);
+        console.log(`  SQL Solution     : ${f.fixSql}`);
       }
       console.log("");
     }
@@ -1023,14 +1023,14 @@ async function main() {
   // =========================================================================
   if (activeMode === "API") {
     console.log("-------------------------------------------------------------------------------------");
-    console.log(" CARA MENGUJI KATEGORI UNVERIFIED DENGAN METODE DB TANPA DATABASE_URL");
+    console.log(" HOW TO VERIFY UNVERIFIED CATEGORIES VIA DB METHOD WITHOUT DATABASE_URL");
     console.log("-------------------------------------------------------------------------------------");
-    console.log("1. Buka Supabase Dashboard -> SQL Editor.");
-    console.log("2. Buka file supabase/verify/verify.sql di repositori ini, salin isinya, lalu klik Run.");
-    console.log("3. Di pojok kanan atas tabel hasil, klik 'Export' -> 'Export to CSV' dan simpan ke file");
-    console.log("   (atau pilih semua baris dan salin ke file teks).");
-    console.log("4. Jalankan perintah berikut untuk menghasilkan laporan dengan Metode DB:");
-    console.log("   npm run verify:db -- --from-file <path-ke-file-hasil>\n");
+    console.log("1. Open Supabase Dashboard -> SQL Editor.");
+    console.log("2. Open supabase/verify/verify.sql in this repository, copy content, then click Run.");
+    console.log("3. In top right corner of results table, click 'Export' -> 'Export to CSV' and save to file");
+    console.log("   (or select all rows and copy to a text file).");
+    console.log("4. Run the following command to produce a report with DB Method:");
+    console.log("   npm run verify:db -- --from-file <path-to-results-file>\n");
   }
 
   const failCount = items.filter((i) => i.status === "FAIL").length;
@@ -1040,7 +1040,7 @@ async function main() {
   if (isStrict) {
     if (failCount > 0 || driftCount > 0 || unverifiedCount > 0) {
       console.error(
-        `\n[STRICT MODE] Verifikasi database gagal: ${failCount} FAIL, ${driftCount} DRIFT, ${unverifiedCount} UNVERIFIED.`
+        `\n[STRICT MODE] Database verification failed: ${failCount} FAIL, ${driftCount} DRIFT, ${unverifiedCount} UNVERIFIED.`
       );
       process.exit(1);
     }
@@ -1051,7 +1051,7 @@ async function main() {
 
 main().catch((err) => {
   console.error(
-    "Gagal menjalankan verify-db:",
+    "Failed to run verify-db:",
     err instanceof Error ? err.message : String(err)
   );
   process.exit(1);

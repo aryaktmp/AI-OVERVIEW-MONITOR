@@ -67,26 +67,28 @@ export interface DashboardSummaryAnalytics {
   hasDemoData: boolean;
 }
 
-const INDONESIAN_SHORT_MONTHS = [
+const SHORT_MONTHS = [
   "Jan",
   "Feb",
   "Mar",
   "Apr",
-  "Mei",
+  "May",
   "Jun",
   "Jul",
-  "Agu",
+  "Aug",
   "Sep",
-  "Okt",
+  "Oct",
   "Nov",
-  "Des",
+  "Dec",
 ];
 
-export function formatIndonesianShortDate(date: Date): string {
+export function formatShortDate(date: Date): string {
   const day = date.getUTCDate();
-  const month = INDONESIAN_SHORT_MONTHS[date.getUTCMonth()] ?? "";
+  const month = SHORT_MONTHS[date.getUTCMonth()] ?? "";
   return `${day} ${month}`;
 }
+
+export const formatIndonesianShortDate = formatShortDate;
 
 export function statusToCellState(status: CheckStatus | null | undefined): HeatmapCellState {
   if (status === "detected") return 2;
@@ -101,13 +103,13 @@ export function formatDetectionTypeLabel(flags: {
 }): string {
   const types: string[] = [];
   if (flags.detected_domain) {
-    types.push("Domain dikutip");
+    types.push("Domain cited");
   }
   if (flags.detected_text) {
-    types.push("Nama disebut di teks");
+    types.push("Brand mentioned in text");
   }
   if (flags.detected_third_party) {
-    types.push("Disebut di sumber lain");
+    types.push("Mentioned in other sources");
   }
   return types.length > 0 ? types.join(", ") : "-";
 }

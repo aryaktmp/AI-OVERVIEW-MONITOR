@@ -1,23 +1,24 @@
 import Link from "next/link";
+import { AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function DemoDataBanner({ visible }: { visible: boolean }) {
   if (!visible) return null;
 
   return (
-    <div
-      role="status"
-      className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--seen)]/40 bg-[var(--seen-bg)] px-4 py-2.5 text-xs font-medium text-[var(--seen)]"
-    >
-      <span>
-        <strong>Data contoh:</strong> Halaman ini memuat hasil dari pengecekan
-        simulasi (dry-run / contoh).
-      </span>
-      <Link
-        href="/pengaturan"
-        className="font-bold underline hover:opacity-80"
-      >
-        Kelola atau hapus data contoh di Pengaturan
-      </Link>
-    </div>
+    <Alert variant="warning" className="mb-4">
+      <AlertTriangle className="h-4 w-4" />
+      <div className="flex flex-wrap items-center justify-between gap-2 w-full">
+        <AlertDescription className="font-medium">
+          <strong>Demo data:</strong> This page displays results from simulation / sample checks (dry-run).
+        </AlertDescription>
+        <Link
+          href="/pengaturan"
+          className="text-xs font-bold underline hover:opacity-80"
+        >
+          Manage or clear demo data in Settings →
+        </Link>
+      </div>
+    </Alert>
   );
 }

@@ -76,13 +76,13 @@ export async function getDashboardOverviewData(): Promise<{
   ]);
 
   if (groupsErr) {
-    throw new Error(`Gagal memuat grup keyword: ${groupsErr.message}`);
+    throw new Error(`Failed to load keyword groups: ${groupsErr.message}`);
   }
   if (kwErr) {
-    throw new Error(`Gagal memuat daftar keyword: ${kwErr.message}`);
+    throw new Error(`Failed to load keywords list: ${kwErr.message}`);
   }
   if (checksErr) {
-    throw new Error(`Gagal memuat data pengecekan: ${checksErr.message}`);
+    throw new Error(`Failed to load check results: ${checksErr.message}`);
   }
 
   // Periksa apakah ada check_runs dengan is_demo = true (jika kolom sudah dimigrasi)
@@ -110,7 +110,7 @@ export async function getDashboardOverviewData(): Promise<{
       id: r.id,
       text: r.text,
       active: r.active,
-      groupName: grpObj?.name ?? "Tanpa Grup",
+      groupName: grpObj?.name ?? "No Group",
     };
   });
 
@@ -212,10 +212,10 @@ export async function getKeywordDetailData(keywordId: string): Promise<{
   ]);
 
   if (kwErr) {
-    throw new Error(`Gagal memuat detail keyword: ${kwErr.message}`);
+    throw new Error(`Failed to load keyword details: ${kwErr.message}`);
   }
   if (checksErr) {
-    throw new Error(`Gagal memuat riwayat pengecekan: ${checksErr.message}`);
+    throw new Error(`Failed to load check history: ${checksErr.message}`);
   }
 
   if (!kwRow) {
@@ -292,7 +292,7 @@ export async function getKeywordDetailData(keywordId: string): Promise<{
       id: typedKw.id,
       text: typedKw.text,
       active: typedKw.active,
-      groupName: grpObj?.name ?? "Tanpa Grup",
+      groupName: grpObj?.name ?? "No Group",
     },
     checks,
     brandTerms,
@@ -322,10 +322,10 @@ export async function getCompetitorPageData(): Promise<{
     ]);
 
   if (compErr) {
-    throw new Error(`Gagal memuat daftar kompetitor: ${compErr.message}`);
+    throw new Error(`Failed to load competitors list: ${compErr.message}`);
   }
   if (chkErr) {
-    throw new Error(`Gagal memuat sumber kutipan: ${chkErr.message}`);
+    throw new Error(`Failed to load citation sources: ${chkErr.message}`);
   }
 
   // Ambil hanya cek terbaru untuk setiap keyword_id

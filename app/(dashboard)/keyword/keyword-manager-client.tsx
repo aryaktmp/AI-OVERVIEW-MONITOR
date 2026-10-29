@@ -3,6 +3,16 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import {
+  AlertCircle,
+  CheckCircle2,
+  Download,
+  FileSpreadsheet,
+  Plus,
+  Trash2,
+  Power,
+  Upload,
+} from "lucide-react";
+import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
@@ -33,11 +43,22 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const STATUS_LABELS: Record<HeatmapCellState, string> = {
-  0: "Tanpa AI Overview",
-  1: "Tidak terdeteksi",
-  2: "Terdeteksi",
+  0: "No AI Overview",
+  1: "Not detected",
+  2: "Detected",
 };
 
 function miniCellClass(state: HeatmapCellState): string {
@@ -163,17 +184,17 @@ export function KeywordManagerClient({
               >
                 {row.keyword}
               </Link>
-              {!row.active && <Badge variant="none">Nonaktif</Badge>}
+              {!row.active && <Badge variant="none">Inactive</Badge>}
             </div>
           );
         },
       }),
       columnHelper.accessor("groupName", {
-        header: "Grup",
-        cell: (info) => info.getValue(),
+        header: "Group",
+        cell: (info) => info.getValue() || "No group",
       }),
       columnHelper.accessor("currentState", {
-        header: "Minggu ini",
+        header: "This week",
         cell: (info) => {
           const st = info.getValue();
           const variant =
@@ -182,11 +203,11 @@ export function KeywordManagerClient({
         },
       }),
       columnHelper.accessor("detectionTypeLabel", {
-        header: "Jenis deteksi",
+        header: "Detection type",
         cell: (info) => info.getValue(),
       }),
       columnHelper.accessor("weeklyStates", {
-        header: "8 minggu",
+        header: "8 weeks",
         cell: (info) => (
           <div className="flex gap-[2px]">
             {info.getValue().map((st, idx) => (
@@ -197,7 +218,7 @@ export function KeywordManagerClient({
       }),
       columnHelper.display({
         id: "actions",
-        header: "Tindakan",
+        header: "Actions",
         cell: (info) => {
           const row = info.row.original;
           return (
@@ -216,13 +237,14 @@ export function KeywordManagerClient({
                     if (!res.ok) {
                       setFeedback({
                         type: "error",
-                        text: res.message ?? "Gagal mengubah status keyword.",
+                        text: res.message ?? "Failed to update keyword status.",
                       });
                     }
                   });
                 }}
               >
-                {row.active ? "Nonaktifkan keyword" : "Aktifkan keyword"}
+                <Power className="h-3.5 w-3.5" />
+                {row.active ? "Deactivate keyword" : "Activate keyword"}
               </Button>
               <Button
                 type="button"
@@ -235,13 +257,14 @@ export function KeywordManagerClient({
                     if (!res.ok) {
                       setFeedback({
                         type: "error",
-                        text: res.message ?? "Gagal menghapus keyword.",
+                        text: res.message ?? "Failed to delete keyword.",
                       });
                     }
                   });
                 }}
               >
-                Hapus keyword
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete keyword
               </Button>
             </div>
           );
@@ -268,16 +291,14 @@ export function KeywordManagerClient({
   return (
     <div className="space-y-5">
       {feedback && (
-        <div
-          role="alert"
-          className={`rounded-md border px-3 py-2 text-xs font-medium ${
-            feedback.type === "success"
-              ? "border-[var(--cite)]/30 bg-[var(--cite-bg)] text-[var(--cite)]"
-              : "border-[#C0392B]/30 bg-[#C0392B]/10 text-[#C0392B]"
-          }`}
-        >
-          {feedback.text}
-        </div>
+        <Alert variant={feedback.type === "success" ? "success" : "destructive"}>
+          {feedback.type === "success" ? (
+            <CheckCircle2 className="h-4 w-4" />
+          ) : (
+            <AlertCircle className="h-4 w-4" />
+          )}
+          <AlertDescription>{feedback.text}</AlertDescription>
+        </Alert>
       )}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -285,9 +306,9 @@ export function KeywordManagerClient({
           <CardHeader>
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
-                <CardTitle>Tambah keyword baru</CardTitle>
+                <CardTitle>Add new keyword</CardTitle>
                 <CardDescription>
-                  Masukkan keyword satuan atau impor daftar keyword lewat CSV.
+                  Add an individual keyword or import a list via CSV.
                 </CardDescription>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -298,7 +319,8 @@ export function KeywordManagerClient({
                   size="sm"
                   onClick={handleDownloadCsvTemplate}
                 >
-                  Unduh template CSV
+                  <Download className="h-3.5 w-3.5" />
+                  Download CSV template
                 </Button>
                 <Button
                   type="button"
@@ -306,7 +328,8 @@ export function KeywordManagerClient({
                   size="sm"
                   onClick={() => setShowCsvPanel((prev) => !prev)}
                 >
-                  {showCsvPanel ? "Tutup impor CSV" : "Impor CSV"}
+                  <Upload className="h-3.5 w-3.5" />
+                  {showCsvPanel ? "Close CSV import" : "Import CSV"}
                 </Button>
               </div>
             </div>
@@ -324,33 +347,26 @@ export function KeywordManagerClient({
               }}
               className="flex flex-wrap items-end gap-2.5"
             >
-              <div className="min-w-[200px] flex-1 space-y-1">
-                <label htmlFor="kw-text" className="block text-xs font-semibold">
-                  Keyword
-                </label>
+              <div className="min-w-[200px] flex-1 space-y-1.5">
+                <Label htmlFor="kw-text">Keyword</Label>
                 <Input
                   id="kw-text"
                   name="text"
-                  placeholder="Contoh: software payroll terbaik"
+                  placeholder="e.g. best payroll software"
                   required
                   disabled={isPending}
                 />
               </div>
 
-              <div className="min-w-[160px] space-y-1">
-                <label
-                  htmlFor="kw-group"
-                  className="block text-xs font-semibold"
-                >
-                  Pilih grup
-                </label>
+              <div className="min-w-[160px] space-y-1.5">
+                <Label htmlFor="kw-group">Select group</Label>
                 <select
                   id="kw-group"
                   name="groupId"
                   disabled={isPending}
-                  className="flex h-9 w-full rounded-md border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-sm text-[var(--ink)]"
+                  className="flex h-9 w-full rounded-md border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-sm text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--cite)] cursor-pointer"
                 >
-                  <option value="">Tanpa grup</option>
+                  <option value="">No group</option>
                   {groups.map((grp) => (
                     <option key={grp.id} value={grp.id}>
                       {grp.name}
@@ -359,40 +375,37 @@ export function KeywordManagerClient({
                 </select>
               </div>
 
-              <div className="min-w-[160px] space-y-1">
-                <label
-                  htmlFor="kw-new-group"
-                  className="block text-xs font-semibold"
-                >
-                  Atau buat grup baru
-                </label>
+              <div className="min-w-[160px] space-y-1.5">
+                <Label htmlFor="kw-new-group">Or create new group</Label>
                 <Input
                   id="kw-new-group"
                   name="newGroupName"
-                  placeholder="Nama grup baru"
+                  placeholder="New group name"
                   disabled={isPending}
                 />
               </div>
 
               <Button type="submit" variant="primary" disabled={isPending}>
-                Simpan keyword
+                <Plus className="h-4 w-4" />
+                Save keyword
               </Button>
             </form>
 
             {showCsvPanel && (
-              <div className="rounded-lg border border-[var(--line)] bg-[#F8FAFC] p-3.5 space-y-3">
+              <div className="rounded-lg border border-[var(--line)] bg-[var(--bg)] p-3.5 space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <h3 className="text-xs font-semibold text-[var(--ink)]">
-                      Impor Keyword dari CSV (maksimal {MAX_CSV_IMPORT_ROWS} baris)
+                      Import Keywords from CSV (maximum {MAX_CSV_IMPORT_ROWS} rows)
                     </h3>
                     <p className="text-xs text-[var(--muted)]">
-                      Format kolom: <code>keyword,group</code>. Grup yang belum ada
-                      akan dibuat secara otomatis.
+                      Column format: <code>keyword,group</code>. Groups that do not
+                      exist yet will be created automatically.
                     </p>
                   </div>
-                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-[var(--line)] bg-white px-3 py-1.5 text-xs font-semibold text-[var(--ink)] hover:bg-[var(--none)]">
-                    Pilih file .csv
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-[var(--line)] bg-[var(--surface)] px-3 py-1.5 text-xs font-semibold text-[var(--ink)] hover:bg-[var(--none)] transition-colors shadow-xs">
+                    <FileSpreadsheet className="h-3.5 w-3.5 text-[var(--cite)]" />
+                    Choose .csv file
                     <input
                       type="file"
                       accept=".csv,text/csv"
@@ -404,36 +417,36 @@ export function KeywordManagerClient({
 
                 {csvFileName && (
                   <p className="text-xs text-[var(--muted)]">
-                    File dipilih: <strong className="font-mono">{csvFileName}</strong>
+                    Selected file: <strong className="font-mono">{csvFileName}</strong>
                   </p>
                 )}
 
-                <textarea
+                <Textarea
                   value={csvText}
                   onChange={(e) => setCsvText(e.target.value)}
                   rows={4}
                   placeholder={CSV_TEMPLATE_CONTENT}
-                  className="w-full rounded-md border border-[var(--line)] bg-white p-2.5 font-mono text-xs text-[var(--ink)]"
+                  className="font-mono text-xs bg-[var(--surface)]"
                 />
 
                 {csvPreview && (
                   <div className="space-y-2.5 rounded-md border border-[var(--line)] bg-white p-3">
                     <div className="flex flex-wrap items-center gap-2 text-xs">
                       <span className="font-semibold text-[var(--ink)]">
-                        Pratinjau Impor:
+                        Import Preview:
                       </span>
                       <Badge variant="detected">
-                        {csvPreview.validRows.length} baru
+                        {csvPreview.validRows.length} new
                       </Badge>
                       <Badge variant="notDetected">
-                        {csvPreview.duplicateRows.length} duplikat
+                        {csvPreview.duplicateRows.length} duplicates
                       </Badge>
                       <Badge variant="none">
-                        {csvPreview.invalidRows.length} tidak valid
+                        {csvPreview.invalidRows.length} invalid
                       </Badge>
                       {csvPreview.newGroupsToCreate.length > 0 && (
                         <Badge variant="brand">
-                          {csvPreview.newGroupsToCreate.length} grup baru:{" "}
+                          {csvPreview.newGroupsToCreate.length} new groups:{" "}
                           {csvPreview.newGroupsToCreate.join(", ")}
                         </Badge>
                       )}
@@ -441,28 +454,28 @@ export function KeywordManagerClient({
 
                     {csvPreview.exceededMaxRows && (
                       <p className="text-xs font-medium text-[#C0392B]">
-                        Jumlah baris melebihi batas maksimal {MAX_CSV_IMPORT_ROWS}{" "}
-                        baris per impor. Kurangi jumlah baris sebelum menyimpan.
+                        Row count exceeds maximum limit of {MAX_CSV_IMPORT_ROWS}{" "}
+                        rows per import. Reduce row count before saving.
                       </p>
                     )}
 
                     {csvPreview.duplicateRows.length > 0 && (
                       <div className="max-h-28 overflow-y-auto rounded border border-[var(--line)] bg-[#FFFBEB] p-2 text-xs">
                         <div className="mb-1 font-semibold text-[#92400E]">
-                          Baris Duplikat ({csvPreview.duplicateRows.length} dilewati):
+                          Duplicate Rows ({csvPreview.duplicateRows.length} skipped):
                         </div>
                         <ul className="space-y-0.5 text-[#B45309]">
                           {csvPreview.duplicateRows.slice(0, 15).map((d) => (
                             <li key={`${d.lineNumber}-${d.keyword}`}>
-                              Baris {d.lineNumber}:{" "}
+                              Line {d.lineNumber}:{" "}
                               <strong className="font-mono">{d.keyword}</strong> —{" "}
                               {d.reason}
                             </li>
                           ))}
                           {csvPreview.duplicateRows.length > 15 && (
                             <li>
-                              ...dan {csvPreview.duplicateRows.length - 15} baris
-                              duplikat lainnya.
+                              ...and {csvPreview.duplicateRows.length - 15} more
+                              duplicate rows.
                             </li>
                           )}
                         </ul>
@@ -472,22 +485,22 @@ export function KeywordManagerClient({
                     {csvPreview.invalidRows.length > 0 && (
                       <div className="max-h-28 overflow-y-auto rounded border border-[#FECACA] bg-[#FEF2F2] p-2 text-xs">
                         <div className="mb-1 font-semibold text-[#991B1B]">
-                          Baris Tidak Valid ({csvPreview.invalidRows.length}):
+                          Invalid Rows ({csvPreview.invalidRows.length}):
                         </div>
                         <ul className="space-y-0.5 text-[#B91C1C]">
                           {csvPreview.invalidRows.slice(0, 15).map((inv, i) => (
                             <li key={`${inv.lineNumber}-${i}`}>
-                              Baris {inv.lineNumber}:{" "}
+                              Line {inv.lineNumber}:{" "}
                               <strong className="font-mono">
-                                {inv.rawKeyword || "(kosong)"}
+                                {inv.rawKeyword || "(empty)"}
                               </strong>{" "}
                               — {inv.reason}
                             </li>
                           ))}
                           {csvPreview.invalidRows.length > 15 && (
                             <li>
-                              ...dan {csvPreview.invalidRows.length - 15} baris tidak
-                              valid lainnya.
+                              ...and {csvPreview.invalidRows.length - 15} more
+                              invalid rows.
                             </li>
                           )}
                         </ul>
@@ -507,8 +520,8 @@ export function KeywordManagerClient({
                         onClick={handleConfirmCsvImport}
                       >
                         {isPending
-                          ? "Menyimpan..."
-                          : `Simpan ${csvPreview.validRows.length} keyword baru`}
+                          ? "Saving..."
+                          : `Save ${csvPreview.validRows.length} new keywords`}
                       </Button>
                       <Button
                         type="button"
@@ -520,7 +533,7 @@ export function KeywordManagerClient({
                           setCsvFileName("");
                         }}
                       >
-                        Bersihkan pratinjau
+                        Clear preview
                       </Button>
                     </div>
                   </div>
@@ -532,9 +545,9 @@ export function KeywordManagerClient({
 
         <Card>
           <CardHeader>
-            <CardTitle>Kelola grup keyword</CardTitle>
+            <CardTitle>Manage keyword groups</CardTitle>
             <CardDescription>
-              Kelompokkan keyword berdasarkan topik.
+              Organize keywords by topic.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -552,18 +565,18 @@ export function KeywordManagerClient({
             >
               <Input
                 name="name"
-                placeholder="Nama grup baru"
+                placeholder="New group name"
                 required
                 disabled={isPending}
               />
               <Button type="submit" variant="outline" disabled={isPending}>
-                Simpan grup
+                Save group
               </Button>
             </form>
 
             {groups.length === 0 ? (
               <p className="text-xs text-[var(--muted)]">
-                Belum ada grup yang dibuat.
+                No groups created yet.
               </p>
             ) : (
               <div className="flex flex-wrap gap-1.5">
@@ -582,9 +595,9 @@ export function KeywordManagerClient({
                         });
                       }}
                       className="ml-0.5 text-[#C0392B] hover:underline cursor-pointer"
-                      aria-label={`Hapus grup ${grp.name}`}
+                      aria-label={`Delete group ${grp.name}`}
                     >
-                      Hapus
+                      Delete
                     </button>
                   </span>
                 ))}
@@ -601,17 +614,17 @@ export function KeywordManagerClient({
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari keyword"
-              aria-label="Cari keyword"
+              placeholder="Search keywords"
+              aria-label="Search keywords"
               className="min-w-[160px] flex-1"
             />
             <select
               value={selectedGroup}
               onChange={(e) => setSelectedGroup(e.target.value)}
-              aria-label="Filter grup"
+              aria-label="Filter by group"
               className="h-9 rounded-md border border-[var(--line)] bg-[var(--surface)] px-2.5 text-sm text-[var(--ink)]"
             >
-              <option value="">Semua grup</option>
+              <option value="">All groups</option>
               {allGroupNames.map((g) => (
                 <option key={g} value={g}>
                   {g}
@@ -621,69 +634,61 @@ export function KeywordManagerClient({
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              aria-label="Filter status"
+              aria-label="Filter by status"
               className="h-9 rounded-md border border-[var(--line)] bg-[var(--surface)] px-2.5 text-sm text-[var(--ink)]"
             >
-              <option value="">Semua status</option>
-              <option value="2">Terdeteksi</option>
-              <option value="1">Tidak terdeteksi</option>
-              <option value="0">Tanpa AI Overview</option>
+              <option value="">All statuses</option>
+              <option value="2">Detected</option>
+              <option value="1">Not detected</option>
+              <option value="0">No AI Overview</option>
             </select>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] border-collapse text-sm">
-              <thead>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <tr key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <th
-                        key={header.id}
-                        className="border-b border-[var(--line)] p-2 text-left text-xs font-semibold text-[var(--muted)]"
-                      >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </th>
-                    ))}
-                  </tr>
-                ))}
-              </thead>
-              <tbody>
-                {table.getRowModel().rows.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={columns.length}
-                      className="border-b border-[var(--line)] py-6 text-center text-sm text-[var(--muted)]"
-                    >
-                      {rows.length === 0
-                        ? "Belum ada keyword yang tersimpan. Gunakan formulir di atas untuk menyimpan keyword pertama Anda."
-                        : "Tidak ada keyword yang cocok. Ubah kata kunci atau filter."}
-                    </td>
-                  </tr>
-                ) : (
-                  table.getRowModel().rows.map((row) => (
-                    <tr key={row.id}>
-                      {row.getVisibleCells().map((cell) => (
-                        <td
-                          key={cell.id}
-                          className="border-b border-[var(--line)] px-2 py-2.5 align-middle"
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
                           )}
-                        </td>
-                      ))}
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="py-8 text-center text-sm text-[var(--muted)]"
+                  >
+                    {rows.length === 0
+                      ? "No keywords saved yet. Use the form above to add your first keyword."
+                      : "No matching keywords found. Adjust your search or filters."}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>

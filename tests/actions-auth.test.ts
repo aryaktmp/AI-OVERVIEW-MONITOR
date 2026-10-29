@@ -75,7 +75,7 @@ describe("Otorisasi Server Actions (app/(dashboard)/actions.ts)", () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
     for (const invokeAction of buildAllActionCalls()) {
-      await expect(invokeAction()).rejects.toThrow(/Akses ditolak/i);
+      await expect(invokeAction()).rejects.toThrow(/Access denied/i);
     }
   });
 
@@ -85,7 +85,7 @@ describe("Otorisasi Server Actions (app/(dashboard)/actions.ts)", () => {
     });
 
     for (const invokeAction of buildAllActionCalls()) {
-      await expect(invokeAction()).rejects.toThrow(/Akses ditolak/i);
+      await expect(invokeAction()).rejects.toThrow(/Access denied/i);
     }
   });
 });

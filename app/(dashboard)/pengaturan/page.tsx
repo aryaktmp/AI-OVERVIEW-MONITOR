@@ -12,11 +12,11 @@ export default async function PengaturanPage() {
     <div>
       <div className="mb-5">
         <h1 className="text-[20px] font-semibold tracking-[-0.01em] text-[var(--ink)]">
-          Pengaturan Pemantauan
+          Monitoring Settings
         </h1>
         <p className="mt-0.5 text-[13px] text-[var(--muted)]">
-          Identitas merek yang dicari, daftar kompetitor, lokasi pencarian,
-          penyimpanan database, dan kuota panggilan SerpApi.
+          Brand identity search terms, competitor list, search parameters,
+          database storage, and SerpApi quota.
         </p>
       </div>
 

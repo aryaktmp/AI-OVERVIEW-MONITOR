@@ -13,7 +13,7 @@ export default function DashboardLoading() {
       </div>
       <Card>
         <CardContent className="py-12 text-center text-sm text-[var(--muted)]">
-          Memuat data dari server...
+          Loading data from server...
         </CardContent>
       </Card>
     </div>

@@ -53,7 +53,7 @@ async function main() {
 
   if (!supabaseUrl || !supabaseSecretKey) {
     throw new Error(
-      "SUPABASE_URL dan SUPABASE_SECRET_KEY wajib diisi di .env.local."
+      "SUPABASE_URL and SUPABASE_SECRET_KEY are required in .env.local."
     );
   }
 
@@ -61,7 +61,7 @@ async function main() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  // Pastikan grup dan 10 keyword contoh tersedia untuk uji lokal dry-run
+  // Ensure groups and 10 sample keywords are available for local dry-run
   const uniqueGroups = Array.from(
     new Set(SAMPLE_10_KEYWORDS.map((k) => k.group))
   );
@@ -76,7 +76,7 @@ async function main() {
 
     if (grpErr || !grp) {
       throw new Error(
-        `Gagal menyiapkan grup keyword "${name}": ${grpErr?.message ?? "unknown"}`
+        `Failed to prepare keyword group "${name}": ${grpErr?.message ?? "unknown"}`
       );
     }
     groupIdByName[name] = (grp as { id: string }).id;
@@ -93,17 +93,17 @@ async function main() {
     );
     if (kwErr) {
       throw new Error(
-        `Gagal menyiapkan keyword "${item.text}": ${kwErr.message}`
+        `Failed to prepare keyword "${item.text}": ${kwErr.message}`
       );
     }
   }
 
   const store = createSupabaseQueueStore(supabase);
 
-  console.log("=== Memulai Uji Lokal Dry-Run (SERPAPI_DRY_RUN=true) ===");
+  console.log("=== Starting Local Dry-Run Test (SERPAPI_DRY_RUN=true) ===");
   const started = await startCheckRun(store);
   console.log(
-    `Run dibuat: runId=${started.runId}, totalKeyword=${started.total}, status=${started.status}`
+    `Run created: runId=${started.runId}, totalKeywords=${started.total}, status=${started.status}`
   );
 
   const processed = await processQueue(store, {
@@ -111,28 +111,28 @@ async function main() {
     maxItems: 20,
   });
 
-  console.log("\n=== Ringkasan Pemrosesan Antrean ===");
-  console.log(`Item dipulihkan (stuck)       : ${processed.recoveredCount}`);
-  console.log(`Item diproses                 : ${processed.processedCount}`);
-  console.log(`Berhasil (done)               : ${processed.succeededCount}`);
-  console.log(`Dicoba ulang (retry)          : ${processed.retriedCount}`);
-  console.log(`Gagal akhir (error)           : ${processed.failedCount}`);
+  console.log("\n=== Queue Processing Summary ===");
+  console.log(`Recovered items (stuck)       : ${processed.recoveredCount}`);
+  console.log(`Processed items               : ${processed.processedCount}`);
+  console.log(`Succeeded (done)              : ${processed.succeededCount}`);
+  console.log(`Retried (retry)               : ${processed.retriedCount}`);
+  console.log(`Failed (error)                : ${processed.failedCount}`);
   console.log(
-    `Panggilan SerpApi batch ini   : ${processed.serpApiCallsUsedInBatch} (DRY RUN - 0 kuota asli terpakai)`
+    `SerpApi calls in this batch   : ${processed.serpApiCallsUsedInBatch} (DRY RUN - 0 real quota consumed)`
   );
   console.log(
-    `Panggilan SerpApi 60m terakhir: ${processed.hourlySerpApiCallsUsed} / ${processed.maxPerHour}`
+    `SerpApi calls in last 60m     : ${processed.hourlySerpApiCallsUsed} / ${processed.maxPerHour}`
   );
-  console.log(`Alasan berhenti               : ${processed.stoppedReason}`);
+  console.log(`Stop reason                   : ${processed.stoppedReason}`);
 
   if (processed.runsSummary.length > 0) {
     console.log(
-      "Status akhir check_runs       :",
+      "Final check_runs status       :",
       JSON.stringify(processed.runsSummary[0])
     );
   }
 
-  // Ambil hasil dari tabel checks untuk run ini
+  // Fetch results from checks table for this run
   const { data: checksRows, error: checksErr } = await supabase
     .from("checks")
     .select(
@@ -141,10 +141,10 @@ async function main() {
     .eq("run_id", started.runId);
 
   if (checksErr) {
-    throw new Error(`Gagal membaca hasil checks: ${checksErr.message}`);
+    throw new Error(`Failed to read checks results: ${checksErr.message}`);
   }
 
-  console.log("\n=== Detail Hasil 10 Keyword di Database ===");
+  console.log("\n=== 10 Keywords Result Details in Database ===");
   for (const row of checksRows ?? []) {
     const r = row as unknown as {
       status: string;
@@ -165,14 +165,14 @@ async function main() {
     );
 
     console.log(
-      `- [${r.status.padEnd(14)}] "${kwText}" | calls=${calls} | sources=${srcCount} | domain=${r.detected_domain}, text=${r.detected_text}, 3rd=${r.detected_third_party} | api_key_bocoran=${hasApiKeyLeak}`
+      `- [${r.status.padEnd(14)}] "${kwText}" | calls=${calls} | sources=${srcCount} | domain=${r.detected_domain}, text=${r.detected_text}, 3rd=${r.detected_third_party} | api_key_leak=${hasApiKeyLeak}`
     );
   }
 }
 
 main().catch((err) => {
   console.error(
-    "Gagal menjalankan dry-run:",
+    "Failed to execute dry-run:",
     err instanceof Error ? err.message : String(err)
   );
   process.exit(1);

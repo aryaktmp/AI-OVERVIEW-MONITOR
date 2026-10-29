@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 async function handleStartRun(request: Request) {
   if (!verifyCronSecret(request)) {
     return NextResponse.json(
-      { error: "Tidak diizinkan. Header Authorization Bearer tidak valid." },
+      { error: "Unauthorized. Invalid Authorization Bearer header." },
       { status: 401, headers: { "Cache-Control": "no-store, max-age=0" } }
     );
   }
@@ -35,7 +35,7 @@ async function handleStartRun(request: Request) {
         error:
           err instanceof Error
             ? err.message
-            : "Gagal memulai antrean pengecekan.",
+            : "Failed to start check queue.",
       },
       { status: 500, headers: { "Cache-Control": "no-store, max-age=0" } }
     );

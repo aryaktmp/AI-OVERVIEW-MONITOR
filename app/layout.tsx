@@ -9,9 +9,9 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Pemantau Kutipan AI Overview - LinovHR",
+  title: "AI Overview Citation Monitor - LinovHR",
   description:
-    "Sistem pemantau kutipan Google AI Overview untuk LinovHR (linovhr.com)",
+    "Google AI Overview citation monitoring system for LinovHR (linovhr.com)",
 };
 
 export default function RootLayout({
@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={plusJakartaSans.variable}>
+    <html lang="en" className={plusJakartaSans.variable}>
       <body>{children}</body>
     </html>
   );

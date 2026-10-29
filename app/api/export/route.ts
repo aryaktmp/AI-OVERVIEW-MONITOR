@@ -47,14 +47,14 @@ export async function GET(request: Request) {
 
   if (authError || !user?.email) {
     return NextResponse.json(
-      { error: "Sesi tidak ditemukan. Silakan masuk terlebih dahulu." },
+      { error: "Session not found. Please sign in first." },
       { status: 401 }
     );
   }
 
   if (!isEmailAllowed(user.email)) {
     return NextResponse.json(
-      { error: "Email Anda tidak memiliki izin untuk mengekspor data." },
+      { error: "Your email is not authorized to export data." },
       { status: 403 }
     );
   }
@@ -95,7 +95,7 @@ export async function GET(request: Request) {
     const { data: kwPage, error: kwError } = await kwQuery;
     if (kwError) {
       return NextResponse.json(
-        { error: `Gagal memuat daftar keyword: ${kwError.message}` },
+        { error: `Failed to load keywords list: ${kwError.message}` },
         { status: 500 }
       );
     }
@@ -118,7 +118,7 @@ export async function GET(request: Request) {
       keywordMap.set(r.id, {
         id: r.id,
         text: r.text,
-        groupName: grp?.name ?? "Tanpa Grup",
+        groupName: grp?.name ?? "No Group",
         isDemo: Boolean(r.is_demo),
       });
     }
@@ -159,7 +159,7 @@ export async function GET(request: Request) {
     const { data: checkPage, error: checkError } = await checkQuery;
     if (checkError) {
       return NextResponse.json(
-        { error: `Gagal memuat data pemeriksaan: ${checkError.message}` },
+        { error: `Failed to load check results: ${checkError.message}` },
         { status: 500 }
       );
     }
@@ -238,8 +238,8 @@ export async function GET(request: Request) {
   const dateStamp = new Date().toISOString().slice(0, 10);
   const filename =
     mode === "history"
-      ? `linovhr-ai-overview-riwayat-${dateStamp}.csv`
-      : `linovhr-ai-overview-terbaru-${dateStamp}.csv`;
+      ? `ai-overview-history-${dateStamp}.csv`
+      : `ai-overview-latest-${dateStamp}.csv`;
 
   return new Response(csvBody, {
     status: 200,

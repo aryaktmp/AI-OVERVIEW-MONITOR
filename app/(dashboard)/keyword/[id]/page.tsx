@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import { getKeywordDetailData } from "@/lib/dashboard-data";
 import {
   formatDetectionTypeLabel,
@@ -15,26 +16,37 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { CheckStatus } from "@/lib/detect";
 
 export const dynamic = "force-dynamic";
 
 function StatusBadge({ status }: { status: CheckStatus }) {
   if (status === "detected") {
-    return <Badge variant="cited">Terdeteksi</Badge>;
+    return <Badge variant="cited">Detected</Badge>;
   }
   if (status === "not_detected") {
-    return <Badge variant="notDetected">Tidak terdeteksi</Badge>;
+    return <Badge variant="notDetected">Not detected</Badge>;
   }
-  return <Badge variant="none">Tanpa AI Overview</Badge>;
+  return <Badge variant="none">No AI Overview</Badge>;
 }
 
-function formatDateTimeId(iso: string): string {
+function formatDateTime(iso: string): string {
   try {
-    return new Intl.DateTimeFormat("id-ID", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(new Date(iso));
+    return (
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Jakarta",
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(new Date(iso)) + " WIB"
+    );
   } catch {
     return iso;
   }
@@ -74,28 +86,31 @@ export default async function KeywordDetailPage({
             <span className="text-xs font-semibold text-[var(--muted)]">
               {keyword.groupName}
             </span>
-            {!keyword.active && <Badge variant="none">Nonaktif</Badge>}
+            {!keyword.active && <Badge variant="none">Inactive</Badge>}
           </div>
           <h2 className="m-0 text-xl font-extrabold">{keyword.text}</h2>
         </div>
 
         <Button asChild variant="outline" size="sm">
-          <Link href="/keyword">Kembali ke daftar keyword</Link>
+          <Link href="/keyword" className="inline-flex items-center gap-1.5">
+            <ArrowLeft className="h-4 w-4" />
+            Back to keywords list
+          </Link>
         </Button>
       </div>
 
       {!selectedCheck ? (
         <Card>
           <CardHeader>
-            <CardTitle>Belum ada riwayat pengecekan</CardTitle>
+            <CardTitle>No check history yet</CardTitle>
             <CardDescription>
-              Keyword ini belum pernah diperiksa. Jalankan pengecekan dari
-              halaman Pengaturan untuk mengambil hasil AI Overview.
+              This keyword has not been checked yet. Run a check from the
+              Settings page to fetch AI Overview results.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild variant="primary">
-              <Link href="/pengaturan">Buka halaman Pengaturan</Link>
+              <Link href="/pengaturan">Open Settings page</Link>
             </Button>
           </CardContent>
         </Card>
@@ -105,20 +120,19 @@ export default async function KeywordDetailPage({
             <Card className="lg:col-span-2">
               <CardHeader>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <CardTitle>Teks jawaban AI Overview</CardTitle>
+                  <CardTitle>AI Overview answer text</CardTitle>
                   <StatusBadge status={selectedCheck.status} />
                 </div>
                 <CardDescription>
-                  Diperiksa pada {formatDateTimeId(selectedCheck.checked_at)} ·
-                  Istilah merek yang cocok ditandai warna hijau.
+                  Checked on {formatDateTime(selectedCheck.checked_at)} ·
+                  Matching brand terms highlighted in green.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {selectedCheck.status === "no_ai_overview" ||
                 !selectedCheck.answer_text ? (
                   <p className="rounded-md bg-[var(--none)] p-4 text-sm text-[var(--muted)]">
-                    Google tidak menampilkan teks AI Overview pada pengecekan
-                    ini.
+                    Google did not display AI Overview text for this check.
                   </p>
                 ) : (
                   <div className="whitespace-pre-line rounded-md border border-[var(--line)] bg-[var(--bg)] p-4 text-sm leading-relaxed">
@@ -141,22 +155,22 @@ export default async function KeywordDetailPage({
                   <Badge
                     variant={selectedCheck.detected_domain ? "cited" : "none"}
                   >
-                    Tingkat 1 (Domain dikutip):{" "}
-                    {selectedCheck.detected_domain ? "Ya" : "Tidak"}
+                    Level 1 (Domain cited):{" "}
+                    {selectedCheck.detected_domain ? "Yes" : "No"}
                   </Badge>
                   <Badge
                     variant={selectedCheck.detected_text ? "cited" : "none"}
                   >
-                    Tingkat 2 (Nama disebut di teks):{" "}
-                    {selectedCheck.detected_text ? "Ya" : "Tidak"}
+                    Level 2 (Brand mentioned in text):{" "}
+                    {selectedCheck.detected_text ? "Yes" : "No"}
                   </Badge>
                   <Badge
                     variant={
                       selectedCheck.detected_third_party ? "cited" : "none"
                     }
                   >
-                    Tingkat 3 (Disebut di sumber lain):{" "}
-                    {selectedCheck.detected_third_party ? "Ya" : "Tidak"}
+                    Level 3 (Mentioned in other sources):{" "}
+                    {selectedCheck.detected_third_party ? "Yes" : "No"}
                   </Badge>
                 </div>
               </CardContent>
@@ -165,16 +179,16 @@ export default async function KeywordDetailPage({
             <Card>
               <CardHeader>
                 <CardTitle>
-                  Daftar sumber ({selectedCheck.sources.length})
+                  Sources list ({selectedCheck.sources.length})
                 </CardTitle>
                 <CardDescription>
-                  Referensi yang dikutip oleh Google AI Overview.
+                  References cited by Google AI Overview.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {selectedCheck.sources.length === 0 ? (
                   <p className="text-xs text-[var(--muted)]">
-                    Tidak ada sumber referensi pada pengecekan ini.
+                    No source references for this check.
                   </p>
                 ) : (
                   <ul className="space-y-3 p-0 m-0 list-none">
@@ -189,15 +203,15 @@ export default async function KeywordDetailPage({
                           </span>
                           <div className="flex flex-wrap gap-1">
                             {src.is_own && (
-                              <Badge variant="cited">Sumber sendiri</Badge>
+                              <Badge variant="cited">Own source</Badge>
                             )}
                             {src.is_competitor && (
                               <Badge variant="notDetected">
-                                Sumber kompetitor
+                                Competitor source
                               </Badge>
                             )}
                             {!src.is_own && src.mentions_brand && (
-                              <Badge variant="cited">Menyebut merek</Badge>
+                              <Badge variant="cited">Mentions brand</Badge>
                             )}
                           </div>
                         </div>
@@ -205,9 +219,10 @@ export default async function KeywordDetailPage({
                           href={src.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="line-clamp-2 text-[var(--muted)] hover:text-[var(--ink)] hover:underline"
+                          className="line-clamp-2 text-[var(--muted)] hover:text-[var(--ink)] hover:underline inline-flex items-center gap-1"
                         >
-                          {src.title || src.url}
+                          <span>{src.title || src.url}</span>
+                          <ExternalLink className="h-3 w-3 inline shrink-0 opacity-70" />
                         </a>
                       </li>
                     ))}
@@ -219,74 +234,61 @@ export default async function KeywordDetailPage({
 
           <Card>
             <CardHeader>
-              <CardTitle>Riwayat pengecekan</CardTitle>
+              <CardTitle>Check history</CardTitle>
               <CardDescription>
-                Pilih baris riwayat untuk melihat isi teks jawaban dan sumber
-                pada waktu tersebut.
+                Select a history row to view the answer text and sources for that check.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[560px] border-collapse text-sm">
-                  <thead>
-                    <tr>
-                      <th className="border-b border-[var(--line)] p-2 text-left text-xs font-semibold text-[var(--muted)]">
-                        Waktu cek
-                      </th>
-                      <th className="border-b border-[var(--line)] p-2 text-left text-xs font-semibold text-[var(--muted)]">
-                        Status
-                      </th>
-                      <th className="border-b border-[var(--line)] p-2 text-left text-xs font-semibold text-[var(--muted)]">
-                        Jenis deteksi
-                      </th>
-                      <th className="border-b border-[var(--line)] p-2 text-left text-xs font-semibold text-[var(--muted)]">
-                        Jumlah sumber
-                      </th>
-                      <th className="border-b border-[var(--line)] p-2 text-left text-xs font-semibold text-[var(--muted)]">
-                        Tindakan
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {checks.map((chk) => {
-                      const isCurrent = chk.id === selectedCheck.id;
-                      return (
-                        <tr
-                          key={chk.id}
-                          className={isCurrent ? "bg-[var(--none)]/50" : ""}
-                        >
-                          <td className="border-b border-[var(--line)] p-2">
-                            {formatDateTimeId(chk.checked_at)}
-                            {chk.is_demo && (
-                              <span className="ml-2 text-[11px] font-semibold text-[var(--seen)]">
-                                (Contoh)
-                              </span>
-                            )}
-                          </td>
-                          <td className="border-b border-[var(--line)] p-2">
-                            <StatusBadge status={chk.status} />
-                          </td>
-                          <td className="border-b border-[var(--line)] p-2">
-                            {formatDetectionTypeLabel(chk)}
-                          </td>
-                          <td className="border-b border-[var(--line)] p-2">
-                            {chk.sources.length} sumber
-                          </td>
-                          <td className="border-b border-[var(--line)] p-2">
-                            <Button asChild variant="outline" size="sm">
-                              <Link
-                                href={`/keyword/${keyword.id}?checkId=${chk.id}`}
-                              >
-                                {isCurrent ? "Sedang ditampilkan" : "Lihat detail"}
-                              </Link>
-                            </Button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Check time</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Detection type</TableHead>
+                    <TableHead>Source count</TableHead>
+                    <TableHead>Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {checks.map((chk) => {
+                    const isCurrent = chk.id === selectedCheck.id;
+                    return (
+                      <TableRow
+                        key={chk.id}
+                        className={isCurrent ? "bg-[var(--none)]/50 font-medium" : ""}
+                      >
+                        <TableCell>
+                          {formatDateTime(chk.checked_at)}
+                          {chk.is_demo && (
+                            <span className="ml-2 text-[11px] font-semibold text-[var(--seen)]">
+                              (Demo)
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge status={chk.status} />
+                        </TableCell>
+                        <TableCell>
+                          {formatDetectionTypeLabel(chk)}
+                        </TableCell>
+                        <TableCell>
+                          {chk.sources.length} {chk.sources.length === 1 ? "source" : "sources"}
+                        </TableCell>
+                        <TableCell>
+                          <Button asChild variant="outline" size="sm">
+                            <Link
+                              href={`/keyword/${keyword.id}?checkId=${chk.id}`}
+                            >
+                              {isCurrent ? "Currently viewing" : "View details"}
+                            </Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </>

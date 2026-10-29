@@ -15,8 +15,8 @@ describe("Fungsi Agregasi Dasbor (lib/analytics.ts)", () => {
   it("membangun 8 rentang minggu dengan urutan kronologis", () => {
     const buckets = buildEightWeekBuckets(referenceDate);
     expect(buckets).toHaveLength(8);
-    expect(buckets[7]?.label).toBe("26 Okt");
-    expect(buckets[6]?.label).toBe("19 Okt");
+    expect(buckets[7]?.label).toBe("26 Oct");
+    expect(buckets[6]?.label).toBe("19 Oct");
     expect(buckets[0]?.startMs).toBeLessThan(buckets[7]!.startMs);
   });
 
@@ -116,7 +116,7 @@ describe("Fungsi Agregasi Dasbor (lib/analytics.ts)", () => {
     // Label jenis deteksi pada kw-1
     const kw1Row = summary.keywordRows.find((r) => r.id === "kw-1");
     expect(kw1Row?.detectionTypeLabel).toBe(
-      "Domain dikutip, Nama disebut di teks"
+      "Domain cited, Brand mentioned in text"
     );
   });
 
@@ -198,6 +198,6 @@ describe("Fungsi Agregasi Dasbor (lib/analytics.ts)", () => {
         detected_text: false,
         detected_third_party: true,
       })
-    ).toBe("Disebut di sumber lain");
+    ).toBe("Mentioned in other sources");
   });
 });
