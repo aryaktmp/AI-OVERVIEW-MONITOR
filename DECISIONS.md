@@ -85,3 +85,35 @@ Dokumen ini mencatat keputusan teknis yang diambil ketika spesifikasi di `SPEC.m
 
 
 
+
+
+## Standar UI: Komponen shadcn/ui untuk Konsistensi Visual dan Tampilan Terpoles
+
+1. **Integrasi Primitif Radix UI & Desain Tema**:
+   - Menambahkan komponen lengkap shadcn/ui berbasis Radix UI dan Tailwind CSS di folder `components/ui/`: `Dialog`, `Tabs`, `Table`, `Label`, `Select`, `Switch`, `Progress`, `Alert`, `Textarea`, dan `Separator`.
+   - Mengonfigurasi token semantik standar shadcn/ui (`--background`, `--foreground`, `--card`, `--card-foreground`, `--popover`, `--primary`, `--secondary`, `--muted-foreground`, `--destructive`, `--border`, `--input`, `--ring`, `--radius`) di `app/globals.css` yang secara harmonis terhubung ke palet merek LinovHR (`--bg`, `--surface`, `--ink`, `--muted`, `--line`, `--cite`, `--seen`, `--none`).
+2. **Penggantian Komponen Ad-Hoc di Seluruh Halaman**:
+   - **Dialog/Modal**: Mengganti kotak konfirmasi inline pada eksekusi run manual dan penghapusan data contoh di `/pengaturan` dengan shadcn `Dialog`, `DialogContent`, `DialogHeader`, `DialogFooter`.
+   - **Ekspor CSV**: Mengganti dropdown popup dengan modal shadcn `Dialog` yang dilengkapi pemilih rentang tanggal, label, dan tombol aksi terstandarisasi.
+   - **Tabel Data**: Mengganti elemen HTML `<table>` mentah di `/keyword`, `/keyword/[id]`, dan `/pengaturan` dengan shadcn `Table`, `TableHeader`, `TableBody`, `TableHead`, `TableRow`, `TableCell`.
+   - **Tab & Formulir Masuk**: Mengganti toggle tombol ad-hoc di `/login` dengan shadcn `Tabs`, `TabsList`, `TabsTrigger`, serta menggunakan `Label` dan `Alert` berikon.
+   - **Switch & Progress**: Mengganti checkbox sumber pihak ketiga dengan shadcn `Switch` dan `Label`, serta mengganti bar progres pemrosesan dan kuota penyimpanan basis data dengan shadcn `Progress`.
+   - **Statistik & Kartu**: Membungkus ringkasan metrik dan kontainer daftar kompetitor menggunakan shadcn `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`.
+
+
+## 8. Standarisasi Teks Antarmuka Berbahasa Inggris (Keputusan Pemilik Proyek - 30 Oktober 2026)
+
+Berdasarkan keputusan langsung dari pemilik proyek pada tanggal 30 Oktober 2026, seluruh antarmuka pengguna (UI) distandardisasi menggunakan bahasa Inggris secara konsisten. Keputusan ini mencakup penataan dokumen HTML dengan `<html lang="en">`, penyesuaian teks tombol, label, status, pesan peringatan dan validasi, serta konvensi waktu lokal `Asia/Jakarta` (WIB).
+
+- **Cakupan Standarisasi Pemilik Proyek**:
+  - Seluruh tampilan pengguna: Overview (`/ringkasan`), Keywords (`/keyword`), Keyword Detail (`/keyword/[id]`), Competitors (`/kompetitor`), Settings (`/pengaturan`), dan Login (`/login`).
+  - Komponen bersama: Navigation header, logout pengguna, banner data demo, dialog ekspor CSV, weekly trend chart & tooltips, alerts, modal konfirmasi, dan tabel empty states.
+  - Validasi formulir & feedback: Skema Zod otentikasi & CSV import, pesan server action (`app/(dashboard)/actions.ts`, `app/(auth)/login/actions.ts`), dan payload error endpoint cron/ekspor.
+  - Label analitik & data: Format tanggal singkat pada bucket grafik/heatmap (`"26 Oct"`), label jenis deteksi (`"Domain cited"`, `"Brand mentioned in text"`, `"Mentioned in other sources"`), indikator status (`"Detected"`, `"Not detected"`, `"No AI Overview"`), dan nama fallback grup (`"No Group"`).
+  - Format waktu dan zona: Tampilan waktu menggunakan zona waktu `Asia/Jakarta` berlabel `WIB` pada tabel riwayat pengecekan dan detail keyword.
+- **Kompatibilitas Backend & Route**:
+  - Skema tabel database internal, nama kolom, rute API dan halaman (`/ringkasan`, `/keyword`, `/kompetitor`, `/pengaturan`), serta nama variabel dipertahankan agar tidak mengubah arsitektur.
+  - Alias kompatibilitas seperti `formatIndonesianShortDate = formatShortDate` disediakan agar tidak memecah pemanggil fungsi yang sudah ada.
+- **Verifikasi**:
+  - Seluruh rangkaian tes diperbarui untuk memverifikasi teks bahasa Inggris dan lulus penuh.
+  - Pengecekan tipe TypeScript (`tsc --noEmit`), linting ESLint, dan `next build` berhasil tanpa galat.
