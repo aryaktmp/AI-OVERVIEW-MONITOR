@@ -94,6 +94,7 @@ async function main() {
     "MAX_DURATION_MS",
     "APP_URL",
     "SITE_URL",
+    "DATABASE_URL",
   ]);
 
   // 1. Format: Semua variabel wajib di .env.example ada dan tidak kosong
@@ -602,6 +603,36 @@ async function main() {
           );
         }
       }
+
+      // 12c. Pemeriksaan opsional konsistensi database (verify:db)
+      const databaseUrl =
+        localEnv["DATABASE_URL"] || process.env.DATABASE_URL || "";
+      if (!databaseUrl) {
+        addResult(
+          "Database: Konsistensi Migrasi (verify:db)",
+          "SKIP",
+          "DATABASE_URL kosong. Isi DATABASE_URL lalu jalankan npm run verify:db, atau jalankan supabase/verify/verify.sql di Supabase SQL Editor."
+        );
+      } else {
+        try {
+          execSync("node scripts/verify-db.ts", {
+            cwd: rootDir,
+            stdio: "pipe",
+            env: { ...process.env, DATABASE_URL: databaseUrl },
+          });
+          addResult(
+            "Database: Konsistensi Migrasi (verify:db)",
+            "PASS",
+            "Seluruh pemeriksaan konsistensi database (verify:db) lulus tanpa FAIL."
+          );
+        } catch {
+          addResult(
+            "Database: Konsistensi Migrasi (verify:db)",
+            "FAIL",
+            "Pemeriksaan konsistensi database menemukan ketidaksesuaian. Jalankan npm run verify:db untuk rincian lengkap dan lihat supabase/verify/fix-suggestions.sql."
+          );
+        }
+      }
     } catch (err) {
       addResult(
         "Koneksi: Supabase Secret Key & Tabel",
@@ -897,6 +928,7 @@ async function main() {
     localEnv["SUPABASE_SECRET_KEY"],
     localEnv["SUPABASE_PUBLISHABLE_KEY"],
     localEnv["CRON_SECRET"],
+    localEnv["DATABASE_URL"],
   ].filter((v): v is string => Boolean(v && v.length >= 16));
 
   for (const file of allSourceFiles) {

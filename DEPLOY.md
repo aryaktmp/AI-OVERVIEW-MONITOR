@@ -51,10 +51,36 @@ Seluruh variabel lingkungan terdaftar di `.env.example`. **Jangan pernah** mengg
 | `MAX_DURATION_MS` | `50000` | Batas waktu maksimal pemrosesan antrean per satu pemanggilan HTTP `/api/cron/process` dalam milidetik. |
 | `APP_URL` | *(kosong)* | URL dasar aplikasi publik untuk pemeriksaan kesiapan produksi & penjadwal eksternal. |
 | `SITE_URL` | *(kosong)* | URL situs publik untuk verifikasi `npm run check:env -- --production`. |
+| `DATABASE_URL` | *(kosong)* | String koneksi Postgres (opsional, hanya dipakai oleh `npm run verify:db` dalam transaksi `READ ONLY`). |
 
 ---
 
-## 4. Mengatur Site URL dan Redirect URLs di Supabase
+## 4. Memeriksa Database (`npm run verify:db`)
+
+Skrip `npm run verify:db` membandingkan manifest migrasi di repositori (`supabase/verify/manifest.json`) terhadap objek nyata di database Supabase Anda secara **baca-saja (read-only)** — tanpa menjalankan migrasi dan tanpa mengubah data apa pun.
+
+### Jalur A: Pemeriksaan Otomatis dengan `DATABASE_URL` (Direkomendasikan)
+1. Buka [Supabase Dashboard](https://supabase.com/dashboard) dan pilih proyek Anda.
+2. Klik tombol **Connect** di bagian atas halaman dasbor.
+3. Pada tab **Connection String** -> **URI**, salin string koneksi Postgres dan ganti `[YOUR-PASSWORD]` dengan kata sandi database Anda:
+   - **Direct Connection** (`postgresql://postgres:[PASSWORD]@db.<project-ref>.supabase.co:5432/postgres`): Gunakan jika jaringan Anda mendukung IPv6.
+   - **Session Pooler** (`postgresql://postgres.<project-ref>:[PASSWORD]@aws-0-<region>.pooler.supabase.com:5432/postgres`): **Pilih opsi Session Pooler (port 5432)** jika koneksi langsung (*Direct Connection*) gagal akibat jaringan lokal hanya mendukung IPv4.
+4. Tempelkan ke `.env.local` sebagai `DATABASE_URL=...`, lalu jalankan:
+   ```bash
+   npm run verify:db
+   ```
+5. Skrip akan membuka transaksi `BEGIN READ ONLY` (diakhiri `ROLLBACK`), memeriksa kategori `a` sampai `l`, mencetak laporan tabel per migrasi dan per kategori, serta menulis saran SQL perbaikan yang aman ke `supabase/verify/fix-suggestions.sql`.
+
+### Jalur B: Tanpa `DATABASE_URL` (Lewat Supabase SQL Editor + OpenAPI/REST)
+Jika `DATABASE_URL` dikosongkan:
+1. Jalankan `npm run verify:db`. Skrip tidak akan gagal, melainkan:
+   - Menghasilkan file `supabase/verify/verify.sql` yang berisi kueri SQL baca-saja (`SELECT` pada katalog sistem Postgres).
+   - Melakukan pemeriksaan baca-saja otomatis melalui Supabase OpenAPI & REST API menggunakan `SUPABASE_SECRET_KEY`.
+2. Untuk menginspeksi metadata internal katalog Postgres (`pg_constraint`, `pg_indexes`, `pg_policies`, `pg_proc`, `pg_extension`) secara penuh tanpa `DATABASE_URL`, buka **Supabase Dashboard** -> **SQL Editor**, tempel seluruh isi file `supabase/verify/verify.sql`, lalu klik **Run**. Kueri tersebut menghasilkan satu tabel hasil dengan kolom `(objek, status, detail)`.
+
+---
+
+## 5. Mengatur Site URL dan Redirect URLs di Supabase
 
 1. Buka [Supabase Dashboard](https://supabase.com/dashboard) -> pilih proyek Anda -> **Authentication** -> **URL Configuration**.
 2. Ubah **Site URL** dari `http://localhost:3000` menjadi domain aplikasi Anda (misal `https://<nama-proyek>.vercel.app` saat uji coba, atau `https://ai-overview.linovhr.com` saat di VPS).
@@ -67,7 +93,7 @@ Seluruh variabel lingkungan terdaftar di `.env.example`. **Jangan pernah** mengg
 
 ---
 
-## 5. Penjadwalan pada Vercel Hobby & GitHub Actions
+## 6. Penjadwalan pada Vercel Hobby & GitHub Actions
 
 ### A. Vercel Cron (`vercel.json`)
 Paket **Vercel Hobby** hanya mengizinkan cron dijalankan maksimal **sekali sehari**. Oleh karena itu, `vercel.json` hanya memuat 2 jadwal:
@@ -97,7 +123,7 @@ Untuk memproses seluruh item antrean secara tuntas dengan tetap mematuhi batas l
 
 ---
 
-## 6. Panduan Pindah dari Vercel Hobby ke VPS Sendiri
+## 7. Panduan Pindah dari Vercel Hobby ke VPS Sendiri
 
 Aplikasi dirancang sepenuhnya netral terhadap platform (tanpa `@vercel/*`, KV, Edge Config, Blob, atau header khusus Vercel). Saat masa uji di Vercel selesai dan Anda memindahkan aplikasi ke VPS Linux sendiri:
 
@@ -117,9 +143,9 @@ Aplikasi dirancang sepenuhnya netral terhadap platform (tanpa `@vercel/*`, KV, E
 
 ---
 
-## 7. Urutan Go-Live
+## 8. Urutan Go-Live
 
-1. Jalankan keenam file migrasi di `supabase/migrations/` sesuai urutan pada bagian 1.
+1. Jalankan ketujuh file migrasi di `supabase/migrations/` sesuai urutan pada bagian 1, lalu verifikasi konsistensi dengan `npm run verify:db`.
 2. Bersihkan seluruh data contoh (`is_demo = true`) dari database:
    ```bash
    npm run seed:clear
