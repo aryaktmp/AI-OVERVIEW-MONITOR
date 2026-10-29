@@ -13,6 +13,11 @@ import {
   type SerpApiRawResponse,
 } from "./serpapi.ts";
 import { isKnownDemoKeywordText } from "./demo-data.ts";
+import {
+  createSupabasePageCacheStore,
+  evaluateThirdPartySourcesForCheck,
+  type PageCacheStore,
+} from "./fetch-page.ts";
 
 export const STUCK_PROCESSING_TIMEOUT_MS = 10 * 60 * 1000; // 10 menit
 export const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 60 menit
@@ -102,6 +107,8 @@ export interface QueueStore {
   getDetectionContext(): Promise<{
     brandTerms: BrandTermConfig[];
     competitorDomains: string[];
+    enableThirdPartyCheck?: boolean;
+    pageCacheStore?: PageCacheStore;
   }>;
   saveCheckAndSources(payload: CheckInsertPayload): Promise<string>;
   markRunItemDone(itemId: string, nowIso: string): Promise<void>;
@@ -479,10 +486,16 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
     },
 
     async getDetectionContext() {
-      const [{ data: termsData }, { data: compData }] = await Promise.all([
-        supabase.from("brand_terms").select("term, enabled"),
-        supabase.from("competitors").select("domain"),
-      ]);
+      const [{ data: termsData }, { data: compData }, settingsRes] =
+        await Promise.all([
+          supabase.from("brand_terms").select("term, enabled"),
+          supabase.from("competitors").select("domain"),
+          supabase
+            .from("settings")
+            .select("value")
+            .eq("key", "search_config")
+            .maybeSingle(),
+        ]);
 
       const brandTerms: BrandTermConfig[] =
         termsData && termsData.length > 0
@@ -493,7 +506,21 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
         (c: { domain: string }) => c.domain
       );
 
-      return { brandTerms, competitorDomains };
+      const enableThirdPartyCheck = Boolean(
+        !settingsRes.error &&
+          (
+            settingsRes.data?.value as
+              | { enable_third_party_check?: boolean }
+              | undefined
+          )?.enable_third_party_check === true
+      );
+
+      return {
+        brandTerms,
+        competitorDomains,
+        enableThirdPartyCheck,
+        pageCacheStore: createSupabasePageCacheStore(supabase),
+      };
     },
 
     async saveCheckAndSources(payload: CheckInsertPayload): Promise<string> {
@@ -769,6 +796,8 @@ export interface ProcessQueueOptions {
   retryBaseDelayMs?: number;
   brandDomain?: string;
   dryRun?: boolean;
+  enableThirdPartyCheck?: boolean;
+  pageCacheStore?: PageCacheStore;
   nowFn?: () => Date;
   serpApiFetcher?: (
     keyword: string,
@@ -857,7 +886,16 @@ export async function processQueue(
     };
   }
 
-  const { brandTerms, competitorDomains } = await store.getDetectionContext();
+  const {
+    brandTerms,
+    competitorDomains,
+    enableThirdPartyCheck: ctxThirdParty,
+    pageCacheStore: ctxCacheStore,
+  } = await store.getDetectionContext();
+
+  const shouldCheckThirdParty =
+    options.enableThirdPartyCheck ?? Boolean(ctxThirdParty);
+  const activeCacheStore = options.pageCacheStore ?? ctxCacheStore;
 
   let processedCount = 0;
   let succeededCount = 0;
@@ -925,11 +963,30 @@ export async function processQueue(
         hourlySerpApiCallsUsed += callsUsed;
       }
 
-      const evaluation = evaluateAiOverviewDetection(serpResult.parsed, {
+      const baseEvaluation = evaluateAiOverviewDetection(serpResult.parsed, {
         brandDomain,
         brandTerms,
         competitorDomains,
       });
+
+      const evaluation =
+        shouldCheckThirdParty && serpResult.parsed.hasAiOverview
+          ? await evaluateThirdPartySourcesForCheck(
+              {
+                hasAiOverview: serpResult.parsed.hasAiOverview,
+                detected_domain: baseEvaluation.detected_domain,
+                detected_text: baseEvaluation.detected_text,
+                sources: baseEvaluation.sources,
+              },
+              {
+                brandDomain,
+                brandTerms,
+                cacheStore: activeCacheStore,
+                dryRun: itemIsDryRun,
+                nowFn,
+              }
+            )
+          : baseEvaluation;
 
       const doneIso = nowFn().toISOString();
       await store.saveCheckAndSources({

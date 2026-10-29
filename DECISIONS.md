@@ -51,4 +51,19 @@ Dokumen ini mencatat keputusan teknis yang diambil ketika spesifikasi di `SPEC.m
    - Menyimpan konfigurasi lokasi (`location`), domain Google (`google_domain`), kode negara (`gl`), kode bahasa (`hl`), dan flag pemeriksaan sumber pihak ketiga (`enable_third_party_check`) pada tabel `settings` (`key = 'search_config'`) dengan fallback ke nilai bawaan Indonesia jika migrasi belum dijalankan.
 3. **Seeder 8 Minggu (`npm run seed:demo` & `npm run seed:clear`)**:
    - Menyediakan skrip `scripts/seed-demo.ts` yang mengisi 8 minggu data contoh (`is_demo = true`) mengikuti pola deterministik dari `dashboard-ai-overview.html`, serta `scripts/seed-clear.ts` dan tombol "Hapus data contoh" di halaman Pengaturan untuk membersihkannya kapan saja.
+4. **Penanda `is_demo` di Keempat Tabel, Impor CSV, & Penyimpanan Hemat (Perbaikan Fase 4)**:
+   - Kolom `is_demo boolean default false` ditambahkan ke `keywords`, `keyword_groups`, dan `competitors` (selain `check_runs`). Saat `SERPAPI_DRY_RUN=false`, `startCheckRun()` otomatis mengabaikan keyword dengan `is_demo = true`.
+   - `compactSerpApiRawForStorage()` menyimpan hanya blok `ai_overview` dan metadata panggilan di `checks.raw`, dilengkapi pembersihan otomatis data `raw` yang lebih tua dari 90 hari.
+   - Tombol "Jalankan cek sekarang" memproses batch awal lalu melanjutkan batch berikutnya secara berkala dari halaman Pengaturan selama masih ada item `pending`.
+
+## Fase 5: Deteksi Tingkat 3 dan Perlindungan SSRF
+
+1. **Resolusi DNS & Penyambungan Terkunci (`lib/fetch-page.ts`)**:
+   - Hanya mengizinkan skema `http:` / `https:` dan port `80` / `443`.
+   - Sebelum membuka koneksi TCP, hostname diresolusikan lewat DNS dan seluruh IP hasilnya diperiksa terhadap daftar blokir (loopback `127.0.0.0/8`, privat RFC 1918, link-local & metadata cloud `169.254.0.0/16`, `0.0.0.0`, IPv6 `::1`, `fc00::/7`, `fe80::/10`, serta IPv4 yang dibungkus IPv6 seperti `::ffff:127.0.0.1` dan `64:ff9b::`).
+   - Soket HTTP/HTTPS dikunci langsung ke alamat IP hasil resolusi (`lookup` terpin + `servername` TLS SNI) untuk mencegah serangan DNS rebinding. Setiap pengalihan (maksimal 3 kali) divalidasi ulang dengan aturan yang sama.
+2. **Cache Dua Lapis di `page_cache`**:
+   - Hasil berhasil (`status` 200–299, `text/html`) disimpan dan dipakai ulang selama 7 hari.
+   - Hasil gagal (timeout 8 detik, ditolak SSRF, status HTTP >= 400, atau bukan `text/html`) disimpan dengan `mentions_brand = false` dan `status = 0` (atau kode galat HTTP) selama 24 jam agar tidak diulang terus-menerus.
+
 
