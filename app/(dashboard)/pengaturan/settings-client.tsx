@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,11 +9,27 @@ import {
   clearDemoDataAction,
   deleteBrandTermAction,
   deleteCompetitorAction,
+  processRunBatchAction,
   runCheckNowAction,
   saveSearchSettingsAction,
   toggleBrandTermAction,
 } from "@/app/(dashboard)/actions";
-import type { RunHistoryRow, SearchSettingsConfig } from "@/lib/dashboard-data";
+import type {
+  DatabaseStorageStats,
+  RunHistoryRow,
+  SearchSettingsConfig,
+} from "@/lib/dashboard-data";
+
+interface LiveRunProgressState {
+  runId: string;
+  status: "running" | "done" | "failed";
+  total: number;
+  done: number;
+  pending: number;
+  errors: number;
+  serpApiCallsUsed: number;
+  stoppedReason?: string;
+}
 
 interface SettingsClientProps {
   brandTerms: Array<{ id: string; term: string; enabled: boolean }>;
@@ -27,6 +43,8 @@ interface SettingsClientProps {
   isDryRunEnv: boolean;
   hasDemoData: boolean;
   brandDomain: string;
+  databaseStorage: DatabaseStorageStats;
+  initialRunningRun: RunHistoryRow | null;
 }
 
 export function SettingsClient({
@@ -41,6 +59,8 @@ export function SettingsClient({
   isDryRunEnv,
   hasDemoData,
   brandDomain,
+  databaseStorage,
+  initialRunningRun,
 }: SettingsClientProps) {
   const [isPending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<{
@@ -50,6 +70,20 @@ export function SettingsClient({
 
   const [showRunConfirm, setShowRunConfirm] = useState(false);
   const [showClearDemoConfirm, setShowClearDemoConfirm] = useState(false);
+
+  const [liveRun, setLiveRun] = useState<LiveRunProgressState | null>(() => {
+    if (!initialRunningRun) return null;
+    return {
+      runId: initialRunningRun.id,
+      status: "running",
+      total: initialRunningRun.total,
+      done: initialRunningRun.done,
+      pending: Math.max(0, initialRunningRun.total - initialRunningRun.done),
+      errors: 0,
+      serpApiCallsUsed: initialRunningRun.serpapi_calls,
+    };
+  });
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
 
   const [termInput, setTermInput] = useState("");
   const [compNameInput, setCompNameInput] = useState("");
@@ -67,16 +101,105 @@ export function SettingsClient({
 
   const remainingHourlyQuota = Math.max(0, maxPerHour - hourlyCallsUsed);
 
+  // Lanjutkan pemrosesan batch secara berkala selama halaman terbuka dan masih ada item pending
+  useEffect(() => {
+    if (!liveRun) return;
+    if (liveRun.status !== "running") return;
+    if (liveRun.stoppedReason === "rate_limit") return;
+    if (isBatchProcessing) return;
+
+    const timer = setTimeout(async () => {
+      setIsBatchProcessing(true);
+      try {
+        const res = await processRunBatchAction(liveRun.runId);
+        if (!res.runId) {
+          setLiveRun((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  status: "done",
+                  done: prev.total,
+                  pending: 0,
+                }
+              : null
+          );
+          setFeedback({
+            ok: true,
+            message: "Seluruh antrean pengecekan telah selesai diproses.",
+          });
+          return;
+        }
+
+        setLiveRun({
+          runId: res.runId,
+          status: res.status,
+          total: res.total,
+          done: res.done,
+          pending: res.pending,
+          errors: res.errors,
+          serpApiCallsUsed: res.serpApiCallsUsed,
+          stoppedReason: res.stoppedReason,
+        });
+
+        if (res.status !== "running") {
+          setFeedback({
+            ok: res.status === "done",
+            message:
+              res.status === "done"
+                ? `Pengecekan selesai (${res.done}/${res.total} keyword selesai, ${res.serpApiCallsUsed} panggilan SerpApi dipakai).`
+                : `Pengecekan berakhir dengan status ${res.status}.`,
+          });
+        } else if (res.stoppedReason === "rate_limit") {
+          setFeedback({
+            ok: false,
+            message:
+              "Batas panggilan SerpApi per jam tercapai. Item sisa akan dilanjutkan pada jam berikutnya.",
+          });
+        }
+      } catch (err) {
+        setFeedback({
+          ok: false,
+          message:
+            err instanceof Error
+              ? err.message
+              : "Gagal melanjutkan batch pemrosesan antrean.",
+        });
+      } finally {
+        setIsBatchProcessing(false);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [liveRun, isBatchProcessing]);
+
   function handleRunCheckConfirm() {
     setFeedback(null);
     startTransition(async () => {
       try {
         const res = await runCheckNowAction();
         setShowRunConfirm(false);
-        setFeedback({
-          ok: true,
-          message: `Pengecekan selesai diproses (${res.succeededCount}/${res.processedCount} item berhasil, ${res.serpApiCallsUsed} panggilan SerpApi dipakai).`,
+        setLiveRun({
+          runId: res.runId,
+          status: res.status,
+          total: res.total,
+          done: res.done,
+          pending: res.pending,
+          errors: res.errors,
+          serpApiCallsUsed: res.serpApiCallsUsed,
+          stoppedReason: res.stoppedReason,
         });
+
+        if (res.status === "done") {
+          setFeedback({
+            ok: true,
+            message: `Pengecekan selesai diproses (${res.done}/${res.total} item selesai, ${res.serpApiCallsUsed} panggilan SerpApi dipakai).`,
+          });
+        } else {
+          setFeedback({
+            ok: true,
+            message: `Batch pertama selesai (${res.done}/${res.total} item). Melanjutkan sisa antrean secara otomatis...`,
+          });
+        }
       } catch (err) {
         setShowRunConfirm(false);
         setFeedback({
@@ -96,6 +219,7 @@ export function SettingsClient({
       try {
         const res = await clearDemoDataAction();
         setShowClearDemoConfirm(false);
+        setLiveRun(null);
         setFeedback(res);
       } catch (err) {
         setShowClearDemoConfirm(false);
@@ -184,6 +308,11 @@ export function SettingsClient({
     });
   }
 
+  const progressPercentage =
+    liveRun && liveRun.total > 0
+      ? Math.min(100, Math.round((liveRun.done / liveRun.total) * 100))
+      : 0;
+
   return (
     <div className="space-y-4">
       {feedback && (
@@ -195,6 +324,57 @@ export function SettingsClient({
           }`}
         >
           {feedback.message}
+        </div>
+      )}
+
+      {/* Kartu Progres Run Berjalan */}
+      {liveRun && (
+        <div className="rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <h3 className="text-[14px] font-semibold text-[#1E3A8A]">
+                Progres Pengecekan
+              </h3>
+              <Badge
+                variant={
+                  liveRun.status === "done"
+                    ? "detected"
+                    : liveRun.status === "running"
+                      ? "notDetected"
+                      : "none"
+                }
+              >
+                {liveRun.status === "done"
+                  ? "Selesai"
+                  : liveRun.status === "running"
+                    ? "Sedang Memproses..."
+                    : "Gagal"}
+              </Badge>
+            </div>
+            <span className="font-mono text-[12px] font-semibold text-[#1E3A8A]">
+              {liveRun.done} / {liveRun.total} keyword ({progressPercentage}%)
+            </span>
+          </div>
+
+          <div className="mt-2.5 h-2.5 w-full overflow-hidden rounded-full bg-[#DBEAFE]">
+            <div
+              className="h-full rounded-full bg-[var(--cite)] transition-all duration-300"
+              style={{ width: `${progressPercentage}%` }}
+            />
+          </div>
+
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[12px] text-[#1E40AF]">
+            <span>
+              Tersisa: <strong>{liveRun.pending}</strong> keyword • Galat:{" "}
+              <strong>{liveRun.errors}</strong> • Panggilan SerpApi:{" "}
+              <strong className="font-mono">{liveRun.serpApiCallsUsed}</strong>
+            </span>
+            {liveRun.status === "running" && (
+              <span className="italic">
+                Memproses batch berikutnya secara otomatis selama halaman terbuka...
+              </span>
+            )}
+          </div>
         </div>
       )}
 
@@ -228,7 +408,7 @@ export function SettingsClient({
               <strong>
                 {isDryRunEnv
                   ? "Simulasi / Dry Run (SERPAPI_DRY_RUN=true — tidak memotong kuota nyata)"
-                  : "Pencarian Nyata SerpApi (memotong kuota paket SerpApi)"}
+                  : "Pencarian Nyata SerpApi (keyword contoh is_demo=true diabaikan otomatis)"}
               </strong>
             </li>
           </ul>
@@ -239,7 +419,7 @@ export function SettingsClient({
               disabled={isPending || activeKeywordsCount === 0}
               onClick={handleRunCheckConfirm}
             >
-              {isPending ? "Memproses antrean..." : "Ya, jalankan cek sekarang"}
+              {isPending ? "Memulai antrean..." : "Ya, jalankan cek sekarang"}
             </Button>
             <Button
               type="button"
@@ -260,9 +440,10 @@ export function SettingsClient({
             Konfirmasi Hapus Data Contoh
           </h3>
           <p className="mt-1 text-[13px] text-[#B45309]">
-            Semua riwayat pengecekan dari run simulasi (<code>is_demo = true</code>)
-            akan dihapus permanen. Data pengecekan nyata dan daftar keyword tidak
-            akan terhapus.
+            Semua data contoh (<code>is_demo = true</code>) di tabel{" "}
+            <code>check_runs</code>, <code>keywords</code>,{" "}
+            <code>keyword_groups</code>, dan <code>competitors</code> akan dihapus
+            permanen. Data nyata buatan Anda tidak akan terhapus.
           </p>
           <div className="mt-3.5 flex flex-wrap gap-2">
             <Button
@@ -303,7 +484,7 @@ export function SettingsClient({
               <Button
                 type="button"
                 variant="secondary"
-                disabled={isPending}
+                disabled={isPending || isBatchProcessing}
                 onClick={() => {
                   setShowRunConfirm(false);
                   setShowClearDemoConfirm(true);
@@ -315,7 +496,7 @@ export function SettingsClient({
             <Button
               type="button"
               variant="primary"
-              disabled={isPending}
+              disabled={isPending || isBatchProcessing}
               onClick={() => {
                 setShowClearDemoConfirm(false);
                 setShowRunConfirm(true);
@@ -348,7 +529,42 @@ export function SettingsClient({
         </div>
       </div>
 
-      {/* Dua Kolom Pengaturan Merek & Lokasi seperti di dashboard-ai-overview.html */}
+      {/* Penyimpanan Database terhadap Kuota 500 MB */}
+      <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="text-[14px] font-semibold text-[var(--ink)]">
+              Penyimpanan Database
+            </h2>
+            <p className="text-[12px] text-[var(--muted)]">
+              Hanya blok <code>ai_overview</code> dan metadata panggilan yang
+              disimpan di <code>checks.raw</code>. Data mentah lebih tua dari 90
+              hari dikosongkan otomatis setiap minggu.
+            </p>
+          </div>
+          <div className="text-right font-mono text-[13px] font-semibold text-[var(--ink)]">
+            {databaseStorage.usedMb.toFixed(2)} MB / {databaseStorage.quotaMb} MB (
+            {databaseStorage.percentUsed}%)
+          </div>
+        </div>
+
+        <div className="mt-2.5 h-2.5 w-full overflow-hidden rounded-full bg-[#F1F5F9]">
+          <div
+            className="h-full rounded-full transition-all"
+            style={{
+              width: `${Math.max(1, databaseStorage.percentUsed)}%`,
+              backgroundColor:
+                databaseStorage.percentUsed > 80
+                  ? "#DC2626"
+                  : databaseStorage.percentUsed > 50
+                    ? "var(--seen)"
+                    : "var(--cite)",
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Dua Kolom Pengaturan Merek & Lokasi */}
       <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
         {/* Identitas Merek */}
         <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
@@ -490,14 +706,14 @@ export function SettingsClient({
               </div>
             </div>
 
-            <label className="flex items-center gap-2 pt-1 text-[12.5px] text-[var(--ink)]">
+            <label className="flex items-center gap-2 pt-1 text-[12.5px] font-medium text-[var(--ink)]">
               <input
                 type="checkbox"
                 checked={thirdPartyEnabled}
                 onChange={(e) => setThirdPartyEnabled(e.target.checked)}
                 className="rounded border-[var(--line)]"
               />
-              Aktifkan pemeriksaan halaman sumber pihak ketiga (Tingkat 3)
+              Cek sumber pihak ketiga
             </label>
 
             <div className="pt-1">

@@ -1,7 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 import { buildEightWeekBuckets } from "../lib/analytics.ts";
+import {
+  clearAllDemoData,
+  DEMO_COMPETITORS,
+  DEMO_GROUP_NAMES,
+  DEMO_KEYWORDS,
+} from "../lib/demo-data.ts";
 import type { CheckStatus } from "../lib/detect.ts";
 
 function loadEnvLocal(): void {
@@ -27,36 +33,6 @@ function loadEnvLocal(): void {
   }
 }
 
-const DEMO_COMPETITORS = [
-  { name: "HRISKu", domain: "hrisku.id" },
-  { name: "PayrollPintar", domain: "payrollpintar.com" },
-  { name: "Timesheet ID", domain: "timesheet.co.id" },
-  { name: "Blog SDM", domain: "blogsdm.id" },
-  { name: "KerjaPlus", domain: "kerjaplus.com" },
-];
-
-const DEMO_KEYWORDS: Array<[string, string]> = [
-  ["software hr terbaik", "Produk HR"],
-  ["aplikasi hris indonesia", "Produk HR"],
-  ["software payroll terbaik", "Produk HR"],
-  ["aplikasi absensi karyawan", "Produk HR"],
-  ["software rekrutmen terbaik", "Produk HR"],
-  ["apa itu hris", "Panduan HR"],
-  ["cara hitung pph 21 karyawan", "Panduan HR"],
-  ["cara mengelola cuti karyawan", "Panduan HR"],
-  ["cara membuat slip gaji", "Panduan HR"],
-  ["hris vs hrms", "Perbandingan"],
-  ["hris lokal vs global", "Perbandingan"],
-  ["payroll manual vs software", "Perbandingan"],
-  ["linovhr", "Merek"],
-  ["review linovhr", "Merek"],
-  ["harga linovhr", "Merek"],
-  ["linovhr vs aplikasi hr lain", "Merek"],
-  ["software manajemen proyek terbaik", "Umum"],
-  ["aplikasi akuntansi terbaik", "Umum"],
-  ["cara meningkatkan produktivitas tim", "Umum"],
-];
-
 const GROUP_PROBABILITIES: Record<string, number> = {
   "Produk HR": 0.7,
   "Panduan HR": 0.88,
@@ -73,29 +49,6 @@ function createRng(seed: number): () => number {
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
-}
-
-async function clearExistingDemoRuns(supabase: SupabaseClient) {
-  const { data: dryChecks } = await supabase
-    .from("checks")
-    .select("run_id, raw");
-
-  const demoRunIds = new Set<string>();
-  for (const c of dryChecks ?? []) {
-    const typed = c as { run_id: string; raw: Record<string, unknown> | null };
-    if (typed.raw?.dry_run === true) {
-      demoRunIds.add(typed.run_id);
-    }
-  }
-
-  await supabase.from("check_runs").delete().eq("is_demo", true);
-
-  if (demoRunIds.size > 0) {
-    await supabase
-      .from("check_runs")
-      .delete()
-      .in("id", Array.from(demoRunIds));
-  }
 }
 
 async function main() {
@@ -116,8 +69,8 @@ async function main() {
 
   console.log("=== Mengisi Data Contoh 8 Minggu (is_demo = true) ===");
 
-  // 1. Bersihkan data contoh lama agar idempoten
-  await clearExistingDemoRuns(supabase);
+  // 1. Bersihkan data contoh lama di keempat tabel agar idempoten
+  await clearAllDemoData(supabase);
 
   // 2. Pastikan istilah merek standar tersedia
   await supabase.from("brand_terms").upsert(
@@ -129,48 +82,87 @@ async function main() {
     { onConflict: "term" }
   );
 
-  // 3. Pastikan kompetitor contoh tersedia
-  await supabase
+  // 3. Simpan kompetitor contoh dengan is_demo = true (fallback jika kolom belum dimigrasi)
+  const compWithDemo = await supabase
     .from("competitors")
-    .upsert(DEMO_COMPETITORS, { onConflict: "domain" });
+    .upsert(
+      DEMO_COMPETITORS.map((c) => ({ ...c, is_demo: true })),
+      { onConflict: "domain" }
+    );
+  if (compWithDemo.error) {
+    await supabase
+      .from("competitors")
+      .upsert(DEMO_COMPETITORS, { onConflict: "domain" });
+  }
 
-  // 4. Pastikan grup keyword tersedia
-  const uniqueGroups = Array.from(new Set(DEMO_KEYWORDS.map((k) => k[1])));
-  const { data: groupRows, error: grpErr } = await supabase
+  // 4. Simpan grup keyword contoh dengan is_demo = true (fallback jika kolom belum dimigrasi)
+  let groupRows: Array<{ id: string; name: string }> | null = null;
+  const grpWithDemo = await supabase
     .from("keyword_groups")
     .upsert(
-      uniqueGroups.map((name) => ({ name })),
+      DEMO_GROUP_NAMES.map((name) => ({ name, is_demo: true })),
       { onConflict: "name" }
     )
     .select("id, name");
 
-  if (grpErr || !groupRows) {
-    throw new Error(`Gagal menyimpan grup keyword: ${grpErr?.message}`);
+  if (!grpWithDemo.error && grpWithDemo.data) {
+    groupRows = grpWithDemo.data as Array<{ id: string; name: string }>;
+  } else {
+    const grpFallback = await supabase
+      .from("keyword_groups")
+      .upsert(
+        DEMO_GROUP_NAMES.map((name) => ({ name })),
+        { onConflict: "name" }
+      )
+      .select("id, name");
+    if (grpFallback.error || !grpFallback.data) {
+      throw new Error(`Gagal menyimpan grup keyword: ${grpFallback.error?.message}`);
+    }
+    groupRows = grpFallback.data as Array<{ id: string; name: string }>;
   }
 
   const groupIdByName = new Map<string, string>();
-  for (const g of groupRows as Array<{ id: string; name: string }>) {
+  for (const g of groupRows) {
     groupIdByName.set(g.name, g.id);
   }
 
-  // 5. Pastikan 19 keyword tersedia
-  const keywordPayloads = DEMO_KEYWORDS.map(([text, groupName]) => ({
-    text,
-    group_id: groupIdByName.get(groupName) ?? null,
-    active: true,
-  }));
-
-  const { data: kwRows, error: kwErr } = await supabase
+  // 5. Simpan 19 keyword contoh dengan is_demo = true (fallback jika kolom belum dimigrasi)
+  let kwRows: Array<{ id: string; text: string }> | null = null;
+  const kwWithDemo = await supabase
     .from("keywords")
-    .upsert(keywordPayloads, { onConflict: "text" })
+    .upsert(
+      DEMO_KEYWORDS.map(([text, groupName]) => ({
+        text,
+        group_id: groupIdByName.get(groupName) ?? null,
+        active: true,
+        is_demo: true,
+      })),
+      { onConflict: "text" }
+    )
     .select("id, text");
 
-  if (kwErr || !kwRows) {
-    throw new Error(`Gagal menyimpan keyword contoh: ${kwErr?.message}`);
+  if (!kwWithDemo.error && kwWithDemo.data) {
+    kwRows = kwWithDemo.data as Array<{ id: string; text: string }>;
+  } else {
+    const kwFallback = await supabase
+      .from("keywords")
+      .upsert(
+        DEMO_KEYWORDS.map(([text, groupName]) => ({
+          text,
+          group_id: groupIdByName.get(groupName) ?? null,
+          active: true,
+        })),
+        { onConflict: "text" }
+      )
+      .select("id, text");
+    if (kwFallback.error || !kwFallback.data) {
+      throw new Error(`Gagal menyimpan keyword contoh: ${kwFallback.error?.message}`);
+    }
+    kwRows = kwFallback.data as Array<{ id: string; text: string }>;
   }
 
   const kwIdByText = new Map<string, string>();
-  for (const k of kwRows as Array<{ id: string; text: string }>) {
+  for (const k of kwRows) {
     kwIdByText.set(k.text, k.id);
   }
 
@@ -284,6 +276,11 @@ async function main() {
         detected_third_party: detectedThirdParty,
         status,
         raw: {
+          ai_overview: hasAiOverview
+            ? {
+                text_blocks: [{ type: "paragraph", snippet: answerText ?? "" }],
+              }
+            : undefined,
           dry_run: true,
           demo_seed: true,
           week_label: bucket.label,
@@ -372,10 +369,11 @@ async function main() {
     }
   }
 
-  console.log(`Selesai mengisi data contoh 8 minggu:`);
-  console.log(`- 8 check_runs (is_demo = true)`);
-  console.log(`- ${totalChecksInserted} baris checks`);
-  console.log(`- ${totalSourcesInserted} baris check_sources`);
+  console.log(`Selesai mengisi data contoh 8 minggu (is_demo = true):`);
+  console.log(`- ${DEMO_GROUP_NAMES.length} keyword_groups contoh`);
+  console.log(`- ${DEMO_KEYWORDS.length} keywords contoh`);
+  console.log(`- ${DEMO_COMPETITORS.length} competitors contoh`);
+  console.log(`- 8 check_runs (${totalChecksInserted} checks & ${totalSourcesInserted} check_sources)`);
 }
 
 main().catch((err) => {

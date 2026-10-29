@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  compactSerpApiRawForStorage,
   extractSerpApiCallsFromRaw,
   getRetryDelayMs,
   processQueue,
@@ -462,5 +463,63 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
     );
     const res3 = await processPost(reqWrongToken);
     expect(res3.status).toBe(401);
+  });
+
+  it("mengabaikan keyword dengan is_demo = true saat SERPAPI_DRY_RUN=false (isDemo = false)", async () => {
+    const { store, items } = createInMemoryQueueStore({
+      keywords: [
+        { id: "kw-demo-1", text: "software hr terbaik", active: true, is_demo: true },
+        { id: "kw-demo-2", text: "aplikasi hris indonesia", active: true, is_demo: true },
+        { id: "kw-real-1", text: "keyword produksi nyata", active: true, is_demo: false },
+      ],
+    });
+
+    const realRun = await startCheckRun(store, new Date("2026-10-29T12:00:00Z"), {
+      isDemo: false,
+    });
+
+    expect(realRun.total).toBe(1);
+    expect(items).toHaveLength(1);
+    expect(items[0]?.keyword_id).toBe("kw-real-1");
+  });
+
+  it("menyimpan di checks.raw hanya blok ai_overview dan metadata panggilan", () => {
+    const fullRaw = {
+      search_metadata: {
+        id: "search-123",
+        status: "Success",
+        total_time_taken: 1.42,
+        json_endpoint: "https://serpapi.com/searches/123?api_key=secret123",
+      },
+      search_parameters: {
+        engine: "google",
+        q: "software hr terbaik",
+        api_key: "secret123",
+      },
+      organic_results: [{ position: 1, title: "Organic 1" }],
+      related_questions: [{ question: "Apa itu HR?" }],
+      ai_overview: {
+        text_blocks: [{ type: "paragraph", snippet: "LinovHR adalah HRIS." }],
+        references: [{ index: 1, title: "LinovHR", link: "https://linovhr.com" }],
+      },
+      ai_overview_followup: {
+        text_blocks: [{ type: "paragraph", snippet: "LinovHR adalah HRIS." }],
+      },
+    };
+
+    const compact = compactSerpApiRawForStorage(fullRaw, 2);
+
+    expect(compact.ai_overview).toBeDefined();
+    expect(compact.serpapi_calls_count).toBe(2);
+    expect(compact.used_followup_page_token).toBe(true);
+    expect(compact.search_metadata).toEqual({
+      id: "search-123",
+      status: "Success",
+      total_time_taken: 1.42,
+    });
+    expect(compact.organic_results).toBeUndefined();
+    expect(compact.related_questions).toBeUndefined();
+    expect(compact.search_parameters).toBeUndefined();
+    expect(compact.ai_overview_followup).toBeUndefined();
   });
 });

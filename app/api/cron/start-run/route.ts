@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { verifyCronSecret } from "@/lib/cron-auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { createSupabaseQueueStore, startCheckRun } from "@/lib/queue";
+import {
+  cleanupExpiredRawPayloads,
+  createSupabaseQueueStore,
+  startCheckRun,
+} from "@/lib/queue";
 
 export async function POST(request: Request) {
   if (!verifyCronSecret(request)) {
@@ -14,9 +18,12 @@ export async function POST(request: Request) {
   try {
     const supabase = createSupabaseAdminClient();
     const store = createSupabaseQueueStore(supabase);
-    const result = await startCheckRun(store);
+    const [result, cleanedRawCount] = await Promise.all([
+      startCheckRun(store),
+      cleanupExpiredRawPayloads(supabase, 90).catch(() => 0),
+    ]);
 
-    return NextResponse.json(result, { status: 200 });
+    return NextResponse.json({ ...result, cleanedRawCount }, { status: 200 });
   } catch (err) {
     return NextResponse.json(
       {

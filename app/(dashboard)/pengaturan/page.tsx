@@ -15,8 +15,8 @@ export default async function PengaturanPage() {
           Pengaturan Pemantauan
         </h1>
         <p className="mt-0.5 text-[13px] text-[var(--muted)]">
-          Identitas merek yang dicari, daftar kompetitor, lokasi pencarian, dan
-          kuota panggilan SerpApi.
+          Identitas merek yang dicari, daftar kompetitor, lokasi pencarian,
+          penyimpanan database, dan kuota panggilan SerpApi.
         </p>
       </div>
 
@@ -34,6 +34,8 @@ export default async function PengaturanPage() {
         isDryRunEnv={data.isDryRunEnv}
         hasDemoData={data.hasDemoData}
         brandDomain={brandDomain}
+        databaseStorage={data.databaseStorage}
+        initialRunningRun={data.runningRun}
       />
     </div>
   );

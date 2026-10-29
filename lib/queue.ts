@@ -12,6 +12,7 @@ import {
   type SerpApiCheckResult,
   type SerpApiRawResponse,
 } from "./serpapi.ts";
+import { isKnownDemoKeywordText } from "./demo-data.ts";
 
 export const STUCK_PROCESSING_TIMEOUT_MS = 10 * 60 * 1000; // 10 menit
 export const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 60 menit
@@ -46,6 +47,7 @@ export interface KeywordRecord {
   id: string;
   text: string;
   active: boolean;
+  is_demo?: boolean;
 }
 
 export interface CheckInsertPayload {
@@ -162,10 +164,68 @@ export function extractSerpApiCallsFromRaw(
   ) {
     return obj.serpapi_calls_count;
   }
-  if (obj.ai_overview_followup) {
+  if (obj.ai_overview_followup || obj.used_followup_page_token === true) {
     return 2;
   }
   return 1;
+}
+
+/**
+ * Menyimpan di checks.raw hanya blok ai_overview dan metadata panggilan
+ * agar ukuran database tetap hemat (< 500 MB) dan tidak menyimpan organic_results dll.
+ */
+export function compactSerpApiRawForStorage(
+  raw: SerpApiRawResponse,
+  serpApiCallsCount: number
+): SerpApiRawResponse {
+  const sanitized = sanitizeSerpApiRaw(raw);
+
+  const aiOverviewBlock =
+    sanitized.ai_overview && typeof sanitized.ai_overview === "object"
+      ? sanitized.ai_overview
+      : Array.isArray(sanitized.text_blocks) || Array.isArray(sanitized.references)
+        ? {
+            text_blocks: sanitized.text_blocks,
+            references: sanitized.references,
+          }
+        : undefined;
+
+  let compactMeta: Record<string, unknown> | undefined;
+  if (sanitized.search_metadata && typeof sanitized.search_metadata === "object") {
+    const m = sanitized.search_metadata as Record<string, unknown>;
+    compactMeta = {};
+    for (const key of [
+      "id",
+      "status",
+      "created_at",
+      "processed_at",
+      "total_time_taken",
+    ]) {
+      if (m[key] !== undefined) {
+        compactMeta[key] = m[key];
+      }
+    }
+    if (Object.keys(compactMeta).length === 0) {
+      compactMeta = undefined;
+    }
+  }
+
+  const compact: SerpApiRawResponse = {
+    ...(aiOverviewBlock ? { ai_overview: aiOverviewBlock } : {}),
+    ...(compactMeta ? { search_metadata: compactMeta } : {}),
+    serpapi_calls_count: serpApiCallsCount,
+    ...(sanitized.ai_overview_followup ||
+    sanitized.used_followup_page_token === true
+      ? { used_followup_page_token: true }
+      : {}),
+    ...(sanitized.dry_run === true ? { dry_run: true } : {}),
+    ...(sanitized.demo_seed === true ? { demo_seed: true } : {}),
+    ...(typeof sanitized.week_label === "string"
+      ? { week_label: sanitized.week_label }
+      : {}),
+  };
+
+  return compact;
 }
 
 /**
@@ -195,6 +255,16 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
     },
 
     async getActiveKeywords(): Promise<KeywordRecord[]> {
+      const withDemoRes = await supabase
+        .from("keywords")
+        .select("id, text, active, is_demo")
+        .eq("active", true)
+        .order("created_at", { ascending: true });
+
+      if (!withDemoRes.error && withDemoRes.data) {
+        return withDemoRes.data as KeywordRecord[];
+      }
+
       const { data, error } = await supabase
         .from("keywords")
         .select("id, text, active")
@@ -203,7 +273,10 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
       if (error) {
         throw new Error(`Gagal membaca keywords aktif: ${error.message}`);
       }
-      return (data ?? []) as KeywordRecord[];
+      return ((data ?? []) as KeywordRecord[]).map((kw) => ({
+        ...kw,
+        is_demo: isKnownDemoKeywordText(kw.text),
+      }));
     },
 
     async createCheckRun(
@@ -424,10 +497,10 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
     },
 
     async saveCheckAndSources(payload: CheckInsertPayload): Promise<string> {
-      const sanitizedRaw = sanitizeSerpApiRaw({
-        ...payload.raw,
-        serpapi_calls_count: payload.serpapi_callsCount,
-      });
+      const sanitizedRaw = compactSerpApiRawForStorage(
+        payload.raw,
+        payload.serpapi_callsCount
+      );
 
       const { data: checkRow, error: checkError } = await supabase
         .from("checks")
@@ -659,7 +732,11 @@ export async function startCheckRun(
       process.env.SERPAPI_DRY_RUN === "1");
 
   const nowIso = now.toISOString();
-  const activeKeywords = await store.getActiveKeywords();
+  const allActiveKeywords = await store.getActiveKeywords();
+  // Saat SERPAPI_DRY_RUN=false (isDemo === false), abaikan keyword dengan is_demo = true
+  const activeKeywords = isDemo
+    ? allActiveKeywords
+    : allActiveKeywords.filter((k) => !k.is_demo);
   const run = await store.createCheckRun(activeKeywords.length, nowIso, isDemo);
 
   if (activeKeywords.length > 0) {
@@ -932,3 +1009,31 @@ export async function processQueue(
     runsSummary,
   };
 }
+
+/**
+ * Mengosongkan kolom checks.raw yang lebih tua dari retentionDays (bawaan 90 hari)
+ * untuk menjaga pemakaian ruang penyimpanan database.
+ */
+export async function cleanupExpiredRawPayloads(
+  supabase: SupabaseClient,
+  retentionDays: number = 90,
+  now: Date = new Date()
+): Promise<number> {
+  const cutoffIso = new Date(
+    now.getTime() - retentionDays * 24 * 60 * 60 * 1000
+  ).toISOString();
+
+  const { data, error } = await supabase
+    .from("checks")
+    .update({ raw: null })
+    .lt("checked_at", cutoffIso)
+    .not("raw", "is", null)
+    .select("id");
+
+  if (error) {
+    throw new Error(`Gagal membersihkan checks.raw lama: ${error.message}`);
+  }
+
+  return (data ?? []).length;
+}
+

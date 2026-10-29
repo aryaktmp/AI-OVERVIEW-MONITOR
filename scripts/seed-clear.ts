@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import { clearAllDemoData } from "../lib/demo-data.ts";
 
 function loadEnvLocal(): void {
   const envPath = path.resolve(process.cwd(), ".env.local");
@@ -40,33 +41,12 @@ async function main() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  console.log("=== Menghapus Data Contoh (is_demo = true) ===");
+  console.log("=== Menghapus Data Contoh di Keempat Tabel (is_demo = true) ===");
 
-  const { data: dryChecks } = await supabase
-    .from("checks")
-    .select("run_id, raw");
-
-  const demoRunIds = new Set<string>();
-  for (const c of dryChecks ?? []) {
-    const typed = c as { run_id: string; raw: Record<string, unknown> | null };
-    if (typed.raw?.dry_run === true) {
-      demoRunIds.add(typed.run_id);
-    }
-  }
-
-  // Hapus berdasarkan kolom is_demo = true (jika sudah dimigrasi)
-  await supabase.from("check_runs").delete().eq("is_demo", true);
-
-  // Hapus berdasarkan run_id dari checks dry_run
-  if (demoRunIds.size > 0) {
-    await supabase
-      .from("check_runs")
-      .delete()
-      .in("id", Array.from(demoRunIds));
-  }
+  const res = await clearAllDemoData(supabase);
 
   console.log(
-    `Selesai menghapus data contoh (${demoRunIds.size} check_runs beserta checks & check_sources terkait).`
+    `Selesai menghapus data contoh di check_runs (${res.deletedRunsCount} run), keywords, keyword_groups, dan competitors.`
   );
 }
 

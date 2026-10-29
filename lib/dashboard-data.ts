@@ -18,6 +18,11 @@ import {
   createSupabaseQueueStore,
   extractSerpApiCallsFromRaw,
 } from "@/lib/queue";
+import {
+  isKnownDemoCompetitorDomain,
+  isKnownDemoGroupName,
+  isKnownDemoKeywordText,
+} from "@/lib/demo-data";
 
 export interface SearchSettingsConfig {
   location: string;
@@ -32,7 +37,7 @@ export const DEFAULT_SEARCH_SETTINGS: SearchSettingsConfig = {
   google_domain: "google.co.id",
   gl: "id",
   hl: "id",
-  enable_third_party_check: true,
+  enable_third_party_check: false,
 };
 
 export async function getDashboardOverviewData(): Promise<{
@@ -135,6 +140,15 @@ export async function getDashboardOverviewData(): Promise<{
   });
 
   const analytics = computeDashboardAnalytics(keywords, checks);
+  const hasDemoKeywordsOrGroups =
+    keywords.some((k) => isKnownDemoKeywordText(k.text)) ||
+    (groupsData ?? []).some((g: { name: string }) =>
+      isKnownDemoGroupName(g.name)
+    );
+  if (hasDemoKeywordsOrGroups || demoRunIds.size > 0) {
+    analytics.hasDemoData = true;
+  }
+
   return {
     analytics,
     groups: (groupsData ?? []) as Array<{ id: string; name: string }>,
@@ -373,6 +387,13 @@ export interface RunHistoryRow {
   serpapi_calls: number;
 }
 
+export interface DatabaseStorageStats {
+  usedBytes: number;
+  usedMb: number;
+  quotaMb: number;
+  percentUsed: number;
+}
+
 export async function getSettingsPageData(): Promise<{
   brandTerms: Array<{ id: string; term: string; enabled: boolean }>;
   competitors: Array<{ id: string; name: string; domain: string }>;
@@ -384,6 +405,8 @@ export async function getSettingsPageData(): Promise<{
   maxPerHour: number;
   isDryRunEnv: boolean;
   hasDemoData: boolean;
+  databaseStorage: DatabaseStorageStats;
+  runningRun: RunHistoryRow | null;
 }> {
   const supabase = createSupabaseAdminClient();
   const store = createSupabaseQueueStore(supabase);
@@ -397,7 +420,10 @@ export async function getSettingsPageData(): Promise<{
     { data: compData },
     { data: runsData },
     { count: activeKwCount },
+    { count: totalChecksCount },
+    { count: totalSourcesCount },
     hourlyCallsUsed,
+    dbSizeRpc,
   ] = await Promise.all([
     supabase
       .from("brand_terms")
@@ -417,7 +443,10 @@ export async function getSettingsPageData(): Promise<{
       .select("id", { count: "exact" })
       .eq("active", true)
       .limit(0),
+    supabase.from("checks").select("id", { count: "exact" }).limit(0),
+    supabase.from("check_sources").select("id", { count: "exact" }).limit(0),
     store.getHourlySerpApiCalls(oneHourAgoIso),
+    supabase.rpc("get_database_size_bytes"),
   ]);
 
   // Baca tabel settings (dengan fallback jika tabel settings belum dimigrasi)
@@ -494,6 +523,31 @@ export async function getSettingsPageData(): Promise<{
     process.env.SERPAPI_DRY_RUN === "true" ||
     process.env.SERPAPI_DRY_RUN === "1";
 
+  const hasDemoCompetitors = (compData ?? []).some((c: { domain: string }) =>
+    isKnownDemoCompetitorDomain(c.domain)
+  );
+  if (hasDemoCompetitors) {
+    hasDemoData = true;
+  }
+
+  // Ukuran database (dari fungsi SQL get_database_size_bytes() atau estimasi ruang jika migrasi belum dijalankan)
+  const baseOverheadBytes = 8 * 1024 * 1024; // ~8 MB sistem & katalog Postgres dasar
+  const estimatedRowsBytes =
+    (totalChecksCount ?? 0) * 4096 + (totalSourcesCount ?? 0) * 512;
+  const usedBytes =
+    !dbSizeRpc.error && typeof dbSizeRpc.data === "number" && dbSizeRpc.data > 0
+      ? dbSizeRpc.data
+      : baseOverheadBytes + estimatedRowsBytes;
+  const quotaMb = 500;
+  const usedMb = Math.round((usedBytes / (1024 * 1024)) * 100) / 100;
+  const percentUsed = Math.min(
+    100,
+    Math.round((usedMb / quotaMb) * 1000) / 10
+  );
+
+  const runningRun =
+    recentRuns.find((r) => r.status === "running") ?? null;
+
   return {
     brandTerms: (termsData ?? []) as Array<{
       id: string;
@@ -513,5 +567,12 @@ export async function getSettingsPageData(): Promise<{
     maxPerHour,
     isDryRunEnv,
     hasDemoData,
+    databaseStorage: {
+      usedBytes,
+      usedMb,
+      quotaMb,
+      percentUsed,
+    },
+    runningRun,
   };
 }

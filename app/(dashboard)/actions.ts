@@ -10,6 +10,8 @@ import {
   processQueue,
   startCheckRun,
 } from "@/lib/queue";
+import { clearAllDemoData } from "@/lib/demo-data";
+import { MAX_CSV_IMPORT_ROWS, parseKeywordCsvPreview } from "@/lib/csv-import";
 
 async function requireAllowedAdminUser() {
   const supabase = await createSupabaseServerClient();
@@ -91,6 +93,111 @@ export async function addKeywordAction(formData: FormData) {
 
   revalidateAllDashboardRoutes();
   return { ok: true, message: "Keyword berhasil disimpan." };
+}
+
+export async function importKeywordsCsvAction(formData: FormData) {
+  await requireAllowedAdminUser();
+
+  const csvText = String(formData.get("csvText") ?? "");
+  if (!csvText.trim()) {
+    return {
+      ok: false,
+      message: "Isi file CSV tidak boleh kosong.",
+    };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const [{ data: existingKwRows }, { data: existingGrpRows }] =
+    await Promise.all([
+      supabase.from("keywords").select("text"),
+      supabase.from("keyword_groups").select("id, name"),
+    ]);
+
+  const existingKeywords = (existingKwRows ?? []).map(
+    (r: { text: string }) => r.text
+  );
+  const existingGroups = (existingGrpRows ?? []) as Array<{
+    id: string;
+    name: string;
+  }>;
+
+  const preview = parseKeywordCsvPreview(
+    csvText,
+    existingKeywords,
+    existingGroups.map((g) => g.name)
+  );
+
+  if (preview.exceededMaxRows) {
+    return {
+      ok: false,
+      message: `Impor ditolak: jumlah baris melebihi batas maksimal ${MAX_CSV_IMPORT_ROWS} baris per impor.`,
+    };
+  }
+
+  if (preview.validRows.length === 0) {
+    return {
+      ok: false,
+      message: "Tidak ada keyword baru yang valid untuk disimpan.",
+    };
+  }
+
+  const groupIdByLowerName = new Map<string, string>();
+  for (const grp of existingGroups) {
+    groupIdByLowerName.set(grp.name.trim().toLowerCase(), grp.id);
+  }
+
+  if (preview.newGroupsToCreate.length > 0) {
+    const { data: createdGroups, error: grpErr } = await supabase
+      .from("keyword_groups")
+      .upsert(
+        preview.newGroupsToCreate.map((name) => ({ name })),
+        { onConflict: "name" }
+      )
+      .select("id, name");
+
+    if (grpErr) {
+      return {
+        ok: false,
+        message: `Gagal membuat grup baru: ${grpErr.message}`,
+      };
+    }
+
+    for (const grp of (createdGroups ?? []) as Array<{
+      id: string;
+      name: string;
+    }>) {
+      groupIdByLowerName.set(grp.name.trim().toLowerCase(), grp.id);
+    }
+  }
+
+  const rowsToInsert = preview.validRows.map((row) => ({
+    text: row.keyword,
+    group_id: row.group
+      ? (groupIdByLowerName.get(row.group.toLowerCase()) ?? null)
+      : null,
+    active: true,
+  }));
+
+  const { error: insertErr } = await supabase
+    .from("keywords")
+    .insert(rowsToInsert);
+
+  if (insertErr) {
+    return {
+      ok: false,
+      message: `Gagal mengimpor keyword: ${insertErr.message}`,
+    };
+  }
+
+  revalidateAllDashboardRoutes();
+  return {
+    ok: true,
+    message: `Berhasil mengimpor ${preview.validRows.length} keyword baru (${preview.duplicateRows.length} duplikat dilewati, ${preview.invalidRows.length} tidak valid).`,
+    insertedCount: preview.validRows.length,
+    duplicateCount: preview.duplicateRows.length,
+    invalidCount: preview.invalidRows.length,
+    createdGroupsCount: preview.newGroupsToCreate.length,
+  };
 }
 
 const uuidSchema = z.string().uuid("ID tidak valid");
@@ -385,8 +492,17 @@ export async function runCheckNowAction() {
 
   const started = await startCheckRun(store);
   const processed = await processQueue(store, {
-    maxDurationMs: 45_000,
+    maxItems: 5,
+    maxDurationMs: 15_000,
   });
+
+  const runSummary =
+    processed.runsSummary.find((r) => r.runId === started.runId) ??
+    (await store.syncRunProgress(
+      started.runId,
+      new Date().toISOString(),
+      started.isDemo
+    ));
 
   revalidateAllDashboardRoutes();
 
@@ -394,9 +510,69 @@ export async function runCheckNowAction() {
     ok: true,
     runId: started.runId,
     isExisting: started.isExisting,
+    status: runSummary.status,
+    total: runSummary.total,
+    done: runSummary.done,
+    pending: runSummary.pending,
+    errors: runSummary.errors,
     processedCount: processed.processedCount,
     succeededCount: processed.succeededCount,
-    serpApiCallsUsed: processed.serpApiCallsUsedInBatch,
+    serpApiCallsUsed: runSummary.serpApiCalls,
+    stoppedReason: processed.stoppedReason,
+  };
+}
+
+export async function processRunBatchAction(runId?: string) {
+  await requireAllowedAdminUser();
+
+  const supabase = createSupabaseAdminClient();
+  const store = createSupabaseQueueStore(supabase);
+
+  const processed = await processQueue(store, {
+    maxItems: 5,
+    maxDurationMs: 15_000,
+  });
+
+  const targetRunId =
+    runId ??
+    processed.runsSummary[0]?.runId ??
+    (await store.getRunningCheckRun())?.id ??
+    null;
+
+  if (!targetRunId) {
+    revalidateAllDashboardRoutes();
+    return {
+      ok: true,
+      runId: null,
+      status: "done" as const,
+      total: 0,
+      done: 0,
+      pending: 0,
+      errors: 0,
+      processedCount: processed.processedCount,
+      succeededCount: processed.succeededCount,
+      serpApiCallsUsed: processed.serpApiCallsUsedInBatch,
+      stoppedReason: processed.stoppedReason,
+    };
+  }
+
+  const runSummary =
+    processed.runsSummary.find((r) => r.runId === targetRunId) ??
+    (await store.syncRunProgress(targetRunId, new Date().toISOString()));
+
+  revalidateAllDashboardRoutes();
+
+  return {
+    ok: true,
+    runId: runSummary.runId,
+    status: runSummary.status,
+    total: runSummary.total,
+    done: runSummary.done,
+    pending: runSummary.pending,
+    errors: runSummary.errors,
+    processedCount: processed.processedCount,
+    succeededCount: processed.succeededCount,
+    serpApiCallsUsed: runSummary.serpApiCalls,
     stoppedReason: processed.stoppedReason,
   };
 }
@@ -405,33 +581,12 @@ export async function clearDemoDataAction() {
   await requireAllowedAdminUser();
 
   const supabase = createSupabaseAdminClient();
-
-  // Ambil semua run_id yang memiliki checks dengan dry_run = true
-  const { data: dryChecks } = await supabase
-    .from("checks")
-    .select("run_id, raw");
-
-  const demoRunIds = new Set<string>();
-  for (const c of dryChecks ?? []) {
-    const typed = c as { run_id: string; raw: Record<string, unknown> | null };
-    if (typed.raw?.dry_run === true) {
-      demoRunIds.add(typed.run_id);
-    }
-  }
-
-  // Hapus check_runs dengan is_demo = true (jika kolom ada)
-  await supabase.from("check_runs").delete().eq("is_demo", true);
-
-  if (demoRunIds.size > 0) {
-    await supabase
-      .from("check_runs")
-      .delete()
-      .in("id", Array.from(demoRunIds));
-  }
+  await clearAllDemoData(supabase);
 
   revalidateAllDashboardRoutes();
   return {
     ok: true,
-    message: "Seluruh data contoh berhasil dihapus.",
+    message:
+      "Seluruh data contoh di check_runs, keywords, keyword_groups, dan competitors berhasil dihapus.",
   };
 }
