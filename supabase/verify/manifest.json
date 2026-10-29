@@ -1668,7 +1668,7 @@
         "argTypes": [
           "timestamp with time zone"
         ],
-        "returnType": "setof public.run_items",
+        "returnType": "setof run_items",
         "language": "sql",
         "securityDefiner": true,
         "searchPath": "public, pg_temp",

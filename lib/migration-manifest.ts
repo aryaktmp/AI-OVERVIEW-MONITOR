@@ -603,6 +603,25 @@ export function buildManifestFromSqlFiles(
       stepSummary.functionsCreatedOrReplaced.push(fnName);
     }
 
+    // 8b. ALTER FUNCTION ... SET search_path
+    const alterFnRegex =
+      /alter\s+function\s+(?:([a-zA-Z0-9_]+)\.)?([a-zA-Z0-9_]+)\s*\(((?:[^()]|\([^()]*\))*)\)\s+set\s+search_path\s*(?:=|\s+to\s+)\s*([^;]+);/gi;
+    let alterFnMatch: RegExpExecArray | null;
+    while ((alterFnMatch = alterFnRegex.exec(cleanSql)) !== null) {
+      const fnName = alterFnMatch[2]!.trim().toLowerCase();
+      const rawSearchPath = alterFnMatch[4]!.trim().replace(/^['"]|['"]$/g, "");
+      const existing = functions[fnName];
+      if (existing) {
+        existing.searchPath = rawSearchPath;
+        if (!existing.modifiedByMigrations.includes(fileName)) {
+          existing.modifiedByMigrations.push(fileName);
+        }
+      }
+      if (!stepSummary.functionsCreatedOrReplaced.includes(fnName)) {
+        stepSummary.functionsCreatedOrReplaced.push(fnName);
+      }
+    }
+
     // 9. REVOKE & GRANT ON FUNCTION
     const permRegex =
       /(revoke|grant)\s+(all(?:\s+privileges)?|execute)\s+on\s+function\s+(?:public\.)?([a-zA-Z0-9_]+)\s*\(((?:[^()]|\([^()]*\))*)\)\s+(?:from|to)\s+([^;]+);/gi;

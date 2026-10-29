@@ -61,7 +61,7 @@ export interface VerifyCheckItem {
 
 export interface MigrationInstallStatus {
   fileName: string;
-  status: "TERPASANG PENUH" | "SEBAGIAN" | "BELUM TERPASANG";
+  status: "TERPASANG PENUH" | "SEBAGIAN" | "BELUM TERPASANG" | string;
   totalObjects: number;
   installedObjects: number;
   missingObjects: string[];
@@ -212,7 +212,7 @@ export const VERIFY_DB_READONLY_QUERIES = {
     FROM pg_catalog.pg_class c
     JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
     WHERE n.nspname = 'public'
-      AND c.relkind = 'r'
+      AND c.relkind::text = 'r'
     ORDER BY c.relname;
   `,
 
@@ -228,7 +228,7 @@ export const VERIFY_DB_READONLY_QUERIES = {
     JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
     LEFT JOIN pg_catalog.pg_attrdef ad ON ad.adrelid = a.attrelid AND ad.adnum = a.attnum
     WHERE n.nspname = 'public'
-      AND c.relkind = 'r'
+      AND c.relkind::text = 'r'
       AND a.attnum > 0
       AND NOT a.attisdropped
     ORDER BY c.relname, a.attnum;
@@ -238,7 +238,7 @@ export const VERIFY_DB_READONLY_QUERIES = {
     SELECT
       c.relname AS table_name,
       con.conname AS constraint_name,
-      con.contype AS constraint_type,
+      con.contype::text AS constraint_type,
       ARRAY(
         SELECT a.attname
         FROM pg_catalog.pg_attribute a
@@ -254,7 +254,7 @@ export const VERIFY_DB_READONLY_QUERIES = {
           AND a.attnum = ANY(con.confkey)
         ORDER BY array_position(con.confkey, a.attnum)
       ) AS references_columns,
-      con.confdeltype AS on_delete_action,
+      con.confdeltype::text AS on_delete_action,
       pg_catalog.pg_get_expr(con.conbin, con.conrelid) AS check_expression
     FROM pg_catalog.pg_constraint con
     JOIN pg_catalog.pg_class c ON c.oid = con.conrelid
@@ -275,7 +275,7 @@ export const VERIFY_DB_READONLY_QUERIES = {
     JOIN pg_catalog.pg_class t ON t.oid = ix.indrelid
     JOIN pg_catalog.pg_namespace n ON n.oid = t.relnamespace
     WHERE n.nspname = 'public'
-      AND t.relkind = 'r'
+      AND t.relkind::text = 'r'
       AND NOT ix.indisprimary
     ORDER BY t.relname, i.relname;
   `,
@@ -284,7 +284,7 @@ export const VERIFY_DB_READONLY_QUERIES = {
     SELECT
       pol.polname AS policy_name,
       c.relname AS table_name,
-      pol.polcmd AS command_type,
+      pol.polcmd::text AS command_type,
       ARRAY(
         SELECT r.rolname
         FROM pg_catalog.pg_roles r
@@ -313,7 +313,7 @@ export const VERIFY_DB_READONLY_QUERIES = {
     FROM pg_catalog.pg_class c
     JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
     WHERE n.nspname = 'public'
-      AND c.relkind = 'r'
+      AND c.relkind::text = 'r'
     ORDER BY c.relname;
   `,
 
@@ -332,7 +332,7 @@ export const VERIFY_DB_READONLY_QUERIES = {
     FROM pg_catalog.pg_class c
     JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
     WHERE n.nspname = 'public'
-      AND c.relkind = 'v'
+      AND c.relkind::text = 'v'
     ORDER BY c.relname;
   `,
 
@@ -408,10 +408,78 @@ export function generateStandaloneVerifySql(manifest: MigrationManifest): string
     .map((f) => `'${f}'`)
     .join(", ");
 
-  return `-- Pemindai Konsistensi Database Supabase (Hanya Baca / Read-Only)
--- Jalankan kueri ini di Supabase SQL Editor. Kueri ini menghasilkan satu tabel (objek, status, detail).
+  return `-- =============================================================================
+-- PEMINDAI KONSISTENSI DATABASE SUPABASE (HANYA BACA / READ-ONLY)
+-- Jalankan kueri ini di Supabase SQL Editor.
+-- Kueri ini hanya terdiri dari SATU pernyataan SELECT yang membaca katalog sistem.
 -- Ekspor hasil sebagai CSV atau salin tabel hasil, lalu jalankan:
 -- npm run verify:db -- --from-file <path-ke-file-hasil>
+--
+-- DAFTAR KATALOG POSTGRESQL & TIPE DATA ASLI KOLOM YANG DIGUNAKAN:
+-- 1. pg_catalog.pg_class:
+--    - relname         : name (nama tabel/view/indeks)
+--    - oid             : oid (object identifier tabel/view)
+--    - relnamespace    : oid (referensi ke pg_namespace.oid)
+--    - relkind         : "char" (1-byte internal: 'r'=tabel biasa, 'v'=view, 'i'=indeks)
+--    - relrowsecurity  : boolean (status RLS diaktifkan/tidak)
+--    - reloptions      : text[] (opsi relasi, termasuk security_invoker)
+-- 2. pg_catalog.pg_attribute:
+--    - attrelid        : oid (referensi ke pg_class.oid)
+--    - attname         : name (nama kolom)
+--    - atttypid        : oid (tipe data)
+--    - atttypmod       : integer (tipe modifier)
+--    - attnotnull      : boolean (apakah not null)
+--    - attnum          : smallint (nomor urut atribut, > 0 untuk kolom user)
+--    - attisdropped    : boolean (apakah kolom telah di-drop)
+-- 3. pg_catalog.pg_attrdef:
+--    - adrelid         : oid
+--    - adnum           : smallint
+--    - adbin           : pg_node_tree (ekspresi default kolom)
+-- 4. pg_catalog.pg_constraint:
+--    - conname         : name (nama constraint)
+--    - conrelid        : oid (tabel pemilik constraint)
+--    - connamespace    : oid
+--    - confrelid       : oid (tabel yang dirujuk oleh foreign key)
+--    - conkey          : smallint[] (array kolom constraint)
+--    - confkey         : smallint[] (array kolom referensi FK)
+--    - contype         : "char" (1-byte internal: 'p'=PK, 'u'=unique, 'f'=FK, 'c'=check)
+--    - confdeltype     : "char" (1-byte internal: 'a'=no action, 'r'=restrict, 'c'=cascade, 'n'=set null, 'd'=set default)
+--    - confupdtype     : "char" (1-byte internal: aksi on update)
+--    - confmatchtype   : "char" (1-byte internal: tipe match)
+--    - conbin          : pg_node_tree (ekspresi check constraint)
+-- 5. pg_catalog.pg_index:
+--    - indexrelid      : oid (relasi indeks)
+--    - indrelid        : oid (relasi tabel target)
+--    - indisunique     : boolean (apakah indeks bersifat unik)
+--    - indisprimary    : boolean (apakah indeks merupakan primary key)
+-- 6. pg_catalog.pg_policy:
+--    - polname         : name (nama kebijakan RLS)
+--    - polrelid        : oid (tabel pemilik kebijakan)
+--    - polcmd          : "char" (1-byte internal: '*' = ALL, 'r' = SELECT, 'a' = INSERT, 'w' = UPDATE, 'd' = DELETE)
+--    - polroles        : oid[] (array OID role target)
+--    - polqual         : pg_node_tree (ekspresi USING)
+--    - polwithcheck    : pg_node_tree (ekspresi WITH CHECK)
+-- 7. pg_catalog.pg_proc:
+--    - proname         : name (nama fungsi)
+--    - pronamespace    : oid (schema fungsi)
+--    - prosecdef       : boolean (apakah fungsi SECURITY DEFINER)
+--    - proconfig       : text[] (parameter konfigurasi fungsi, e.g. search_path)
+--    - proargtypes     : oidvector (tipe argumen fungsi)
+--    - prorettype      : oid (tipe return fungsi)
+--    - prolang         : oid (bahasa fungsi)
+--    - prokind         : "char" (1-byte internal: 'f'=function, 'p'=procedure)
+--    - provolatile     : "char" (1-byte internal: 'i'=immutable, 's'=stable, 'v'=volatile)
+-- 8. pg_catalog.pg_extension:
+--    - extname         : name (nama ekstensi)
+-- 9. pg_catalog.pg_event_trigger:
+--    - evtname         : name (nama trigger event)
+--
+-- PERINGATAN PENTING:
+-- Kolom pg_catalog dengan tipe "char" (1-byte karakter internal Postgres, berbeda dari character(n)/bpchar)
+-- TIDAK memiliki operator penggabungan unik langsung dengan tipe text (operator is not unique: text || "char").
+-- Kolom-kolom ini (relkind, contype, confdeltype, polcmd, prokind, provolatile) WAJIB di-cast eksplisit ke ::text
+-- saat digabungkan dengan || atau dibandingkan dengan teks literal.
+-- =============================================================================
 
 WITH
 expected_tables(name) AS (
@@ -436,7 +504,7 @@ db_tables AS (
     c.relrowsecurity AS rls_enabled
   FROM pg_catalog.pg_class c
   JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public' AND c.relkind = 'r'
+  WHERE n.nspname = 'public' AND c.relkind::text = 'r'
 ),
 db_views AS (
   SELECT
@@ -450,7 +518,7 @@ db_views AS (
     ) AS security_invoker
   FROM pg_catalog.pg_class c
   JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public' AND c.relkind = 'v'
+  WHERE n.nspname = 'public' AND c.relkind::text = 'v'
 ),
 db_functions AS (
   SELECT
@@ -499,7 +567,7 @@ SELECT * FROM (
   JOIN pg_catalog.pg_class c ON c.oid = a.attrelid
   JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
   LEFT JOIN pg_catalog.pg_attrdef ad ON ad.adrelid = a.attrelid AND ad.adnum = a.attnum
-  WHERE n.nspname = 'public' AND c.relkind = 'r' AND a.attnum > 0 AND NOT a.attisdropped
+  WHERE n.nspname = 'public' AND c.relkind::text = 'r' AND a.attnum > 0 AND NOT a.attisdropped
     AND c.relname IN (${expectedTableNames})
 
   UNION ALL
@@ -508,8 +576,8 @@ SELECT * FROM (
   SELECT
     'c. Constraint: ' || con.conname AS objek,
     'PASS' AS status,
-    'tabel=' || c.relname || ', tipe=' || con.contype ||
-    CASE WHEN con.confdeltype != ' ' THEN ', on_delete=' || con.confdeltype::text ELSE '' END AS detail
+    'tabel=' || c.relname || ', tipe=' || con.contype::text ||
+    CASE WHEN con.confdeltype::text != ' ' THEN ', on_delete=' || con.confdeltype::text ELSE '' END AS detail
   FROM pg_catalog.pg_constraint con
   JOIN pg_catalog.pg_class c ON c.oid = con.conrelid
   JOIN pg_catalog.pg_namespace n ON n.oid = con.connamespace
@@ -543,7 +611,7 @@ SELECT * FROM (
   SELECT
     'd. Kebijakan: ' || pol.polname AS objek,
     'PASS' AS status,
-    'tabel=' || c.relname || ', cmd=' || pol.polcmd AS detail
+    'tabel=' || c.relname || ', cmd=' || pol.polcmd::text AS detail
   FROM pg_catalog.pg_policy pol
   JOIN pg_catalog.pg_class c ON c.oid = pol.polrelid
   JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
@@ -681,10 +749,14 @@ SELECT * FROM (
   SELECT
     'j. schema_migrations' AS objek,
     'INFO' AS status,
-    COALESCE(
-      (SELECT string_agg(version, ', ' ORDER BY version) FROM supabase_migrations.schema_migrations),
-      'Tabel schema_migrations kosong / migrasi dijalankan manual di SQL Editor'
-    ) AS detail
+    CASE
+      WHEN to_regclass('supabase_migrations.schema_migrations') IS NOT NULL
+        THEN COALESCE(
+          (xpath('/table/row/string_agg/text()', query_to_xml('SELECT string_agg(version, '', '' ORDER BY version) FROM supabase_migrations.schema_migrations', true, false, '')))[1]::text,
+          'Tabel schema_migrations kosong / migrasi dijalankan manual di SQL Editor'
+        )
+      ELSE 'Tabel supabase_migrations.schema_migrations tidak ada / migrasi diterapkan via SQL Editor'
+    END AS detail
 
   UNION ALL
 
@@ -1596,13 +1668,15 @@ export function evaluateDatabaseAgainstManifest(
   for (const step of manifest.perFileSummary) {
     let total = 0;
     let installed = 0;
+    let unverified = 0;
     const missing: string[] = [];
 
     // 1. Ekstensi
     for (const ext of step.extensionsCreated) {
       total += 1;
-      const isExtInstalled = snapshot.extensions.includes(ext);
-      if (isExtInstalled || !isDb) {
+      if (!isDb) {
+        unverified += 1;
+      } else if (snapshot.extensions.includes(ext)) {
         installed += 1;
       } else {
         missing.push(`ekstensi ${ext}`);
@@ -1631,36 +1705,105 @@ export function evaluateDatabaseAgainstManifest(
       }
     }
 
-    // 4. View yang dibuat/diganti file ini
+    // 4. Indeks yang dibuat file ini
+    for (const idx of step.indexesCreated) {
+      total += 1;
+      if (!isDb) {
+        unverified += 1;
+      } else if (snapshot.indexes.some((i) => i.name === idx)) {
+        installed += 1;
+      } else {
+        missing.push(`indeks ${idx}`);
+      }
+    }
+
+    // 5. RLS yang diaktifkan file ini
+    for (const rlsTbl of step.rlsEnabledTables) {
+      total += 1;
+      if (!isDb) {
+        unverified += 1;
+      } else if (dbTableMap.get(rlsTbl)?.rlsEnabled) {
+        installed += 1;
+      } else {
+        missing.push(`RLS ${rlsTbl}`);
+      }
+    }
+
+    // 6. Kebijakan RLS yang dibuat file ini
+    for (const pol of step.policiesCreated) {
+      total += 1;
+      if (!isDb) {
+        unverified += 1;
+      } else if (snapshot.policies?.some((p) => p.name === pol.name)) {
+        installed += 1;
+      } else {
+        missing.push(`kebijakan ${pol.name}`);
+      }
+    }
+
+    // 7. View yang dibuat/diganti file ini
     for (const vw of step.viewsCreatedOrReplaced) {
       total += 1;
       const dbVw = dbViewMap.get(vw);
-      if (dbVw && dbVw.exists) {
+      if (!isDb) {
+        unverified += 1;
+      } else if (dbVw && dbVw.exists && dbVw.securityInvoker) {
         installed += 1;
       } else {
         missing.push(`view ${vw}`);
       }
     }
 
-    // 5. Fungsi yang dibuat/diganti file ini
+    // 8. Fungsi yang dibuat/diganti file ini
     for (const fn of step.functionsCreatedOrReplaced) {
       total += 1;
       const dbFn = dbFnMap.get(fn);
-      if (step.fileName === "20261029070000_function_search_path.sql" && isDb) {
-        const hasFixedPath = Boolean(dbFn?.searchPath && dbFn.searchPath.includes("public"));
-        if (dbFn && hasFixedPath) {
+      if (!isDb) {
+        // API mode: keberadaan fungsi saja tidak boleh dihitung sebagai bukti search_path atau ACL!
+        unverified += 1;
+      } else if (dbFn) {
+        const hasFixedPath = Boolean(
+          !dbFn.securityDefiner ||
+            (dbFn.searchPath && dbFn.searchPath.includes("public"))
+        );
+        const hasAclFixed = Boolean(
+          !dbFn.publicCanExecute &&
+            !dbFn.anonCanExecute &&
+            !dbFn.authenticatedCanExecute &&
+            dbFn.serviceRoleCanExecute
+        );
+        if (hasFixedPath && hasAclFixed) {
           installed += 1;
         } else {
-          missing.push(`search_path ${fn}`);
+          missing.push(`fungsi ${fn}`);
         }
-      } else if (dbFn) {
-        installed += 1;
       } else {
         missing.push(`fungsi ${fn}`);
       }
     }
 
-    // 6. Seed yang didefinisikan file ini
+    // 9. Hak Akses (REVOKE & GRANT) yang diatur file ini
+    for (const perm of step.permissionOps) {
+      total += 1;
+      if (!isDb) {
+        unverified += 1;
+      } else {
+        const dbFn = dbFnMap.get(perm.objectName);
+        if (
+          dbFn &&
+          !dbFn.publicCanExecute &&
+          !dbFn.anonCanExecute &&
+          !dbFn.authenticatedCanExecute &&
+          dbFn.serviceRoleCanExecute
+        ) {
+          installed += 1;
+        } else {
+          missing.push(`hak ${perm.objectName}`);
+        }
+      }
+    }
+
+    // 10. Seed yang didefinisikan file ini
     for (const seed of step.seedUpdates) {
       total += 1;
       if (seed === "brand_terms") {
@@ -1700,8 +1843,10 @@ export function evaluateDatabaseAgainstManifest(
       }
     }
 
-    let status: MigrationInstallStatus["status"] = "BELUM TERPASANG";
-    if (total === 0) {
+    let status: string = "BELUM TERPASANG";
+    if (unverified > 0) {
+      status = `TIDAK TERVERIFIKASI (${unverified} objek)`;
+    } else if (total === 0) {
       status = "TERPASANG PENUH";
     } else if (installed === total) {
       status = "TERPASANG PENUH";

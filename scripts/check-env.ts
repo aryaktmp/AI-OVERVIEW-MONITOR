@@ -604,10 +604,16 @@ async function main() {
         }
       }
 
-      // 12c. Pemeriksaan opsional konsistensi database (verify:db)
+      // 12c. Pemeriksaan konsistensi database (verify:db)
+      const fromFileIdx = process.argv.indexOf("--from-file");
+      const fromFileArg =
+        fromFileIdx !== -1 && process.argv[fromFileIdx + 1]
+          ? process.argv[fromFileIdx + 1]
+          : "";
       const databaseUrl =
         localEnv["DATABASE_URL"] || process.env.DATABASE_URL || "";
-      if (!databaseUrl) {
+
+      if (!databaseUrl && !fromFileArg) {
         addResult(
           "Database: Konsistensi Migrasi (verify:db)",
           "SKIP",
@@ -615,15 +621,28 @@ async function main() {
         );
       } else {
         try {
-          execSync("node scripts/verify-db.ts", {
+          const verifyCmd = [
+            "node scripts/verify-db.ts",
+            fromFileArg ? `--from-file "${fromFileArg}"` : "",
+            isProductionMode ? "--strict" : "",
+          ]
+            .filter(Boolean)
+            .join(" ");
+
+          execSync(verifyCmd, {
             cwd: rootDir,
             stdio: "pipe",
-            env: { ...process.env, DATABASE_URL: databaseUrl },
+            env: {
+              ...process.env,
+              ...(databaseUrl ? { DATABASE_URL: databaseUrl } : {}),
+            },
           });
           addResult(
             "Database: Konsistensi Migrasi (verify:db)",
             "PASS",
-            "Seluruh pemeriksaan konsistensi database (verify:db) lulus tanpa FAIL."
+            isProductionMode
+              ? "Seluruh pemeriksaan konsistensi database (verify:db --strict) lulus tanpa FAIL, DRIFT, atau UNVERIFIED."
+              : "Seluruh pemeriksaan konsistensi database (verify:db) lulus tanpa FAIL."
           );
         } catch {
           addResult(

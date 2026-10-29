@@ -743,6 +743,8 @@ async function main() {
       ? process.argv[fromFileIdx + 1]
       : null;
 
+  const isStrict = process.argv.includes("--strict");
+
   const manifest = loadMigrationsAndBuildManifest();
   const verifyDir = path.join(rootDir, "supabase", "verify");
   if (!fs.existsSync(verifyDir)) {
@@ -847,21 +849,21 @@ async function main() {
   // =========================================================================
   // 1. STATUS PENERAPAN PER FILE MIGRASI
   // =========================================================================
-  console.log("-------------------------------------------------------------------------------------");
+  console.log("---------------------------------------------------------------------------------------------------------");
   console.log(" 1. STATUS PENERAPAN PER FILE MIGRASI (Berdasarkan Definisi Tiap File)");
-  console.log("-------------------------------------------------------------------------------------");
+  console.log("---------------------------------------------------------------------------------------------------------");
   console.log(
-    `| ${"File Migrasi".padEnd(45)} | ${"Status".padEnd(16)} | ${"Objek".padEnd(7)} | Objek yang Hilang / Belum Sesuai`
+    `| ${"File Migrasi".padEnd(45)} | ${"Status".padEnd(28)} | ${"Objek".padEnd(7)} | Objek yang Hilang / Belum Sesuai`
   );
   console.log(
-    `+-${"-".repeat(45)}-+-${"-".repeat(16)}-+-${"-".repeat(7)}-+----------------------------------`
+    `+-${"-".repeat(45)}-+-${"-".repeat(28)}-+-${"-".repeat(7)}-+----------------------------------`
   );
   for (const ms of migrationStatuses) {
     const ratio = `${ms.installedObjects}/${ms.totalObjects}`;
     const missingStr =
       ms.missingObjects.length === 0 ? "-" : ms.missingObjects.join(", ");
     console.log(
-      `| ${ms.fileName.padEnd(45)} | ${ms.status.padEnd(16)} | ${ratio.padEnd(7)} | ${missingStr}`
+      `| ${ms.fileName.padEnd(45)} | ${ms.status.padEnd(28)} | ${ratio.padEnd(7)} | ${missingStr}`
     );
   }
   console.log("");
@@ -874,8 +876,12 @@ async function main() {
   console.log("-------------------------------------------------------------------------------------");
   const finalFailures = items.filter((i) => i.status === "FAIL");
   const finalUnverified = items.filter((i) => i.status === "UNVERIFIED");
-  if (finalFailures.length === 0) {
-    console.log(`Target Keadaan Akhir: TERCAPAI PENUH (FAIL = 0)`);
+  if (finalFailures.length === 0 && finalUnverified.length === 0) {
+    console.log(`Target Keadaan Akhir: TERCAPAI PENUH (FAIL = 0, UNVERIFIED = 0)`);
+  } else if (finalFailures.length === 0) {
+    console.log(
+      `Target Keadaan Akhir: BELUM TERBUKTI (${finalUnverified.length} item UNVERIFIED)`
+    );
   } else {
     console.log(
       `Target Keadaan Akhir: BELUM TERCAPAI (${finalFailures.length} selisih terhadap target akhir)`
@@ -884,7 +890,7 @@ async function main() {
       console.log(`  - [${f.category}] ${f.objectName}: ${f.detail}`);
     }
   }
-  if (finalUnverified.length > 0) {
+  if (finalUnverified.length > 0 && finalFailures.length > 0) {
     console.log(`  (Catatan: ${finalUnverified.length} item berstatus UNVERIFIED karena metode pemeriksaan saat ini adalah API)`);
   }
   console.log("");
@@ -926,14 +932,14 @@ async function main() {
   // =========================================================================
   // 2b. RINCIAN PER KATEGORI (a s/d l)
   // =========================================================================
-  console.log("-------------------------------------------------------------------------------------");
+  console.log("--------------------------------------------------------------------------------------------------");
   console.log(" 2b. RINCIAN PER KATEGORI (a s/d l)");
-  console.log("-------------------------------------------------------------------------------------");
+  console.log("--------------------------------------------------------------------------------------------------");
   console.log(
-    `| ${"Kategori".padEnd(52)} | ${"Metode".padEnd(6)} | ${"PASS".padStart(5)} | ${"UNV".padStart(5)} | ${"FAIL".padStart(5)} | ${"DRIFT".padStart(5)} | ${"INFO".padStart(5)} |`
+    `| ${"Kategori".padEnd(52)} | ${"Metode".padEnd(6)} | ${"PASS".padStart(5)} | ${"UNV".padStart(5)} | ${"LINT".padStart(5)} | ${"FAIL".padStart(5)} | ${"DRIFT".padStart(5)} | ${"INFO".padStart(5)} |`
   );
   console.log(
-    `+-${"-".repeat(52)}-+-${"-".repeat(6)}-+-${"-".repeat(5)}-+-${"-".repeat(5)}-+-${"-".repeat(5)}-+-${"-".repeat(5)}-+-${"-".repeat(5)}-+`
+    `+-${"-".repeat(52)}-+-${"-".repeat(6)}-+-${"-".repeat(5)}-+-${"-".repeat(5)}-+-${"-".repeat(5)}-+-${"-".repeat(5)}-+-${"-".repeat(5)}-+-${"-".repeat(5)}-+`
   );
 
   const categoryOrder: CategoryCode[] = [
@@ -955,13 +961,14 @@ async function main() {
     const catItems = items.filter((i) => i.category === cat);
     const pass = catItems.filter((i) => i.status === "PASS").length;
     const unv = catItems.filter((i) => i.status === "UNVERIFIED").length;
-    const fail = catItems.filter((i) => i.status === "FAIL" || i.status === "MIGRATION-LINT").length;
+    const lint = catItems.filter((i) => i.status === "MIGRATION-LINT").length;
+    const fail = catItems.filter((i) => i.status === "FAIL").length;
     const drift = catItems.filter((i) => i.status === "DRIFT").length;
     const info = catItems.filter((i) => i.status === "INFO").length;
     const methodStr = activeMode === "API" ? "API" : "DB";
 
     console.log(
-      `| ${CATEGORY_TITLES[cat].padEnd(52)} | ${methodStr.padEnd(6)} | ${String(pass).padStart(5)} | ${String(unv).padStart(5)} | ${String(fail).padStart(5)} | ${String(drift).padStart(5)} | ${String(info).padStart(5)} |`
+      `| ${CATEGORY_TITLES[cat].padEnd(52)} | ${methodStr.padEnd(6)} | ${String(pass).padStart(5)} | ${String(unv).padStart(5)} | ${String(lint).padStart(5)} | ${String(fail).padStart(5)} | ${String(drift).padStart(5)} | ${String(info).padStart(5)} |`
     );
   }
   console.log("");
@@ -1027,7 +1034,17 @@ async function main() {
   }
 
   const failCount = items.filter((i) => i.status === "FAIL").length;
-  if (failCount > 0 && (activeMode === "DB_DIRECT" || activeMode === "DB_FILE")) {
+  const driftCount = items.filter((i) => i.status === "DRIFT").length;
+  const unverifiedCount = items.filter((i) => i.status === "UNVERIFIED").length;
+
+  if (isStrict) {
+    if (failCount > 0 || driftCount > 0 || unverifiedCount > 0) {
+      console.error(
+        `\n[STRICT MODE] Verifikasi database gagal: ${failCount} FAIL, ${driftCount} DRIFT, ${unverifiedCount} UNVERIFIED.`
+      );
+      process.exit(1);
+    }
+  } else if (failCount > 0 && (activeMode === "DB_DIRECT" || activeMode === "DB_FILE")) {
     process.exit(1);
   }
 }

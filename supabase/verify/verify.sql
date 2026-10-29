@@ -1,7 +1,75 @@
--- Pemindai Konsistensi Database Supabase (Hanya Baca / Read-Only)
--- Jalankan kueri ini di Supabase SQL Editor. Kueri ini menghasilkan satu tabel (objek, status, detail).
+-- =============================================================================
+-- PEMINDAI KONSISTENSI DATABASE SUPABASE (HANYA BACA / READ-ONLY)
+-- Jalankan kueri ini di Supabase SQL Editor.
+-- Kueri ini hanya terdiri dari SATU pernyataan SELECT yang membaca katalog sistem.
 -- Ekspor hasil sebagai CSV atau salin tabel hasil, lalu jalankan:
 -- npm run verify:db -- --from-file <path-ke-file-hasil>
+--
+-- DAFTAR KATALOG POSTGRESQL & TIPE DATA ASLI KOLOM YANG DIGUNAKAN:
+-- 1. pg_catalog.pg_class:
+--    - relname         : name (nama tabel/view/indeks)
+--    - oid             : oid (object identifier tabel/view)
+--    - relnamespace    : oid (referensi ke pg_namespace.oid)
+--    - relkind         : "char" (1-byte internal: 'r'=tabel biasa, 'v'=view, 'i'=indeks)
+--    - relrowsecurity  : boolean (status RLS diaktifkan/tidak)
+--    - reloptions      : text[] (opsi relasi, termasuk security_invoker)
+-- 2. pg_catalog.pg_attribute:
+--    - attrelid        : oid (referensi ke pg_class.oid)
+--    - attname         : name (nama kolom)
+--    - atttypid        : oid (tipe data)
+--    - atttypmod       : integer (tipe modifier)
+--    - attnotnull      : boolean (apakah not null)
+--    - attnum          : smallint (nomor urut atribut, > 0 untuk kolom user)
+--    - attisdropped    : boolean (apakah kolom telah di-drop)
+-- 3. pg_catalog.pg_attrdef:
+--    - adrelid         : oid
+--    - adnum           : smallint
+--    - adbin           : pg_node_tree (ekspresi default kolom)
+-- 4. pg_catalog.pg_constraint:
+--    - conname         : name (nama constraint)
+--    - conrelid        : oid (tabel pemilik constraint)
+--    - connamespace    : oid
+--    - confrelid       : oid (tabel yang dirujuk oleh foreign key)
+--    - conkey          : smallint[] (array kolom constraint)
+--    - confkey         : smallint[] (array kolom referensi FK)
+--    - contype         : "char" (1-byte internal: 'p'=PK, 'u'=unique, 'f'=FK, 'c'=check)
+--    - confdeltype     : "char" (1-byte internal: 'a'=no action, 'r'=restrict, 'c'=cascade, 'n'=set null, 'd'=set default)
+--    - confupdtype     : "char" (1-byte internal: aksi on update)
+--    - confmatchtype   : "char" (1-byte internal: tipe match)
+--    - conbin          : pg_node_tree (ekspresi check constraint)
+-- 5. pg_catalog.pg_index:
+--    - indexrelid      : oid (relasi indeks)
+--    - indrelid        : oid (relasi tabel target)
+--    - indisunique     : boolean (apakah indeks bersifat unik)
+--    - indisprimary    : boolean (apakah indeks merupakan primary key)
+-- 6. pg_catalog.pg_policy:
+--    - polname         : name (nama kebijakan RLS)
+--    - polrelid        : oid (tabel pemilik kebijakan)
+--    - polcmd          : "char" (1-byte internal: '*' = ALL, 'r' = SELECT, 'a' = INSERT, 'w' = UPDATE, 'd' = DELETE)
+--    - polroles        : oid[] (array OID role target)
+--    - polqual         : pg_node_tree (ekspresi USING)
+--    - polwithcheck    : pg_node_tree (ekspresi WITH CHECK)
+-- 7. pg_catalog.pg_proc:
+--    - proname         : name (nama fungsi)
+--    - pronamespace    : oid (schema fungsi)
+--    - prosecdef       : boolean (apakah fungsi SECURITY DEFINER)
+--    - proconfig       : text[] (parameter konfigurasi fungsi, e.g. search_path)
+--    - proargtypes     : oidvector (tipe argumen fungsi)
+--    - prorettype      : oid (tipe return fungsi)
+--    - prolang         : oid (bahasa fungsi)
+--    - prokind         : "char" (1-byte internal: 'f'=function, 'p'=procedure)
+--    - provolatile     : "char" (1-byte internal: 'i'=immutable, 's'=stable, 'v'=volatile)
+-- 8. pg_catalog.pg_extension:
+--    - extname         : name (nama ekstensi)
+-- 9. pg_catalog.pg_event_trigger:
+--    - evtname         : name (nama trigger event)
+--
+-- PERINGATAN PENTING:
+-- Kolom pg_catalog dengan tipe "char" (1-byte karakter internal Postgres, berbeda dari character(n)/bpchar)
+-- TIDAK memiliki operator penggabungan unik langsung dengan tipe text (operator is not unique: text || "char").
+-- Kolom-kolom ini (relkind, contype, confdeltype, polcmd, prokind, provolatile) WAJIB di-cast eksplisit ke ::text
+-- saat digabungkan dengan || atau dibandingkan dengan teks literal.
+-- =============================================================================
 
 WITH
 expected_tables(name) AS (
@@ -20,7 +88,7 @@ db_tables AS (
     c.relrowsecurity AS rls_enabled
   FROM pg_catalog.pg_class c
   JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public' AND c.relkind = 'r'
+  WHERE n.nspname = 'public' AND c.relkind::text = 'r'
 ),
 db_views AS (
   SELECT
@@ -34,7 +102,7 @@ db_views AS (
     ) AS security_invoker
   FROM pg_catalog.pg_class c
   JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public' AND c.relkind = 'v'
+  WHERE n.nspname = 'public' AND c.relkind::text = 'v'
 ),
 db_functions AS (
   SELECT
@@ -83,7 +151,7 @@ SELECT * FROM (
   JOIN pg_catalog.pg_class c ON c.oid = a.attrelid
   JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
   LEFT JOIN pg_catalog.pg_attrdef ad ON ad.adrelid = a.attrelid AND ad.adnum = a.attnum
-  WHERE n.nspname = 'public' AND c.relkind = 'r' AND a.attnum > 0 AND NOT a.attisdropped
+  WHERE n.nspname = 'public' AND c.relkind::text = 'r' AND a.attnum > 0 AND NOT a.attisdropped
     AND c.relname IN ('keyword_groups', 'keywords', 'brand_terms', 'competitors', 'check_runs', 'run_items', 'checks', 'check_sources', 'page_cache', 'settings')
 
   UNION ALL
@@ -92,8 +160,8 @@ SELECT * FROM (
   SELECT
     'c. Constraint: ' || con.conname AS objek,
     'PASS' AS status,
-    'tabel=' || c.relname || ', tipe=' || con.contype ||
-    CASE WHEN con.confdeltype != ' ' THEN ', on_delete=' || con.confdeltype::text ELSE '' END AS detail
+    'tabel=' || c.relname || ', tipe=' || con.contype::text ||
+    CASE WHEN con.confdeltype::text != ' ' THEN ', on_delete=' || con.confdeltype::text ELSE '' END AS detail
   FROM pg_catalog.pg_constraint con
   JOIN pg_catalog.pg_class c ON c.oid = con.conrelid
   JOIN pg_catalog.pg_namespace n ON n.oid = con.connamespace
@@ -127,7 +195,7 @@ SELECT * FROM (
   SELECT
     'd. Kebijakan: ' || pol.polname AS objek,
     'PASS' AS status,
-    'tabel=' || c.relname || ', cmd=' || pol.polcmd AS detail
+    'tabel=' || c.relname || ', cmd=' || pol.polcmd::text AS detail
   FROM pg_catalog.pg_policy pol
   JOIN pg_catalog.pg_class c ON c.oid = pol.polrelid
   JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
@@ -265,10 +333,14 @@ SELECT * FROM (
   SELECT
     'j. schema_migrations' AS objek,
     'INFO' AS status,
-    COALESCE(
-      (SELECT string_agg(version, ', ' ORDER BY version) FROM supabase_migrations.schema_migrations),
-      'Tabel schema_migrations kosong / migrasi dijalankan manual di SQL Editor'
-    ) AS detail
+    CASE
+      WHEN to_regclass('supabase_migrations.schema_migrations') IS NOT NULL
+        THEN COALESCE(
+          (xpath('/table/row/string_agg/text()', query_to_xml('SELECT string_agg(version, '', '' ORDER BY version) FROM supabase_migrations.schema_migrations', true, false, '')))[1]::text,
+          'Tabel schema_migrations kosong / migrasi dijalankan manual di SQL Editor'
+        )
+      ELSE 'Tabel supabase_migrations.schema_migrations tidak ada / migrasi diterapkan via SQL Editor'
+    END AS detail
 
   UNION ALL
 

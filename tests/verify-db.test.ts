@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -260,8 +262,20 @@ describe("Pemeriksa Konsistensi Migrasi & Database (verify:db)", () => {
         }))
       ),
       constraints: [],
-      indexes: [],
-      policies: [],
+      indexes: manifest.finalState.indexes.map((idx) => ({
+        name: idx.name,
+        table: idx.table,
+        unique: idx.unique,
+        indexDef: "",
+      })),
+      policies: manifest.finalState.policies.map((pol) => ({
+        name: pol.name,
+        table: pol.table,
+        command: pol.command,
+        roles: pol.roles,
+        usingExpr: "",
+        withCheckExpr: null,
+      })),
       tablePrivilegesSummary: null,
       views: Object.keys(manifest.finalState.views).map((name) => ({
         name,
@@ -344,8 +358,20 @@ describe("Pemeriksa Konsistensi Migrasi & Database (verify:db)", () => {
         { table: "competitors", name: "is_demo", dataType: "boolean", nullable: false, defaultExpr: "false" },
       ],
       constraints: [],
-      indexes: [],
-      policies: [],
+      indexes: manifest.finalState.indexes.map((idx) => ({
+        name: idx.name,
+        table: idx.table,
+        unique: idx.unique,
+        indexDef: "",
+      })),
+      policies: manifest.finalState.policies.map((pol) => ({
+        name: pol.name,
+        table: pol.table,
+        command: pol.command,
+        roles: pol.roles,
+        usingExpr: "",
+        withCheckExpr: null,
+      })),
       tablePrivilegesSummary: null,
       views: [
         { name: "latest_keyword_checks", exists: true, securityInvoker: true, definitionSql: null },
@@ -470,8 +496,20 @@ describe("Pemeriksa Konsistensi Migrasi & Database (verify:db)", () => {
       })),
       columns: [],
       constraints: [],
-      indexes: [],
-      policies: [],
+      indexes: manifest.finalState.indexes.map((idx) => ({
+        name: idx.name,
+        table: idx.table,
+        unique: idx.unique,
+        indexDef: "",
+      })),
+      policies: manifest.finalState.policies.map((pol) => ({
+        name: pol.name,
+        table: pol.table,
+        command: pol.command,
+        roles: pol.roles,
+        usingExpr: "",
+        withCheckExpr: null,
+      })),
       tablePrivilegesSummary: null,
       views: [],
       functions: [
@@ -523,4 +561,175 @@ describe("Pemeriksa Konsistensi Migrasi & Database (verify:db)", () => {
     expect(fixSql).not.toContain("DROP FUNCTION IF EXISTS public.rls_auto_enable");
     expect(fixSql).not.toContain("REVOKE ALL ON FUNCTION public.rls_auto_enable");
   });
+
+  it("memverifikasi konsistensi angka: sum(category_counts[status]) == summary[status] untuk semua status", () => {
+    const manifest = buildManifestFromDirectory(migrationsDir);
+    const partialSnapshot: DbIntrospectionSnapshot = {
+      source: "supabase-rest",
+      extensions: [],
+      eventTriggers: ["ensure_rls"],
+      tables: [
+        { name: "keyword_groups", rlsEnabled: true },
+        { name: "keywords", rlsEnabled: true },
+        { name: "extra_table_drift", rlsEnabled: false },
+      ],
+      columns: [],
+      constraints: [],
+      indexes: [],
+      policies: null,
+      tablePrivilegesSummary: null,
+      views: [],
+      functions: [],
+      seeds: {
+        brandTerms: [],
+        settings: {},
+      },
+      demoCounts: { check_runs: 0, keywords: 0, keyword_groups: 0, competitors: 0 },
+      schemaMigrations: null,
+      authUsers: null,
+    };
+
+    const evaluation = evaluateDatabaseAgainstManifest(manifest, partialSnapshot, []);
+
+    const allStatuses: Array<"PASS" | "UNVERIFIED" | "MIGRATION-LINT" | "FAIL" | "DRIFT" | "INFO"> = [
+      "PASS",
+      "UNVERIFIED",
+      "MIGRATION-LINT",
+      "FAIL",
+      "DRIFT",
+      "INFO",
+    ];
+
+    const allCategories: Array<
+      "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l"
+    > = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"];
+
+    for (const status of allStatuses) {
+      const summaryCount = evaluation.items.filter((i) => i.status === status).length;
+      let categorySum = 0;
+      for (const cat of allCategories) {
+        categorySum += evaluation.items.filter(
+          (i) => i.category === cat && i.status === status
+        ).length;
+      }
+      expect(
+        categorySum,
+        `Jumlah per-kategori untuk status ${status} (${categorySum}) harus cocok dengan summary (${summaryCount})`
+      ).toBe(summaryCount);
+    }
+  });
+
+  it("memastikan status per file berstatus TIDAK TERVERIFIKASI jika memuat objek UNVERIFIED (di mode API)", () => {
+    const manifest = buildManifestFromDirectory(migrationsDir);
+    const apiSnapshot: DbIntrospectionSnapshot = {
+      source: "supabase-rest",
+      extensions: [],
+      eventTriggers: [],
+      tables: Object.keys(manifest.finalState.tables).map((name) => ({
+        name,
+        rlsEnabled: null,
+      })),
+      columns: [],
+      constraints: [],
+      indexes: [],
+      policies: null,
+      tablePrivilegesSummary: null,
+      views: [],
+      functions: [
+        {
+          name: "claim_next_run_item",
+          argsSignature: "",
+          returnType: null,
+          language: null,
+          securityDefiner: null,
+          searchPath: null,
+          publicCanExecute: false,
+          anonCanExecute: false,
+          authenticatedCanExecute: false,
+          serviceRoleCanExecute: false,
+        },
+      ],
+      seeds: { brandTerms: [], settings: {} },
+      demoCounts: { check_runs: 0, keywords: 0, keyword_groups: 0, competitors: 0 },
+      schemaMigrations: null,
+      authUsers: null,
+    };
+
+    const evaluation = evaluateDatabaseAgainstManifest(manifest, apiSnapshot, []);
+    const fnSearchPathStatus = evaluation.migrationStatuses.find((m) =>
+      m.fileName.includes("function_search_path")
+    );
+    expect(fnSearchPathStatus?.status).toContain("TIDAK TERVERIFIKASI");
+    expect(fnSearchPathStatus?.status).not.toBe("TERPASANG PENUH");
+  });
+
+  it(
+    "menguji verify.sql di instance Postgres nyata (PGlite) dan memastikan query berjalan tanpa galat serta menghasilkan kolom (objek, status, detail)",
+    async () => {
+    const { PGlite } = await import("@electric-sql/pglite");
+    const db = new PGlite();
+
+    // Stub role Supabase dan auth.users
+    await db.exec(
+      "CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;"
+    );
+    await db.exec(
+      "CREATE SCHEMA IF NOT EXISTS auth; CREATE TABLE auth.users (id uuid primary key, email text, created_at timestamptz default now());"
+    );
+
+    const manifest = buildManifestFromDirectory(migrationsDir);
+    for (const f of manifest.migrationFiles) {
+      const sql = fs.readFileSync(path.join(migrationsDir, f), "utf-8");
+      try {
+        await db.exec(sql);
+      } catch (e: unknown) {
+        const errMessage = e instanceof Error ? e.message : String(e);
+        if (f.includes("000000") && errMessage.includes("pgcrypto")) {
+          const withoutExt = sql.replace(/create extension [^;]+;/gi, "");
+          await db.exec(withoutExt);
+        } else {
+          throw e;
+        }
+      }
+    }
+
+    const verifySql = generateStandaloneVerifySql(manifest);
+    // Pastikan kueri hanya 1 pernyataan SELECT (tanpa BEGIN/COMMIT atau perintah tulis/DDL)
+    const cleanSql = verifySql.replace(/--.*$/gm, "").trim();
+    expect(cleanSql).toMatch(/^WITH\b/i);
+    expect(cleanSql).not.toMatch(/\bBEGIN\b/i);
+    expect(cleanSql).not.toMatch(/\bCOMMIT\b/i);
+    expect(cleanSql).not.toMatch(/\bUPDATE\s+/i);
+    expect(cleanSql).not.toMatch(/\bDELETE\s+FROM\b/i);
+    expect(cleanSql).not.toMatch(/\bINSERT\s+INTO\b/i);
+    expect(cleanSql).not.toMatch(/\bDROP\b/i);
+    expect(cleanSql).not.toMatch(/\bALTER\b/i);
+
+    const result = await db.query<{ objek: string; status: string; detail: string }>(
+      verifySql
+    );
+    expect(result.rows.length).toBeGreaterThan(0);
+
+    for (const row of result.rows) {
+      expect(row).toHaveProperty("objek");
+      expect(row).toHaveProperty("status");
+      expect(row).toHaveProperty("detail");
+      expect(["PASS", "FAIL", "DRIFT", "INFO"]).toContain(row.status);
+    }
+
+    // Pastikan tidak ada FAIL tak terduga pada tabel, kolom, constraint, indeks, view, dan fungsi aplikasi
+    const unexpectedFails = result.rows.filter(
+      (r) => r.status === "FAIL" && !r.objek.includes("pgcrypto")
+    );
+    expect(unexpectedFails).toHaveLength(0);
+
+    // Verifikasi 15 baris pertama memiliki objek dan detail yang valid
+    const first15 = result.rows.slice(0, 15);
+    expect(first15.length).toBe(15);
+    for (const r of first15) {
+      expect(typeof r.objek).toBe("string");
+      expect(r.objek.length).toBeGreaterThan(0);
+      expect(typeof r.detail).toBe("string");
+    }
+  }, 30000);
 });
