@@ -534,9 +534,13 @@ export async function getSettingsPageData(): Promise<{
   const baseOverheadBytes = 8 * 1024 * 1024; // ~8 MB sistem & katalog Postgres dasar
   const estimatedRowsBytes =
     (totalChecksCount ?? 0) * 4096 + (totalSourcesCount ?? 0) * 512;
+  const rpcBytes =
+    !dbSizeRpc.error && dbSizeRpc.data !== null && dbSizeRpc.data !== undefined
+      ? Number(dbSizeRpc.data)
+      : Number.NaN;
   const usedBytes =
-    !dbSizeRpc.error && typeof dbSizeRpc.data === "number" && dbSizeRpc.data > 0
-      ? dbSizeRpc.data
+    Number.isFinite(rpcBytes) && rpcBytes > 0
+      ? rpcBytes
       : baseOverheadBytes + estimatedRowsBytes;
   const quotaMb = 500;
   const usedMb = Math.round((usedBytes / (1024 * 1024)) * 100) / 100;

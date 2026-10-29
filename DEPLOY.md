@@ -6,14 +6,15 @@ Dokumen ini menjelaskan langkah-langkah men-deploy aplikasi **Pemantau Kutipan G
 
 ## 1. Urutan Migrasi Database Supabase (`supabase/migrations/`)
 
-Sebelum menjalankan aplikasi di produksi, jalankan keenam file migrasi SQL berikut secara berurutan sesuai nama file di folder `supabase/migrations/`:
+Sebelum menjalankan aplikasi di produksi, jalankan ketujuh file migrasi SQL berikut secara berurutan sesuai nama file di folder `supabase/migrations/`:
 
 1. `supabase/migrations/20261029000000_init_schema.sql` — Membuat 9 tabel inti (`keyword_groups`, `keywords`, `brand_terms`, `competitors`, `check_runs`, `run_items`, `checks`, `check_sources`, `page_cache`), indeks, kebijakan RLS, dan data awal `brand_terms`.
 2. `supabase/migrations/20261029010000_phase3_queue_and_calls.sql` — Menambahkan kolom `serpapi_calls` di `check_runs` dan fungsi RPC atomik `claim_next_run_item()`.
 3. `supabase/migrations/20261029020000_phase3_fixes.sql` — Mencabut hak `EXECUTE` pada `claim_next_run_item()` dari `PUBLIC`, `anon`, dan `authenticated` (hanya `service_role`), serta menambahkan kolom `is_demo` di `check_runs`.
 4. `supabase/migrations/20261029030000_phase4_settings_and_views.sql` — Membuat tabel `settings` (dengan RLS) serta view agregasi `latest_keyword_checks` dan `latest_domain_citation_counts` (`security_invoker = true`).
-5. `supabase/migrations/20261029040000_phase4_fixes.sql` — Menambahkan kolom `is_demo` ke `keywords`, `keyword_groups`, dan `competitors`, memperbarui view `latest_keyword_checks`, serta menambahkan fungsi `get_database_size_bytes()` khusus `service_role`.
-6. `supabase/migrations/20261029050000_phase5_third_party_default.sql` — Memastikan nilai bawaan `enable_third_party_check: true` pada `settings`.
+5. `supabase/migrations/20261029040000_phase4_fixes.sql` — Menambahkan kolom `is_demo` ke `keywords`, `keyword_groups`, dan `competitors`, memperbarui view `latest_keyword_checks`, serta menambahkan fungsi `get_database_size_bytes()` dan `cleanup_old_checks_raw()` khusus `service_role`.
+6. `supabase/migrations/20261029050000_phase5_third_party_default.sql` — Mengatur nilai awal `enable_third_party_check: false` (mati secara bawaan) pada tabel `settings`.
+7. `supabase/migrations/20261029060000_predeploy_hardening.sql` — Memastikan `enable_third_party_check` bernilai `false` di database serta mencabut eksplisit `EXECUTE` dari `PUBLIC`, `anon`, dan `authenticated` pada seluruh fungsi di schema `public` (`get_database_size_bytes()`, `claim_next_run_item()`, `cleanup_old_checks_raw()`) dan memberi hak hanya ke `service_role`.
 
 ---
 

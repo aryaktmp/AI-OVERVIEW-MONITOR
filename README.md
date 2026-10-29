@@ -20,7 +20,7 @@ Aplikasi web untuk memantau apakah **LinovHR (`linovhr.com`)** muncul di Google 
 
 ## Urutan Migrasi Database (`supabase/migrations/`)
 
-Jalankan keenam file migrasi berikut secara berurutan di Supabase SQL Editor:
+Jalankan ketujuh file migrasi berikut secara berurutan di Supabase SQL Editor:
 
 1. `20261029000000_init_schema.sql`
 2. `20261029010000_phase3_queue_and_calls.sql`
@@ -28,6 +28,7 @@ Jalankan keenam file migrasi berikut secara berurutan di Supabase SQL Editor:
 4. `20261029030000_phase4_settings_and_views.sql`
 5. `20261029040000_phase4_fixes.sql`
 6. `20261029050000_phase5_third_party_default.sql`
+7. `20261029060000_predeploy_hardening.sql`
 
 ## Persiapan Lingkungan Lokal
 

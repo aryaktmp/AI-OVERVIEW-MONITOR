@@ -1,6 +1,51 @@
+import fs from "node:fs";
+import path from "node:path";
 import { describe, it, expect } from "vitest";
 import { envSchema } from "@/lib/env";
 import { cn } from "@/lib/utils";
+import { DEFAULT_SEARCH_SETTINGS } from "@/lib/dashboard-data";
+
+/**
+ * Memeriksa kumpulan isi file migrasi SQL dan mengembalikan daftar nama fungsi
+ * di schema public yang dibuat dengan CREATE [OR REPLACE] FUNCTION tetapi tidak memiliki
+ * pernyataan REVOKE EXECUTE ... FROM PUBLIC, anon, authenticated.
+ */
+function findPublicFunctionsWithoutRevokeExecute(
+  sqlDocuments: Array<{ fileName: string; content: string }>
+): string[] {
+  const createdPublicFunctions = new Set<string>();
+  const revokedFunctions = new Set<string>();
+
+  const createFnRegex =
+    /create\s+(?:or\s+replace\s+)?function\s+(?:([a-zA-Z0-9_]+)\.)?([a-zA-Z0-9_]+)\s*\(/gi;
+  const revokeExecRegex =
+    /revoke\s+execute\s+on\s+function\s+(?:public\.)?([a-zA-Z0-9_]+)\s*\([^)]*\)\s+from\s+public\s*,\s*anon\s*,\s*authenticated/gi;
+
+  for (const doc of sqlDocuments) {
+    const cleanSql = doc.content.replace(/--.*$/gm, "");
+
+    let createMatch: RegExpExecArray | null;
+    createFnRegex.lastIndex = 0;
+    while ((createMatch = createFnRegex.exec(cleanSql)) !== null) {
+      const schemaName = (createMatch[1] ?? "public").toLowerCase();
+      const fnName = createMatch[2]!.toLowerCase();
+      if (schemaName === "public") {
+        createdPublicFunctions.add(fnName);
+      }
+    }
+
+    let revokeMatch: RegExpExecArray | null;
+    revokeExecRegex.lastIndex = 0;
+    while ((revokeMatch = revokeExecRegex.exec(cleanSql)) !== null) {
+      const fnName = revokeMatch[1]!.toLowerCase();
+      revokedFunctions.add(fnName);
+    }
+  }
+
+  return Array.from(createdPublicFunctions).filter(
+    (fn) => !revokedFunctions.has(fn)
+  );
+}
 
 describe("Fase 0: Fondasi & Konfigurasi", () => {
   it("menggabungkan class Tailwind dengan benar melalui cn()", () => {
@@ -33,5 +78,65 @@ describe("Fase 0: Fondasi & Konfigurasi", () => {
     });
 
     expect(result.success).toBe(false);
+  });
+
+  it("memastikan nilai awal enable_third_party_check adalah false di kode dan migrasi terbaru", () => {
+    expect(DEFAULT_SEARCH_SETTINGS.enable_third_party_check).toBe(false);
+
+    const migrationsDir = path.join(process.cwd(), "supabase", "migrations");
+    const files = fs
+      .readdirSync(migrationsDir)
+      .filter((f) => f.endsWith(".sql"))
+      .sort();
+
+    const phase5Sql = fs.readFileSync(
+      path.join(migrationsDir, "20261029050000_phase5_third_party_default.sql"),
+      "utf-8"
+    );
+    expect(phase5Sql).toContain('"enable_third_party_check": false');
+    expect(phase5Sql).toContain("'false'::jsonb");
+
+    const latestSql = fs.readFileSync(
+      path.join(migrationsDir, files[files.length - 1]!),
+      "utf-8"
+    );
+    expect(latestSql).toContain('"enable_third_party_check": false');
+    expect(latestSql).toContain("'false'::jsonb");
+  });
+
+  it("membaca semua file migrasi dan gagal jika ada CREATE FUNCTION di schema public tanpa REVOKE EXECUTE untuk fungsi itu", () => {
+    const migrationsDir = path.join(process.cwd(), "supabase", "migrations");
+    const sqlFiles = fs
+      .readdirSync(migrationsDir)
+      .filter((f) => f.endsWith(".sql"))
+      .sort();
+
+    expect(sqlFiles.length).toBeGreaterThanOrEqual(7);
+
+    const docs = sqlFiles.map((fileName) => ({
+      fileName,
+      content: fs.readFileSync(path.join(migrationsDir, fileName), "utf-8"),
+    }));
+
+    const missingRevokes = findPublicFunctionsWithoutRevokeExecute(docs);
+    expect(
+      missingRevokes,
+      `Fungsi di schema public tanpa REVOKE EXECUTE: ${missingRevokes.join(", ")}`
+    ).toEqual([]);
+
+    // Pastikan detektor benar-benar gagal jika ada CREATE FUNCTION di schema public tanpa REVOKE EXECUTE
+    const simulatedUnsafeDocs = [
+      ...docs,
+      {
+        fileName: "99999999999999_unsafe.sql",
+        content: `
+          create or replace function public.unsafe_helper_fn()
+          returns int language sql as $$ select 1; $$;
+        `,
+      },
+    ];
+    expect(
+      findPublicFunctionsWithoutRevokeExecute(simulatedUnsafeDocs)
+    ).toEqual(["unsafe_helper_fn"]);
   });
 });
