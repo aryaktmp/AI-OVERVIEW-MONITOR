@@ -38,3 +38,17 @@ Dokumen ini mencatat keputusan teknis yang diambil ketika spesifikasi di `SPEC.m
    - Jumlah panggilan SerpApi (`1` untuk panggilan tunggal, `2` jika `page_token` ditindaklanjuti ke `engine=google_ai_overview`) disimpan di `checks.raw.serpapi_calls_count` dan dijumlahkan ke ringkasan `check_runs` (`serpApiCalls`) serta perhitungan batas laju 60 menit terakhir (`SERPAPI_MAX_PER_HOUR`).
 3. **Mode `SERPAPI_DRY_RUN=true`**:
    - Secara bawaan di `.env.example` bernilai `true`. Dalam mode ini, `fetchKeywordAiOverview()` mengembalikan data dari ke-4 fixture asli secara deterministik tanpa koneksi jaringan ke SerpApi.
+4. **Pengamanan RPC & Penandaan `is_demo` (Perbaikan Fase 3)**:
+   - Fungsi SQL `public.claim_next_run_item(timestamptz)` dicabut hak `EXECUTE`-nya dari `PUBLIC`, `anon`, dan `authenticated`, serta hanya diberikan kepada `service_role`.
+   - `startCheckRun()` dibuat idempoten: jika terdapat `check_runs` berstatus `running`, fungsi mengembalikan run tersebut tanpa membuat baris baru.
+   - Perhitungan batas laju per jam (`getHourlySerpApiCalls`) mengecualikan hasil dari run dry-run (`raw.dry_run === true` / `is_demo = true`).
+
+## Fase 4: Halaman Dasbor, Analitik, dan Seeder Data Contoh
+
+1. **Agregasi di Server & View SQL (`security_invoker = true`)**:
+   - Seluruh perhitungan kartu ringkasan, selisih mingguan, grafik tren 8 minggu, peta status keyword, dan peringkat domain kompetitor dijalankan di server (`lib/dashboard-data.ts` & `lib/analytics.ts`) serta dilengkapi view SQL `latest_keyword_checks` dan `latest_domain_citation_counts` dengan `security_invoker = true`. Browser hanya menerima hasil agregasi siap pakai tanpa menarik seluruh isi tabel `checks`.
+2. **Tabel `settings` untuk Parameter Pencarian**:
+   - Menyimpan konfigurasi lokasi (`location`), domain Google (`google_domain`), kode negara (`gl`), kode bahasa (`hl`), dan flag pemeriksaan sumber pihak ketiga (`enable_third_party_check`) pada tabel `settings` (`key = 'search_config'`) dengan fallback ke nilai bawaan Indonesia jika migrasi belum dijalankan.
+3. **Seeder 8 Minggu (`npm run seed:demo` & `npm run seed:clear`)**:
+   - Menyediakan skrip `scripts/seed-demo.ts` yang mengisi 8 minggu data contoh (`is_demo = true`) mengikuti pola deterministik dari `dashboard-ai-overview.html`, serta `scripts/seed-clear.ts` dan tombol "Hapus data contoh" di halaman Pengaturan untuk membersihkannya kapan saja.
+

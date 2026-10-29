@@ -12,6 +12,8 @@ const buttonVariants = cva(
           "bg-[var(--accent)] text-[var(--surface)] hover:opacity-90",
         primary:
           "bg-[var(--cite)] text-white hover:opacity-90",
+        secondary:
+          "border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--none)]",
         outline:
           "border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--none)]",
         ghost:

@@ -8,6 +8,8 @@ const badgeVariants = cva(
     variants: {
       variant: {
         cited: "bg-[var(--cite-bg)] text-[var(--cite)]",
+        detected: "bg-[var(--cite-bg)] text-[var(--cite)]",
+        brand: "bg-[#EFF6FF] text-[#1D4ED8]",
         notDetected: "bg-[var(--seen-bg)] text-[var(--seen)]",
         none: "bg-[var(--none)] text-[var(--muted)]",
       },
