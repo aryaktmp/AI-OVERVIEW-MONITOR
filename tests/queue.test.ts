@@ -57,6 +57,7 @@ function createInMemoryQueueStore(initial?: {
       return run;
     },
     async insertRunItems(runId, keywordIds, nowIso) {
+      const parentRun = runs.find((r) => r.id === runId);
       for (const kwId of keywordIds) {
         items.push({
           id: `item-${items.length + 1}`,
@@ -66,6 +67,7 @@ function createInMemoryQueueStore(initial?: {
           attempts: 0,
           error: null,
           updated_at: nowIso,
+          run_is_demo: Boolean(parentRun?.is_demo),
         });
       }
     },
@@ -521,5 +523,94 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
     expect(compact.related_questions).toBeUndefined();
     expect(compact.search_parameters).toBeUndefined();
     expect(compact.ai_overview_followup).toBeUndefined();
+  });
+
+  it("mencegah pemrosesan ganda saat /api/cron/process dan processRunBatchAction berjalan paralel, menghormati batas laju, dan melewati run is_demo saat SERPAPI_DRY_RUN=false", async () => {
+    const { store, checks, items } = createInMemoryQueueStore({
+      keywords: [
+        { id: "kw-1", text: "software hr terbaik", active: true, is_demo: false },
+        { id: "kw-2", text: "aplikasi hris", active: true, is_demo: false },
+        { id: "kw-3", text: "aplikasi payroll", active: true, is_demo: false },
+        { id: "kw-4", text: "software absensi", active: true, is_demo: false },
+      ],
+    });
+
+    await startCheckRun(store, new Date("2026-10-29T13:00:00Z"), {
+      isDemo: false,
+    });
+
+    const processedKeywordIds: string[] = [];
+    const slowFetcher = async (kw: string): Promise<SerpApiCheckResult> => {
+      await new Promise((r) => setTimeout(r, 10));
+      processedKeywordIds.push(kw);
+      return makeFakeSerpResult(1, false);
+    };
+
+    // 1. Dua pemanggilan paralel: simulasi /api/cron/process (maxItems: 20) & processRunBatchAction (maxItems: 5)
+    // Pastikan tidak ada keyword yang diproses ganda
+    const [cronResult, batchResult] = await Promise.all([
+      processQueue(store, {
+        maxItems: 20,
+        maxPerHour: 50,
+        dryRun: false,
+        serpApiFetcher: slowFetcher,
+      }),
+      processQueue(store, {
+        maxItems: 5,
+        maxPerHour: 50,
+        dryRun: false,
+        serpApiFetcher: slowFetcher,
+      }),
+    ]);
+
+    const totalSucceeded =
+      cronResult.succeededCount + batchResult.succeededCount;
+    expect(totalSucceeded).toBe(4);
+    expect(checks).toHaveLength(4);
+    expect(processedKeywordIds).toHaveLength(4);
+    expect(new Set(processedKeywordIds).size).toBe(4);
+    expect(new Set(checks.map((c) => c.keyword_id)).size).toBe(4);
+    expect(items.every((i) => i.state === "done")).toBe(true);
+
+    // 2. Pastikan batch menghormati batas laju per jam (SERPAPI_MAX_PER_HOUR)
+    const rateLimitedCtx = createInMemoryQueueStore({
+      hourlyCalls: 49,
+      keywords: [
+        { id: "kw-rl-1", text: "keyword 1", active: true, is_demo: false },
+        { id: "kw-rl-2", text: "keyword 2", active: true, is_demo: false },
+      ],
+    });
+    await startCheckRun(rateLimitedCtx.store, new Date("2026-10-29T13:02:00Z"), {
+      isDemo: false,
+    });
+    const rlBatchRes = await processQueue(rateLimitedCtx.store, {
+      maxItems: 5,
+      maxPerHour: 50,
+      dryRun: false,
+      serpApiFetcher: slowFetcher,
+    });
+    expect(rlBatchRes.processedCount).toBe(1);
+    expect(rlBatchRes.stoppedReason).toBe("rate_limit");
+    expect(rateLimitedCtx.items.filter((i) => i.state === "done")).toHaveLength(1);
+    expect(rateLimitedCtx.items.filter((i) => i.state === "pending")).toHaveLength(1);
+
+    // Pastikan jika ada run dengan is_demo = true, tidak dijalankan saat dryRun = false (SERPAPI_DRY_RUN=false)
+    const demoStoreCtx = createInMemoryQueueStore({
+      keywords: [
+        { id: "kw-demo", text: "keyword contoh", active: true, is_demo: true },
+      ],
+    });
+    await startCheckRun(demoStoreCtx.store, new Date("2026-10-29T13:05:00Z"), {
+      isDemo: true,
+    });
+
+    const skippedDemoRes = await processQueue(demoStoreCtx.store, {
+      maxItems: 5,
+      dryRun: false,
+      serpApiFetcher: slowFetcher,
+    });
+    expect(skippedDemoRes.processedCount).toBe(0);
+    expect(demoStoreCtx.checks).toHaveLength(0);
+    expect(demoStoreCtx.items[0]?.state).toBe("pending");
   });
 });

@@ -35,6 +35,7 @@ export interface RunItemRecord {
   attempts: number;
   error: string | null;
   updated_at: string;
+  run_is_demo?: boolean;
 }
 
 export interface CheckRunRecord {
@@ -229,6 +230,10 @@ export function compactSerpApiRawForStorage(
     ...(sanitized.demo_seed === true ? { demo_seed: true } : {}),
     ...(typeof sanitized.week_label === "string"
       ? { week_label: sanitized.week_label }
+      : {}),
+    ...(sanitized.third_party_check &&
+    typeof sanitized.third_party_check === "object"
+      ? { third_party_check: sanitized.third_party_check }
       : {}),
   };
 
@@ -435,6 +440,36 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
     },
 
     async listPendingCandidates(limit: number): Promise<RunItemRecord[]> {
+      const withDemoRes = await supabase
+        .from("run_items")
+        .select(
+          "id, run_id, keyword_id, state, attempts, error, updated_at, check_runs(is_demo)"
+        )
+        .eq("state", "pending")
+        .order("updated_at", { ascending: true })
+        .limit(limit);
+
+      if (!withDemoRes.error && withDemoRes.data) {
+        return withDemoRes.data.map((row) => {
+          const typed = row as unknown as RunItemRecord & {
+            check_runs?: { is_demo?: boolean } | Array<{ is_demo?: boolean }>;
+          };
+          const runObj = Array.isArray(typed.check_runs)
+            ? typed.check_runs[0]
+            : typed.check_runs;
+          return {
+            id: typed.id,
+            run_id: typed.run_id,
+            keyword_id: typed.keyword_id,
+            state: typed.state,
+            attempts: typed.attempts,
+            error: typed.error,
+            updated_at: typed.updated_at,
+            run_is_demo: Boolean(runObj?.is_demo),
+          };
+        });
+      }
+
       const { data, error } = await supabase
         .from("run_items")
         .select("id, run_id, keyword_id, state, attempts, error, updated_at")
@@ -912,13 +947,24 @@ export async function processQueue(
       break;
     }
 
-    if (!isDryRunMode && hourlySerpApiCallsUsed >= maxPerHour) {
-      stoppedReason = "rate_limit";
-      break;
+    if (!isDryRunMode) {
+      const latestHourlyCalls = await store.getHourlySerpApiCalls(oneHourAgoIso);
+      hourlySerpApiCallsUsed = Math.max(
+        hourlySerpApiCallsUsed,
+        latestHourlyCalls
+      );
+      if (hourlySerpApiCallsUsed >= maxPerHour) {
+        stoppedReason = "rate_limit";
+        break;
+      }
     }
 
     const candidates = await store.listPendingCandidates(20);
     const eligibleCandidate = candidates.find((item) => {
+      // Saat SERPAPI_DRY_RUN=false (!isDryRunMode), jangan memproses item dari run is_demo = true
+      if (!isDryRunMode && item.run_is_demo === true) {
+        return false;
+      }
       if (item.attempts <= 0) return true;
       const delayMs = getRetryDelayMs(item.attempts, retryBaseDelayMs);
       const updatedMs = Date.parse(item.updated_at);
@@ -988,6 +1034,14 @@ export async function processQueue(
             )
           : baseEvaluation;
 
+      const rawWithThirdPartyStats =
+        "thirdPartyStats" in evaluation && evaluation.thirdPartyStats
+          ? {
+              ...serpResult.raw,
+              third_party_check: evaluation.thirdPartyStats,
+            }
+          : serpResult.raw;
+
       const doneIso = nowFn().toISOString();
       await store.saveCheckAndSources({
         run_id: claimed.run_id,
@@ -998,7 +1052,7 @@ export async function processQueue(
         detected_domain: evaluation.detected_domain,
         detected_text: evaluation.detected_text,
         detected_third_party: evaluation.detected_third_party,
-        raw: serpResult.raw,
+        raw: rawWithThirdPartyStats,
         serpapi_callsCount: callsUsed,
         sources: evaluation.sources,
       });
@@ -1037,9 +1091,16 @@ export async function processQueue(
       break;
     }
 
-    if (!isDryRunMode && hourlySerpApiCallsUsed >= maxPerHour) {
-      stoppedReason = "rate_limit";
-      break;
+    if (!isDryRunMode) {
+      const latestHourlyCalls = await store.getHourlySerpApiCalls(oneHourAgoIso);
+      hourlySerpApiCallsUsed = Math.max(
+        hourlySerpApiCallsUsed,
+        latestHourlyCalls
+      );
+      if (hourlySerpApiCallsUsed >= maxPerHour) {
+        stoppedReason = "rate_limit";
+        break;
+      }
     }
   }
 

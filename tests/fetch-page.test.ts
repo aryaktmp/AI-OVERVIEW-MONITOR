@@ -1,3 +1,4 @@
+import zlib from "node:zlib";
 import { describe, expect, it, vi } from "vitest";
 import {
   analyzeHtmlForBrand,
@@ -5,6 +6,8 @@ import {
   evaluateThirdPartySourcesForCheck,
   fetchSafeHtmlPage,
   isBlockedIpAddress,
+  isNonStandardIpv4Notation,
+  KEYWORD_THIRD_PARTY_TIMEOUT_MS,
   MAX_HTML_BYTES,
   validateAndResolveTargetUrl,
   type DnsLookupFn,
@@ -497,5 +500,211 @@ describe("Perlindungan SSRF & Deteksi Tingkat 3 (lib/fetch-page.ts)", () => {
     expect(res.dryRun).toBe(true);
     expect(res.status).toBe(200);
     expect(typeof res.mentionsBrand).toBe("boolean");
+  });
+
+  it("menolak IPv4 desimal/heksadesimal/oktal, IPv4-mapped IPv6 hex, localhost., subdomain->127.0.0.1, URL berkredensial, dan metadata cloud", async () => {
+    // 1. Notasi IPv4 non-standar (desimal, heksadesimal, oktal)
+    expect(isNonStandardIpv4Notation("2130706433")).toBe(true);
+    expect(isNonStandardIpv4Notation("0x7f.0.0.1")).toBe(true);
+    expect(isNonStandardIpv4Notation("0177.0.0.1")).toBe(true);
+    expect(isBlockedIpAddress("2130706433")).toBe(true);
+    expect(isBlockedIpAddress("0x7f.0.0.1")).toBe(true);
+    expect(isBlockedIpAddress("0177.0.0.1")).toBe(true);
+
+    // 2. IPv4-mapped IPv6 bentuk heksadesimal (::ffff:7f00:1)
+    expect(isBlockedIpAddress("::ffff:7f00:1")).toBe(true);
+    expect(isBlockedIpAddress("::ffff:7f00:0001")).toBe(true);
+    expect(isBlockedIpAddress("::ffff:a9fe:a9fe")).toBe(true); // 169.254.169.254
+
+    const blockedUrls = [
+      "http://2130706433/",
+      "http://0x7f.0.0.1/",
+      "http://0177.0.0.1/",
+      "http://[::1]/",
+      "http://[::ffff:7f00:1]/",
+      "http://localhost./",
+      "http://sub.localhost./admin",
+      "http://linovhr.com@evil.example/",
+      "http://user:pass@evil.example/path",
+    ];
+
+    for (const url of blockedUrls) {
+      await expect(
+        validateAndResolveTargetUrl(url, safeDnsMock),
+        `URL ${url} seharusnya ditolak`
+      ).rejects.toThrow(/ditolak|SSRF|kredensial/i);
+    }
+
+    // 3. Subdomain yang resolve ke 127.0.0.1 dan hostname metadata cloud yang resolve ke 169.254.169.254
+    const customDns: DnsLookupFn = async (hostname) => {
+      if (hostname === "loopback.sub.example.com") {
+        return [{ address: "127.0.0.1", family: 4 }];
+      }
+      if (hostname === "metadata.google.internal") {
+        return [{ address: "169.254.169.254", family: 4 }];
+      }
+      return [{ address: "93.184.216.34", family: 4 }];
+    };
+
+    await expect(
+      validateAndResolveTargetUrl("http://loopback.sub.example.com/", customDns)
+    ).rejects.toThrow(/SSRF|terlarang/i);
+
+    await expect(
+      validateAndResolveTargetUrl(
+        "http://metadata.google.internal/computeMetadata/v1/",
+        customDns
+      )
+    ).rejects.toThrow(/SSRF|terlarang/i);
+  });
+
+  it("menangani pengalihan secara manual (redirect: 'manual') dan menerapkan batas 500 KB pada isi setelah dekompresi", async () => {
+    // 1. Pastikan opsi redirect selalu 'manual' di setiap hop
+    const observedRedirects: Array<RequestRedirect | undefined> = [];
+    const manualRedirectFetch = vi.fn(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        observedRedirects.push(init?.redirect);
+        const urlStr = String(input);
+        if (urlStr === "https://example.com/awal") {
+          return new Response(null, {
+            status: 302,
+            headers: { location: "https://example.com/tujuan" },
+          });
+        }
+        return new Response("<html><body>Halaman Tujuan</body></html>", {
+          status: 200,
+          headers: { "content-type": "text/html" },
+        });
+      }
+    );
+
+    const redirectResult = await fetchSafeHtmlPage("https://example.com/awal", {
+      dnsLookupFn: safeDnsMock,
+      fetchFn: manualRedirectFetch as unknown as typeof fetch,
+    });
+    expect(redirectResult.finalUrl).toBe("https://example.com/tujuan");
+    expect(observedRedirects).toEqual(["manual", "manual"]);
+
+    // 2. Batas 500 KB berlaku pada isi setelah dekompresi (mis. gzip bomb / payload terkompresi)
+    const rawHtmlOverLimit =
+      "<html><body>" + "LinovHR ".repeat(90_000) + "</body></html>"; // ~720 KB setelah dekompresi
+    const gzippedPayload = zlib.gzipSync(Buffer.from(rawHtmlOverLimit, "utf-8"));
+    // Ukuran terkompresi jauh di bawah 500 KB (~3 KB), tetapi setelah dekompresi > 500 KB
+    expect(gzippedPayload.byteLength).toBeLessThan(20_000);
+
+    const gzipFetch = vi.fn(async () => {
+      return new Response(gzippedPayload, {
+        status: 200,
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+          "content-encoding": "gzip",
+        },
+      });
+    });
+
+    const decompressedRes = await fetchSafeHtmlPage(
+      "https://example.com/terkompresi",
+      {
+        dnsLookupFn: safeDnsMock,
+        fetchFn: gzipFetch as unknown as typeof fetch,
+      }
+    );
+
+    expect(decompressedRes.truncatedAtLimit).toBe(true);
+    expect(decompressedRes.byteLength).toBe(MAX_HTML_BYTES);
+    expect(decompressedRes.html).toContain("LinovHR");
+  });
+
+  it("membatasi waktu total per keyword maksimal 15 detik untuk deteksi tingkat 3, melewati sumber yang belum selesai, dan mencatat durasi", async () => {
+    expect(KEYWORD_THIRD_PARTY_TIMEOUT_MS).toBe(15_000);
+
+    const sources: AnnotatedCheckSource[] = [
+      {
+        position: 1,
+        title: "Sumber Cepat",
+        url: "https://cepat.example.com/artikel",
+        domain: "cepat.example.com",
+        is_own: false,
+        is_competitor: false,
+        mentions_brand: false,
+      },
+      {
+        position: 2,
+        title: "Sumber Lambat 1",
+        url: "https://lambat1.example.com/artikel",
+        domain: "lambat1.example.com",
+        is_own: false,
+        is_competitor: false,
+        mentions_brand: false,
+      },
+      {
+        position: 3,
+        title: "Sumber Lambat 2",
+        url: "https://lambat2.example.com/artikel",
+        domain: "lambat2.example.com",
+        is_own: false,
+        is_competitor: false,
+        mentions_brand: false,
+      },
+      {
+        position: 4,
+        title: "Sumber Keempat (Harus Dilewati Tanpa Dipanggil)",
+        url: "https://keempat.example.com/artikel",
+        domain: "keempat.example.com",
+        is_own: false,
+        is_competitor: false,
+        mentions_brand: false,
+      },
+    ];
+
+    const calledUrls: string[] = [];
+    const fetchMock = vi.fn(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const urlStr = String(input);
+        calledUrls.push(urlStr);
+
+        if (urlStr.includes("cepat.example.com")) {
+          // Beri jeda 70ms sebelum selesai (melewati keywordTimeoutMs = 50ms saat selesai, atau buat lambat1 & lambat2 menahan worker)
+          return new Response(
+            "<html><body>Artikel ini menyebut LinovHR sebagai solusi HRIS.</body></html>",
+            {
+              status: 200,
+              headers: { "content-type": "text/html" },
+            }
+          );
+        }
+
+        // Sumber lambat menahan hingga melewati batas waktu keyword
+        return await new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () => {
+            const abortErr = new Error("The operation was aborted");
+            abortErr.name = "AbortError";
+            reject(abortErr);
+          });
+        });
+      }
+    );
+
+    const evaluated = await evaluateThirdPartySourcesForCheck(
+      {
+        hasAiOverview: true,
+        detected_domain: false,
+        detected_text: false,
+        sources,
+      },
+      {
+        dnsLookupFn: safeDnsMock,
+        fetchFn: fetchMock as unknown as typeof fetch,
+        keywordTimeoutMs: 60, // simulasi batas waktu total keyword
+      }
+    );
+
+    // Sumber pertama selesai dan mendeteksi merek; sumber yang melewati batas waktu dilewati tanpa memblokir
+    expect(evaluated.detected_third_party).toBe(true);
+    expect(evaluated.thirdPartyStats.checked_count).toBe(1);
+    expect(evaluated.thirdPartyStats.skipped_count).toBe(3);
+    expect(evaluated.thirdPartyStats.timed_out).toBe(true);
+    expect(evaluated.thirdPartyStats.duration_ms).toBeGreaterThanOrEqual(40);
+    expect(evaluated.sources[3]?.mentions_brand).toBe(false);
   });
 });

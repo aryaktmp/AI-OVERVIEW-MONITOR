@@ -4,6 +4,8 @@ import http from "node:http";
 import https from "node:https";
 import net from "node:net";
 import path from "node:path";
+import type { Readable } from "node:stream";
+import zlib from "node:zlib";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   DEFAULT_BRAND_TERMS,
@@ -15,8 +17,9 @@ import {
 } from "./detect.ts";
 
 export const MAX_REDIRECTS = 3;
-export const FETCH_TIMEOUT_MS = 8_000; // 8 detik sesuai SPEC.md
-export const MAX_HTML_BYTES = 500 * 1024; // 500 KB sesuai SPEC.md
+export const FETCH_TIMEOUT_MS = 8_000; // 8 detik per sumber sesuai SPEC.md
+export const KEYWORD_THIRD_PARTY_TIMEOUT_MS = 15_000; // 15 detik total per keyword
+export const MAX_HTML_BYTES = 500 * 1024; // 500 KB setelah dekompresi sesuai SPEC.md
 export const MAX_SOURCES_PER_KEYWORD = 10;
 export const MAX_CONCURRENCY = 3;
 export const SUCCESS_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 hari
@@ -219,7 +222,7 @@ export function isBlockedIpv6(ip: string): boolean {
     return true;
   }
 
-  // IPv4-mapped IPv6 (::ffff:a.b.c.d / ::ffff:xxxx:xxxx)
+  // IPv4-mapped IPv6 (::ffff:a.b.c.d / ::ffff:xxxx:xxxx, termasuk ::ffff:7f00:1)
   if (w0 === 0 && w1 === 0 && w2 === 0 && w3 === 0 && w4 === 0 && w5 === 0xffff) {
     return checkWordsAsIpv4(w6, w7);
   }
@@ -285,11 +288,49 @@ export function isBlockedIpv6(ip: string): boolean {
 }
 
 /**
+ * Memeriksa apakah string hostname berupa notasi IPv4 non-standar
+ * seperti desimal tunggal (2130706433), heksadesimal (0x7f.0.0.1), atau oktal (0177.0.0.1).
+ */
+export function isNonStandardIpv4Notation(host: string): boolean {
+  const cleaned = host.trim().toLowerCase().replace(/\.+$/, "");
+  if (!cleaned) return false;
+
+  // Desimal murni (contoh: 2130706433) atau heksadesimal tunggal (contoh: 0x7f000001)
+  if (/^\d+$/.test(cleaned) || /^0x[0-9a-f]+$/i.test(cleaned)) {
+    return true;
+  }
+
+  const parts = cleaned.split(".");
+  if (parts.length >= 2 && parts.length <= 4) {
+    const allNumericOrHexOrOctal = parts.every(
+      (p) => /^\d+$/.test(p) || /^0x[0-9a-f]+$/i.test(p)
+    );
+    if (allNumericOrHexOrOctal) {
+      // Jika jumlah segmen != 4 (mis. 127.1) atau ada segmen oktal (0177) atau hex (0x7f)
+      if (
+        parts.length !== 4 ||
+        parts.some(
+          (p) => /^0x[0-9a-f]+$/i.test(p) || (p.length > 1 && p.startsWith("0"))
+        )
+      ) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
  * Memeriksa apakah alamat IP (IPv4 maupun IPv6) dilarang untuk SSRF.
  */
 export function isBlockedIpAddress(ip: string): boolean {
   const cleaned = ip.trim().replace(/^\[|\]$/g, "");
   if (!cleaned) return true;
+
+  if (isNonStandardIpv4Notation(cleaned)) {
+    return true;
+  }
 
   if (cleaned.includes(":")) {
     return isBlockedIpv6(cleaned);
@@ -320,9 +361,29 @@ export async function validateAndResolveTargetUrl(
   pinnedIp: string;
   pinnedFamily: number;
 }> {
+  const trimmedUrl = rawUrl.trim();
+
+  // Tolak kredensial (@) di bagian authority sebelum path
+  if (/^[a-z][a-z0-9+.-]*:\/\/[^/?#]*@/i.test(trimmedUrl)) {
+    throw new Error("URL dengan kredensial pengguna ditolak (SSRF).");
+  }
+
+  // Periksa authority mentah sebelum URL parser melakukan kanonikalisasi IP oktal/hex/desimal
+  const rawAuthorityMatch = trimmedUrl.match(
+    /^[a-z][a-z0-9+.-]*:\/\/([^/?#:]+)/i
+  );
+  if (rawAuthorityMatch?.[1]) {
+    const rawAuthorityHost = rawAuthorityMatch[1].toLowerCase();
+    if (isNonStandardIpv4Notation(rawAuthorityHost)) {
+      throw new Error(
+        `Notasi IPv4 non-standar (desimal/heksadesimal/oktal) ditolak (SSRF): ${rawAuthorityHost}`
+      );
+    }
+  }
+
   let parsedUrl: URL;
   try {
-    parsedUrl = new URL(rawUrl.trim());
+    parsedUrl = new URL(trimmedUrl);
   } catch {
     throw new Error(`URL tidak valid: ${rawUrl}`);
   }
@@ -334,7 +395,7 @@ export async function validateAndResolveTargetUrl(
   }
 
   if (parsedUrl.username || parsedUrl.password) {
-    throw new Error("URL dengan kredensial pengguna ditolak.");
+    throw new Error("URL dengan kredensial pengguna ditolak (SSRF).");
   }
 
   if (
@@ -348,7 +409,7 @@ export async function validateAndResolveTargetUrl(
   }
 
   const rawHost = parsedUrl.hostname.trim().toLowerCase();
-  const bareHost = rawHost.replace(/^\[|\]$/g, "");
+  const bareHost = rawHost.replace(/^\[|\]$/g, "").replace(/\.+$/, "");
 
   if (
     !bareHost ||
@@ -360,7 +421,13 @@ export async function validateAndResolveTargetUrl(
     throw new Error(`Hostname lokal/internal ditolak (SSRF): ${bareHost}`);
   }
 
-  // Jika hostname berupa literal IPv6 atau IPv4 (termasuk notasi angka/heksadesimal non-standar)
+  if (isNonStandardIpv4Notation(bareHost)) {
+    throw new Error(
+      `Notasi IPv4 non-standar ditolak (SSRF): ${bareHost}`
+    );
+  }
+
+  // Jika hostname berupa literal IPv6
   if (rawHost.startsWith("[") && rawHost.endsWith("]")) {
     if (isBlockedIpv6(bareHost)) {
       throw new Error(`Alamat IPv6 ditolak (SSRF): ${bareHost}`);
@@ -372,7 +439,8 @@ export async function validateAndResolveTargetUrl(
     };
   }
 
-  if (/^\d+\.\d+\.\d+\.\d+$/.test(bareHost) || /^\d+$/.test(bareHost)) {
+  // Jika hostname berupa literal IPv4
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(bareHost)) {
     if (isBlockedIpv4(bareHost)) {
       throw new Error(`Alamat IPv4 ditolak (SSRF): ${bareHost}`);
     }
@@ -412,9 +480,26 @@ export interface LowLevelHttpResponse {
   truncatedAtLimit: boolean;
 }
 
+function createDecompressionStream(
+  res: http.IncomingMessage,
+  contentEncoding: string
+): Readable {
+  const enc = contentEncoding.trim().toLowerCase();
+  if (enc === "gzip" || enc === "x-gzip") {
+    return res.pipe(zlib.createGunzip());
+  }
+  if (enc === "deflate") {
+    return res.pipe(zlib.createInflate());
+  }
+  if (enc === "br") {
+    return res.pipe(zlib.createBrotliDecompress());
+  }
+  return res;
+}
+
 /**
  * Membaca stream respons dari soket yang terhubung langsung ke pinnedIp (mencegah DNS rebinding)
- * dengan batas waktu 8 detik dan menghentikan pembacaan segera setelah mencapai maxBytes (500 KB).
+ * dengan batas waktu 8 detik dan menghentikan pembacaan segera setelah mencapai maxBytes (500 KB setelah dekompresi).
  */
 function requestPinnedWithNodeHttp(
   parsedUrl: URL,
@@ -440,7 +525,6 @@ function requestPinnedWithNodeHttp(
         Accept: "text/html,application/xhtml+xml",
         "Accept-Encoding": "identity",
       },
-      // Kunci koneksi soket ke pinnedIp hasil resolusi DNS agar kebal terhadap DNS rebinding
       lookup: (_hostname, _opts, cb) => {
         cb(null, pinnedIp, pinnedFamily);
       },
@@ -472,7 +556,6 @@ function requestPinnedWithNodeHttp(
         }
       }
 
-      // Jika pengalihan (3xx), tidak perlu membaca body
       if (status >= 300 && status < 400 && headers["location"]) {
         settled = true;
         res.destroy();
@@ -502,11 +585,16 @@ function requestPinnedWithNodeHttp(
         return;
       }
 
+      const stream = createDecompressionStream(
+        res,
+        headers["content-encoding"] ?? ""
+      );
+
       const chunks: Buffer[] = [];
       let totalBytes = 0;
       let truncatedAtLimit = false;
 
-      res.on("data", (chunk: Buffer | string) => {
+      stream.on("data", (chunk: Buffer | string) => {
         if (settled) return;
         const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
         const remaining = maxBytes - totalBytes;
@@ -519,6 +607,7 @@ function requestPinnedWithNodeHttp(
           truncatedAtLimit = true;
           settled = true;
           clearTimeout(timer);
+          stream.destroy();
           res.destroy();
           resolve({
             status,
@@ -534,7 +623,7 @@ function requestPinnedWithNodeHttp(
         totalBytes += buf.length;
       });
 
-      res.on("end", () => {
+      stream.on("end", () => {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
@@ -547,7 +636,7 @@ function requestPinnedWithNodeHttp(
         });
       });
 
-      res.on("error", (err) => {
+      stream.on("error", (err) => {
         clearTimeout(timer);
         finishWithError(err);
       });
@@ -568,10 +657,98 @@ function requestPinnedWithNodeHttp(
   });
 }
 
+async function decompressBufferBounded(
+  compressed: Buffer,
+  encoding: string,
+  maxBytes: number
+): Promise<{ buffer: Buffer; truncated: boolean }> {
+  const enc = encoding.trim().toLowerCase();
+  const isGzipMagic =
+    compressed.length >= 2 &&
+    compressed[0] === 0x1f &&
+    compressed[1] === 0x8b;
+
+  const createDecompressor = () => {
+    if (enc === "gzip" || enc === "x-gzip" || isGzipMagic) {
+      return zlib.createGunzip();
+    }
+    if (enc === "deflate") {
+      return zlib.createInflate();
+    }
+    if (enc === "br") {
+      return zlib.createBrotliDecompress();
+    }
+    return null;
+  };
+
+  const decompressor = createDecompressor();
+  if (!decompressor) {
+    if (compressed.length > maxBytes) {
+      return { buffer: compressed.subarray(0, maxBytes), truncated: true };
+    }
+    return { buffer: compressed, truncated: false };
+  }
+
+  return await new Promise<{ buffer: Buffer; truncated: boolean }>(
+    (resolve, reject) => {
+      const chunks: Buffer[] = [];
+      let total = 0;
+      let truncated = false;
+      let settled = false;
+
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        resolve({
+          buffer: Buffer.concat(chunks),
+          truncated,
+        });
+      };
+
+      decompressor.on("data", (chunk: Buffer) => {
+        if (settled) return;
+        const remaining = maxBytes - total;
+        if (chunk.length > remaining) {
+          if (remaining > 0) {
+            chunks.push(chunk.subarray(0, remaining));
+            total += remaining;
+          }
+          truncated = true;
+          decompressor.destroy();
+          finish();
+          return;
+        }
+        chunks.push(chunk);
+        total += chunk.length;
+      });
+
+      decompressor.on("end", () => {
+        finish();
+      });
+
+      decompressor.on("close", () => {
+        if (truncated) finish();
+      });
+
+      decompressor.on("error", (err) => {
+        if (settled) return;
+        if (truncated || total > 0) {
+          finish();
+          return;
+        }
+        settled = true;
+        reject(err);
+      });
+
+      decompressor.end(compressed);
+    }
+  );
+}
+
 /**
  * Membaca respons dari fetchFn kustom (digunakan saat pengujian unit dengan mock fetch)
- * sambil tetap menerapkan batas waktu 8 detik, pemeriksaan content-type text/html,
- * dan pemotongan pembacaan pada batas 500 KB.
+ * sambil tetap menerapkan redirect: "manual", batas waktu 8 detik, pemeriksaan content-type text/html,
+ * dan pemotongan pembacaan pada batas 500 KB setelah dekompresi.
  */
 async function requestWithInjectedFetch(
   fetchFn: typeof fetch,
@@ -594,7 +771,6 @@ async function requestWithInjectedFetch(
       redirect: "manual",
       headers: safeHeaders,
       signal: controller.signal,
-      // Metadata tambahan agar tes dapat memverifikasi IP hasil resolusi DNS yang di-pin
       ...({ pinnedIp } as Record<string, unknown>),
     });
 
@@ -625,16 +801,21 @@ async function requestWithInjectedFetch(
       );
     }
 
+    const contentEncoding = headers["content-encoding"] ?? "";
+
     if (!res.body) {
-      const text = await res.text();
-      const buf = Buffer.from(text, "utf-8");
-      const truncated = buf.length > maxBytes;
-      const sliced = truncated ? buf.subarray(0, maxBytes) : buf;
+      const arrBuf = await res.arrayBuffer();
+      const rawBuf = Buffer.from(arrBuf);
+      const { buffer, truncated } = await decompressBufferBounded(
+        rawBuf,
+        contentEncoding,
+        maxBytes
+      );
       return {
         status,
         headers,
-        bodyText: sliced.toString("utf-8"),
-        byteLength: sliced.length,
+        bodyText: buffer.toString("utf-8"),
+        byteLength: buffer.length,
         truncatedAtLimit: truncated,
       };
     }
@@ -664,6 +845,24 @@ async function requestWithInjectedFetch(
     }
 
     const merged = Buffer.concat(chunks.map((c) => Buffer.from(c)));
+    const isGzipMagic =
+      merged.length >= 2 && merged[0] === 0x1f && merged[1] === 0x8b;
+
+    if (contentEncoding || isGzipMagic) {
+      const decompressed = await decompressBufferBounded(
+        merged,
+        contentEncoding,
+        maxBytes
+      );
+      return {
+        status,
+        headers,
+        bodyText: decompressed.buffer.toString("utf-8"),
+        byteLength: decompressed.buffer.length,
+        truncatedAtLimit: truncatedAtLimit || decompressed.truncated,
+      };
+    }
+
     return {
       status,
       headers,
@@ -707,8 +906,8 @@ export interface FetchSafeHtmlResult {
  * - Hanya skema http dan https, hanya port 80 dan 443
  * - Resolusi DNS dan penolakan IP privat / loopback / link-local / metadata cloud / IPv6
  * - Menyambung ke IP hasil resolusi (mencegah DNS rebinding)
- * - Validasi ulang setiap pengalihan (maksimal 3 kali)
- * - Batas waktu 8 detik, batas ukuran 500 KB, dan wajib Content-Type text/html
+ * - Validasi ulang setiap pengalihan secara manual (maksimal 3 kali)
+ * - Batas waktu 8 detik, batas ukuran 500 KB setelah dekompresi, dan wajib Content-Type text/html
  * - Tidak mengirim Cookie atau Authorization
  */
 export async function fetchSafeHtmlPage(
@@ -750,17 +949,20 @@ export async function fetchSafeHtmlPage(
       response.status === 307 ||
       response.status === 308;
 
-    if (isRedirect && response.headers["location"]) {
+    if (isRedirect) {
+      const locationHeader = response.headers["location"];
+      if (!locationHeader) {
+        throw new Error(
+          `Respons pengalihan HTTP ${response.status} tanpa header Location ditolak.`
+        );
+      }
       redirectCount++;
       if (redirectCount > maxRedirects) {
         throw new Error(
           `Pengalihan melebihi batas maksimal (${maxRedirects} kali)`
         );
       }
-      const nextUrl = new URL(
-        response.headers["location"],
-        parsedUrl.toString()
-      );
+      const nextUrl = new URL(locationHeader, parsedUrl.toString());
       currentUrl = nextUrl.toString();
       continue;
     }
@@ -892,6 +1094,7 @@ export interface CheckThirdPartyPageOptions extends FetchSafeHtmlOptions {
   brandTerms?: Array<string | BrandTermConfig>;
   cacheStore?: PageCacheStore;
   dryRun?: boolean;
+  keywordTimeoutMs?: number;
   nowFn?: () => Date;
 }
 
@@ -914,7 +1117,6 @@ export async function checkThirdPartySourcePage(
   const nowFn = options.nowFn ?? (() => new Date());
   const now = nowFn();
 
-  // 1. Periksa cache terlebih dahulu
   if (options.cacheStore) {
     const cached = await options.cacheStore.get(url);
     if (cached && isCacheEntryFresh(cached, now)) {
@@ -1005,7 +1207,6 @@ export async function checkThirdPartySourcePage(
       dryRun: false,
     };
   } catch {
-    // Simpan hasil gagal (timeout, ditolak SSRF, bukan HTML) selama 24 jam (status = 0) agar tidak diulang terus
     if (options.cacheStore) {
       await options.cacheStore.upsert({
         url,
@@ -1024,12 +1225,19 @@ export async function checkThirdPartySourcePage(
   }
 }
 
+export interface ThirdPartyKeywordStats {
+  duration_ms: number;
+  checked_count: number;
+  skipped_count: number;
+  timed_out: boolean;
+}
+
 /**
  * Mengevaluasi daftar sumber pihak ketiga (bukan domain sendiri) untuk satu keyword:
  * - Maksimal 10 sumber per keyword
  * - Konkurensi maksimal 3
- * - Mengisi check_sources.mentions_brand dan checks.detected_third_party
- * - Memperbarui status akhir menjadi 'detected' jika salah satu dari tiga flag aktif
+ * - Batas waktu total per keyword: maksimal 15 detik (sumber yang belum selesai dilewati & ditandai tidak diperiksa)
+ * - Mencatat durasi pemeriksaan tingkat 3 per keyword
  */
 export async function evaluateThirdPartySourcesForCheck(
   input: {
@@ -1045,7 +1253,13 @@ export async function evaluateThirdPartySourcesForCheck(
   detected_text: boolean;
   detected_third_party: boolean;
   sources: AnnotatedCheckSource[];
+  thirdPartyStats: ThirdPartyKeywordStats;
 }> {
+  const startWallMs = Date.now();
+  const keywordTimeoutMs =
+    options.keywordTimeoutMs ?? KEYWORD_THIRD_PARTY_TIMEOUT_MS;
+  const perSourceTimeoutMs = options.timeoutMs ?? FETCH_TIMEOUT_MS;
+
   const updatedSources: AnnotatedCheckSource[] = input.sources.map((s) => ({
     ...s,
   }));
@@ -1060,20 +1274,69 @@ export async function evaluateThirdPartySourcesForCheck(
     }
   }
 
-  // Proses dengan konkurensi maksimal MAX_CONCURRENCY (3)
   let cursor = 0;
+  let checkedCount = 0;
+  let skippedCount = 0;
+  let timedOut = false;
+
   async function worker() {
     while (cursor < thirdPartyIndices.length) {
+      const elapsedMs = Date.now() - startWallMs;
+      const remainingKeywordMs = keywordTimeoutMs - elapsedMs;
+
+      if (remainingKeywordMs <= 0) {
+        timedOut = true;
+        const skippedIdx = cursor++;
+        if (skippedIdx < thirdPartyIndices.length) {
+          skippedCount++;
+        }
+        continue;
+      }
+
       const currentIdx = cursor++;
       const sourceIndex = thirdPartyIndices[currentIdx];
       if (sourceIndex === undefined) break;
 
       const src = updatedSources[sourceIndex]!;
-      const res = await checkThirdPartySourcePage(src.url, options);
-      updatedSources[sourceIndex] = {
-        ...src,
-        mentions_brand: res.mentionsBrand,
-      };
+      const effectiveSourceTimeout = Math.min(
+        perSourceTimeoutMs,
+        remainingKeywordMs
+      );
+
+      let deadlineTimer: ReturnType<typeof setTimeout> | undefined;
+      try {
+        const res = await Promise.race([
+          checkThirdPartySourcePage(src.url, {
+            ...options,
+            timeoutMs: effectiveSourceTimeout,
+          }),
+          new Promise<null>((resolve) => {
+            deadlineTimer = setTimeout(() => resolve(null), remainingKeywordMs);
+          }),
+        ]);
+
+        const hitKeywordDeadline =
+          res === null ||
+          (res.status === 0 &&
+            Date.now() - startWallMs >= keywordTimeoutMs - 5);
+
+        if (hitKeywordDeadline) {
+          timedOut = true;
+          skippedCount++;
+          updatedSources[sourceIndex] = {
+            ...src,
+            mentions_brand: false,
+          };
+        } else {
+          checkedCount++;
+          updatedSources[sourceIndex] = {
+            ...src,
+            mentions_brand: res.mentionsBrand,
+          };
+        }
+      } finally {
+        if (deadlineTimer) clearTimeout(deadlineTimer);
+      }
     }
   }
 
@@ -1084,6 +1347,7 @@ export async function evaluateThirdPartySourcesForCheck(
     );
   }
 
+  const durationMs = Math.max(0, Date.now() - startWallMs);
   const detected_third_party = updatedSources.some(
     (s) => !s.is_own && s.mentions_brand
   );
@@ -1102,5 +1366,11 @@ export async function evaluateThirdPartySourcesForCheck(
     detected_text: input.detected_text,
     detected_third_party,
     sources: updatedSources,
+    thirdPartyStats: {
+      duration_ms: durationMs,
+      checked_count: checkedCount,
+      skipped_count: skippedCount,
+      timed_out: timedOut,
+    },
   };
 }

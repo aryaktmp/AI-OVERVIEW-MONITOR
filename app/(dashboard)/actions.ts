@@ -527,10 +527,67 @@ export async function processRunBatchAction(runId?: string) {
 
   const supabase = createSupabaseAdminClient();
   const store = createSupabaseQueueStore(supabase);
+  const isDryRunEnv =
+    (process.env.SERPAPI_DRY_RUN ?? "").trim().toLowerCase() === "true";
+
+  // Jika SERPAPI_DRY_RUN=false, jangan jalankan pemrosesan untuk run dengan is_demo = true
+  if (!isDryRunEnv) {
+    const runningRun = await store.getRunningCheckRun();
+    if (runningRun?.is_demo && (!runId || runningRun.id === runId)) {
+      const summary = await store.syncRunProgress(
+        runningRun.id,
+        new Date().toISOString(),
+        true
+      );
+      return {
+        ok: true,
+        runId: summary.runId,
+        status: summary.status,
+        total: summary.total,
+        done: summary.done,
+        pending: summary.pending,
+        errors: summary.errors,
+        processedCount: 0,
+        succeededCount: 0,
+        serpApiCallsUsed: summary.serpApiCalls,
+        stoppedReason: "no_more_items" as const,
+      };
+    }
+
+    if (runId) {
+      const { data: runRow } = await supabase
+        .from("check_runs")
+        .select("id, is_demo")
+        .eq("id", runId)
+        .maybeSingle();
+
+      if (runRow?.is_demo) {
+        const summary = await store.syncRunProgress(
+          runRow.id,
+          new Date().toISOString(),
+          true
+        );
+        return {
+          ok: true,
+          runId: summary.runId,
+          status: summary.status,
+          total: summary.total,
+          done: summary.done,
+          pending: summary.pending,
+          errors: summary.errors,
+          processedCount: 0,
+          succeededCount: 0,
+          serpApiCallsUsed: summary.serpApiCalls,
+          stoppedReason: "no_more_items" as const,
+        };
+      }
+    }
+  }
 
   const processed = await processQueue(store, {
     maxItems: 5,
     maxDurationMs: 15_000,
+    dryRun: isDryRunEnv,
   });
 
   const targetRunId =

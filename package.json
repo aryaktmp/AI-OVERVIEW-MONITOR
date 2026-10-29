@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "check:env": "node scripts/check-env.ts",
     "try:keyword": "node scripts/try-keyword.ts",
+    "try:fetch": "node scripts/try-fetch.ts",
     "try:dry-run": "node scripts/run-local-dry-run.ts",
     "seed:demo": "node scripts/seed-demo.ts",
     "seed:clear": "node scripts/seed-clear.ts"
