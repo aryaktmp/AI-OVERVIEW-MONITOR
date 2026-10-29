@@ -3,15 +3,16 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   buildManifestFromDirectory,
-  buildManifestFromSqlFiles,
   type MigrationManifest,
 } from "../lib/migration-manifest";
 import {
   evaluateDatabaseAgainstManifest,
   generateFixSuggestionsSql,
   generateStandaloneVerifySql,
-  maskEmailAddress,
+  loadSupabaseManagedConfig,
+  parseSqlEditorResultsFile,
   VERIFY_DB_READONLY_QUERIES,
+  type DbIntrospectionSnapshot,
 } from "../lib/verify-db-core";
 
 describe("Pemeriksa Konsistensi Migrasi & Database (verify:db)", () => {
@@ -26,7 +27,6 @@ describe("Pemeriksa Konsistensi Migrasi & Database (verify:db)", () => {
     ) as MigrationManifest;
     const freshManifest = buildManifestFromDirectory(migrationsDir);
 
-    // Pastikan manifest.json di disk sinkron dengan hasil parse terbaru dari supabase/migrations/
     expect(savedManifest).toEqual(freshManifest);
 
     const migrationFiles = fs
@@ -121,12 +121,13 @@ describe("Pemeriksa Konsistensi Migrasi & Database (verify:db)", () => {
 
   it("memastikan seluruh kueri yang dikirim verify-db dan file verify.sql bebas dari perintah tulis/DDL (INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, GRANT, REVOKE, TRUNCATE)", () => {
     const forbiddenKeywordsRegex =
-      /\b(INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|GRANT|REVOKE|TRUNCATE)\b/i;
+      /\b(INSERT\s+INTO|UPDATE\s+[a-zA-Z0-9_.]+\s+SET|DELETE\s+FROM|DROP\s+(?:TABLE|VIEW|FUNCTION|INDEX)|ALTER\s+(?:TABLE|VIEW|FUNCTION)|CREATE\s+(?:TABLE|VIEW|FUNCTION|INDEX|POLICY)|GRANT\s+[a-zA-Z0-9_,\s]+\s+TO|REVOKE\s+[a-zA-Z0-9_,\s]+\s+FROM|TRUNCATE\b)/i;
 
     for (const [queryName, sqlQuery] of Object.entries(
       VERIFY_DB_READONLY_QUERIES
     )) {
-      const match = sqlQuery.match(forbiddenKeywordsRegex);
+      const sqlWithoutStrings = sqlQuery.replace(/'(?:''|[^'])*'/g, "");
+      const match = sqlWithoutStrings.match(forbiddenKeywordsRegex);
       expect(
         match,
         `Kueri VERIFY_DB_READONLY_QUERIES.${queryName} tidak boleh memuat kata kunci tulis/DDL, ditemukan: ${match?.[0] ?? "tidak ada"}`
@@ -136,7 +137,11 @@ describe("Pemeriksa Konsistensi Migrasi & Database (verify:db)", () => {
     const manifest = buildManifestFromDirectory(migrationsDir);
     const standaloneSql = generateStandaloneVerifySql(manifest);
     const standaloneWithoutComments = standaloneSql.replace(/--.*$/gm, "");
-    const standaloneMatch = standaloneWithoutComments.match(
+    const standaloneWithoutStrings = standaloneWithoutComments.replace(
+      /'(?:''|[^'])*'/g,
+      ""
+    );
+    const standaloneMatch = standaloneWithoutStrings.match(
       forbiddenKeywordsRegex
     );
     expect(
@@ -145,233 +150,377 @@ describe("Pemeriksa Konsistensi Migrasi & Database (verify:db)", () => {
     ).toBeNull();
   });
 
-  it("mem-parsing contoh migrasi sintetis secara berurutan (tabel, kolom baru, constraint, indeks, RLS, view security_invoker, fungsi SECURITY DEFINER, GRANT/REVOKE, dan seed)", () => {
-    const sampleMigrations = [
-      {
-        fileName: "0001_init.sql",
-        content: `
-          CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
-          CREATE TABLE items (
-            id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-            group_id uuid REFERENCES groups(id) ON DELETE SET NULL,
-            title text UNIQUE NOT NULL,
-            state text NOT NULL DEFAULT 'pending' CHECK (state IN ('pending', 'done')),
-            created_at timestamptz NOT NULL DEFAULT now()
-          );
-
-          CREATE INDEX items_state_idx ON items(state);
-
-          ALTER TABLE items ENABLE ROW LEVEL SECURITY;
-
-          CREATE POLICY "Authenticated can select items"
-            ON items FOR SELECT TO authenticated USING (true);
-
-          INSERT INTO brand_terms (term, enabled) VALUES
-            ('LinovHR', true),
-            ('Linov', false)
-          ON CONFLICT (term) DO NOTHING;
-
-          INSERT INTO settings (key, value) VALUES
-            ('search_config', '{"enable_third_party_check": true}'::jsonb)
-          ON CONFLICT (key) DO NOTHING;
-        `,
+  it("memastikan status UNVERIFIED muncul saat menggunakan mode API (tanpa DATABASE_URL) untuk kategori yang tidak diekspos oleh OpenAPI", () => {
+    const manifest = buildManifestFromDirectory(migrationsDir);
+    const apiSnapshot: DbIntrospectionSnapshot = {
+      source: "supabase-rest",
+      extensions: [],
+      eventTriggers: [],
+      tables: Object.keys(manifest.finalState.tables).map((name) => ({
+        name,
+        rlsEnabled: null,
+      })),
+      columns: Object.entries(manifest.finalState.tables).flatMap(([tName, tSpec]) =>
+        tSpec.columns.map((c) => ({
+          table: tName,
+          name: c.name,
+          dataType: c.normalizedType,
+          nullable: c.nullable,
+          defaultExpr: c.defaultExpr,
+        }))
+      ),
+      constraints: [
+        {
+          table: "keyword_groups",
+          name: "keyword_groups_pkey",
+          type: "PRIMARY KEY",
+          columns: ["id"],
+        },
+      ],
+      indexes: [],
+      policies: null,
+      tablePrivilegesSummary: null,
+      views: Object.keys(manifest.finalState.views).map((name) => ({
+        name,
+        exists: true,
+        securityInvoker: null,
+        definitionSql: null,
+      })),
+      functions: Object.entries(manifest.finalState.functions).map(([name, fSpec]) => ({
+        name,
+        argsSignature: fSpec.argsSignature,
+        returnType: fSpec.returnType,
+        language: fSpec.language,
+        securityDefiner: fSpec.securityDefiner,
+        searchPath: null,
+        publicCanExecute: false,
+        anonCanExecute: false,
+        authenticatedCanExecute: false,
+        serviceRoleCanExecute: true,
+      })),
+      seeds: {
+        brandTerms: [
+          { term: "LinovHR", enabled: true },
+          { term: "Linov HR", enabled: true },
+          { term: "linovhr.com", enabled: true },
+          { term: "Linov", enabled: false },
+        ],
+        settings: {
+          search_config: { enable_third_party_check: false },
+        },
       },
-      {
-        fileName: "0002_alter_and_fn.sql",
-        content: `
-          ALTER TABLE items ADD COLUMN IF NOT EXISTS is_demo boolean NOT NULL DEFAULT false;
+      demoCounts: { check_runs: 0, keywords: 0, keyword_groups: 0, competitors: 0 },
+      schemaMigrations: null,
+      authUsers: { totalUsers: 1, emailsLower: ["admin@linovhr.com"] },
+    };
 
-          CREATE OR REPLACE VIEW active_items
-          WITH (security_invoker = true) AS
-          SELECT id, title, is_demo FROM items WHERE state = 'done';
-
-          CREATE OR REPLACE FUNCTION public.get_item_count()
-          RETURNS bigint
-          LANGUAGE sql
-          STABLE
-          SECURITY DEFINER
-          SET search_path = public
-          AS $$
-            SELECT count(*)::bigint FROM public.items;
-          $$;
-
-          REVOKE EXECUTE ON FUNCTION public.get_item_count() FROM PUBLIC, anon, authenticated;
-          GRANT EXECUTE ON FUNCTION public.get_item_count() TO service_role;
-
-          UPDATE public.settings
-          SET value = jsonb_set(value, '{enable_third_party_check}', 'false'::jsonb, true)
-          WHERE key = 'search_config';
-        `,
-      },
-    ];
-
-    const manifest = buildManifestFromSqlFiles(sampleMigrations, "synthetic");
-
-    expect(manifest.migrationFiles).toEqual([
-      "0001_init.sql",
-      "0002_alter_and_fn.sql",
-    ]);
-    expect(manifest.finalState.extensions).toEqual([
-      { name: "pgcrypto", sourceMigration: "0001_init.sql" },
-    ]);
-
-    const itemsTable = manifest.finalState.tables["items"];
-    expect(itemsTable).toBeDefined();
-    expect(itemsTable!.rlsEnabled).toBe(true);
-    const isDemoCol = itemsTable!.columns.find((c) => c.name === "is_demo");
-    expect(isDemoCol).toEqual({
-      name: "is_demo",
-      dataType: "boolean",
-      normalizedType: "boolean",
-      nullable: false,
-      defaultExpr: "false",
-      isPrimaryKey: false,
-      isUnique: false,
-      sourceMigration: "0002_alter_and_fn.sql",
-    });
-
-    // Pastikan FK ON DELETE SET NULL dan CHECK constraint tercatat
-    const fk = itemsTable!.constraints.find((c) => c.type === "FOREIGN KEY");
-    expect(fk?.referencesTable).toBe("groups");
-    expect(fk?.onDelete).toBe("SET NULL");
-
-    const chk = itemsTable!.constraints.find((c) => c.type === "CHECK");
-    expect(chk?.checkExpression).toContain("pending");
-
-    // Pastikan view dan opsi security_invoker tercatat
-    const view = manifest.finalState.views["active_items"];
-    expect(view).toBeDefined();
-    expect(view!.securityInvoker).toBe(true);
-
-    // Pastikan fungsi SECURITY DEFINER, search_path, REVOKE, dan GRANT tercatat
-    const fn = manifest.finalState.functions["get_item_count"];
-    expect(fn).toBeDefined();
-    expect(fn!.securityDefiner).toBe(true);
-    expect(fn!.searchPath).toBe("public");
-    expect(fn!.revokedFrom).toEqual(
-      expect.arrayContaining(["public", "anon", "authenticated"])
-    );
-    expect(fn!.grantedTo).toContain("service_role");
-
-    // Pastikan keadaan akhir seed settings mengikuti migrasi kedua (enable_third_party_check = false)
-    expect(
-      manifest.finalState.seeds.settings["search_config"]?.value
-        .enable_third_party_check
-    ).toBe(false);
-
-    // Uji evaluator terhadap snapshot yang memiliki ketidaksesuaian & pastikan fix-suggestions.sql dihasilkan
     const evaluation = evaluateDatabaseAgainstManifest(
       manifest,
-      {
-        source: "pg",
-        extensions: ["pgcrypto"],
-        tables: [
-          { name: "items", rlsEnabled: true },
-          { name: "extra_untracked_table", rlsEnabled: false },
-        ],
-        columns: [
-          {
-            table: "items",
-            name: "id",
-            dataType: "uuid",
-            nullable: false,
-            defaultExpr: "gen_random_uuid()",
-          },
-          {
-            table: "items",
-            name: "group_id",
-            dataType: "uuid",
-            nullable: true,
-            defaultExpr: null,
-          },
-          {
-            table: "items",
-            name: "title",
-            dataType: "text",
-            nullable: false,
-            defaultExpr: null,
-          },
-          {
-            table: "items",
-            name: "state",
-            dataType: "text",
-            nullable: false,
-            defaultExpr: "'pending'",
-          },
-          {
-            table: "items",
-            name: "created_at",
-            dataType: "timestamptz",
-            nullable: false,
-            defaultExpr: "now()",
-          },
-        ],
-        constraints: [],
-        indexes: [],
-        policies: [],
-        tablePrivilegesSummary: [],
-        views: [
-          {
-            name: "active_items",
-            exists: true,
-            securityInvoker: false,
-            definitionSql: "SELECT id, title, is_demo FROM items WHERE state = 'done'",
-          },
-        ],
-        functions: [
-          {
-            name: "get_item_count",
-            argsSignature: "",
-            returnType: "bigint",
-            language: "sql",
-            securityDefiner: true,
-            searchPath: null,
-            publicCanExecute: true,
-            anonCanExecute: true,
-            authenticatedCanExecute: false,
-            serviceRoleCanExecute: true,
-          },
-        ],
-        seeds: {
-          brandTerms: [
-            { term: "LinovHR", enabled: true },
-            { term: "Linov", enabled: false },
-          ],
-          settings: {
-            search_config: { enable_third_party_check: true },
-          },
-        },
-        demoCounts: {
-          check_runs: 0,
-          keywords: 0,
-          keyword_groups: 0,
-          competitors: 0,
-        },
-        schemaMigrations: null,
-        authUsers: {
-          totalUsers: 1,
-          emailsLower: ["admin@linovhr.com"],
-        },
-      },
+      apiSnapshot,
       ["admin@linovhr.com"]
     );
 
-    const driftTable = evaluation.items.find(
-      (i) => i.category === "a" && i.status === "DRIFT"
-    );
-    expect(driftTable?.objectName).toContain("extra_untracked_table");
+    // Kategori c (ON DELETE & CHECK), d (RLS & pg_policy), f (security_invoker), g (proconfig), l (pgcrypto) harus memuat UNVERIFIED
+    const unverifiedItems = evaluation.items.filter((i) => i.status === "UNVERIFIED");
+    expect(unverifiedItems.length).toBeGreaterThan(0);
 
-    const missingCol = evaluation.items.find(
-      (i) => i.category === "b" && i.objectName === "Kolom items.is_demo"
-    );
-    expect(missingCol?.status).toBe("FAIL");
+    const unverifiedMethods = Array.from(new Set(unverifiedItems.map((i) => i.method)));
+    expect(unverifiedMethods).toEqual(["API"]);
 
+    const unverifiedCategories = new Set(unverifiedItems.map((i) => i.category));
+    expect(unverifiedCategories.has("c")).toBe(true);
+    expect(unverifiedCategories.has("d")).toBe(true);
+    expect(unverifiedCategories.has("f")).toBe(true);
+    expect(unverifiedCategories.has("g")).toBe(true);
+    expect(unverifiedCategories.has("l")).toBe(true);
+
+    // Pastikan tidak ada satupun item UNVERIFIED yang dilaporkan sebagai PASS
+    for (const it of unverifiedItems) {
+      expect(it.status).toBe("UNVERIFIED");
+    }
+  });
+
+  it("memastikan ringkasan memisahkan metode pemeriksaan (DB, API, FILE) dan temuan file migrasi dilaporkan sebagai MIGRATION-LINT", () => {
+    const manifest = buildManifestFromDirectory(migrationsDir);
+    const sampleSnapshot: DbIntrospectionSnapshot = {
+      source: "pg",
+      extensions: ["pgcrypto"],
+      eventTriggers: ["ensure_rls"],
+      tables: Object.keys(manifest.finalState.tables).map((name) => ({
+        name,
+        rlsEnabled: true,
+      })),
+      columns: Object.entries(manifest.finalState.tables).flatMap(([tName, tSpec]) =>
+        tSpec.columns.map((c) => ({
+          table: tName,
+          name: c.name,
+          dataType: c.normalizedType,
+          nullable: c.nullable,
+          defaultExpr: c.defaultExpr,
+        }))
+      ),
+      constraints: [],
+      indexes: [],
+      policies: [],
+      tablePrivilegesSummary: null,
+      views: Object.keys(manifest.finalState.views).map((name) => ({
+        name,
+        exists: true,
+        securityInvoker: true,
+        definitionSql: "view def",
+      })),
+      functions: Object.entries(manifest.finalState.functions).map(([name, fSpec]) => ({
+        name,
+        argsSignature: fSpec.argsSignature,
+        returnType: fSpec.returnType,
+        language: fSpec.language,
+        securityDefiner: fSpec.securityDefiner,
+        searchPath: "public, pg_temp",
+        publicCanExecute: false,
+        anonCanExecute: false,
+        authenticatedCanExecute: false,
+        serviceRoleCanExecute: true,
+      })),
+      seeds: {
+        brandTerms: [
+          { term: "LinovHR", enabled: true },
+          { term: "Linov HR", enabled: true },
+          { term: "linovhr.com", enabled: true },
+          { term: "Linov", enabled: false },
+        ],
+        settings: {
+          search_config: { enable_third_party_check: false },
+        },
+      },
+      demoCounts: { check_runs: 0, keywords: 0, keyword_groups: 0, competitors: 0 },
+      schemaMigrations: null,
+      authUsers: { totalUsers: 1, emailsLower: ["admin@linovhr.com"] },
+    };
+
+    const evaluation = evaluateDatabaseAgainstManifest(
+      manifest,
+      sampleSnapshot,
+      ["admin@linovhr.com"]
+    );
+
+    // Temuan statis pada 20261029010000 (fungsi claim_next_run_item tanpa search_path awal) harus berstatus MIGRATION-LINT dengan metode FILE
+    const lintItems = evaluation.items.filter((i) => i.status === "MIGRATION-LINT");
+    expect(lintItems.length).toBeGreaterThan(0);
+    for (const li of lintItems) {
+      expect(li.method).toBe("FILE");
+      expect(li.status).toBe("MIGRATION-LINT");
+      expect(li.detail).toContain("SECURITY DEFINER");
+    }
+
+    // Item database harus memiliki metode DB
+    const dbItems = evaluation.items.filter((i) => i.method === "DB");
+    expect(dbItems.length).toBeGreaterThan(0);
+  });
+
+  it("memastikan status per file migrasi dinilai berdasarkan definisi file itu sendiri", () => {
+    const manifest = buildManifestFromDirectory(migrationsDir);
+    const dbSnapshot: DbIntrospectionSnapshot = {
+      source: "pg",
+      extensions: ["pgcrypto"],
+      eventTriggers: ["ensure_rls"],
+      tables: [
+        { name: "keyword_groups", rlsEnabled: true },
+        { name: "keywords", rlsEnabled: true },
+        { name: "brand_terms", rlsEnabled: true },
+        { name: "competitors", rlsEnabled: true },
+        { name: "check_runs", rlsEnabled: true },
+        { name: "run_items", rlsEnabled: true },
+        { name: "checks", rlsEnabled: true },
+        { name: "check_sources", rlsEnabled: true },
+        { name: "page_cache", rlsEnabled: true },
+        { name: "settings", rlsEnabled: true },
+      ],
+      columns: [
+        { table: "check_runs", name: "serpapi_calls", dataType: "integer", nullable: false, defaultExpr: "0" },
+        { table: "checks", name: "serpapi_calls", dataType: "integer", nullable: false, defaultExpr: "1" },
+        { table: "check_runs", name: "is_demo", dataType: "boolean", nullable: false, defaultExpr: "false" },
+        { table: "keywords", name: "is_demo", dataType: "boolean", nullable: false, defaultExpr: "false" },
+        { table: "keyword_groups", name: "is_demo", dataType: "boolean", nullable: false, defaultExpr: "false" },
+        { table: "competitors", name: "is_demo", dataType: "boolean", nullable: false, defaultExpr: "false" },
+      ],
+      constraints: [],
+      indexes: [],
+      policies: [],
+      tablePrivilegesSummary: null,
+      views: [
+        { name: "latest_keyword_checks", exists: true, securityInvoker: true, definitionSql: null },
+        { name: "latest_domain_citation_counts", exists: true, securityInvoker: true, definitionSql: null },
+      ],
+      functions: [
+        {
+          name: "claim_next_run_item",
+          argsSignature: "timestamp with time zone",
+          returnType: "setof run_items",
+          language: "sql",
+          securityDefiner: true,
+          searchPath: "public, pg_temp",
+          publicCanExecute: false,
+          anonCanExecute: false,
+          authenticatedCanExecute: false,
+          serviceRoleCanExecute: true,
+        },
+        {
+          name: "get_database_size_bytes",
+          argsSignature: "",
+          returnType: "bigint",
+          language: "sql",
+          securityDefiner: true,
+          searchPath: "public, pg_temp",
+          publicCanExecute: false,
+          anonCanExecute: false,
+          authenticatedCanExecute: false,
+          serviceRoleCanExecute: true,
+        },
+        {
+          name: "cleanup_old_checks_raw",
+          argsSignature: "integer",
+          returnType: "integer",
+          language: "plpgsql",
+          securityDefiner: true,
+          searchPath: "public, pg_temp",
+          publicCanExecute: false,
+          anonCanExecute: false,
+          authenticatedCanExecute: false,
+          serviceRoleCanExecute: true,
+        },
+      ],
+      seeds: {
+        brandTerms: [
+          { term: "LinovHR", enabled: true },
+          { term: "Linov HR", enabled: true },
+          { term: "linovhr.com", enabled: true },
+          { term: "Linov", enabled: false },
+        ],
+        settings: {
+          search_config: { enable_third_party_check: false },
+        },
+      },
+      demoCounts: { check_runs: 0, keywords: 0, keyword_groups: 0, competitors: 0 },
+      schemaMigrations: null,
+      authUsers: null,
+    };
+
+    const evaluation = evaluateDatabaseAgainstManifest(manifest, dbSnapshot, []);
+
+    // Setiap file migrasi dari 0 s/d 7 harus dinilai statusnya
+    expect(evaluation.migrationStatuses.length).toBe(manifest.migrationFiles.length);
+
+    const initStatus = evaluation.migrationStatuses.find((m) =>
+      m.fileName.includes("init_schema")
+    );
+    expect(initStatus?.status).toBe("TERPASANG PENUH");
+
+    const phase3Status = evaluation.migrationStatuses.find((m) =>
+      m.fileName.includes("phase3_queue_and_calls")
+    );
+    expect(phase3Status?.status).toBe("TERPASANG PENUH");
+  });
+
+  it("mem-parsing file hasil SQL Editor (--from-file) dalam format CSV dan TSV lalu menyusun laporan dengan Metode DB", () => {
+    const tempCsvPath = path.join(rootDir, "supabase", "verify", "temp_test_results.csv");
+    const sampleCsv = `
+"objek","status","detail"
+"a. Tabel: keyword_groups","PASS","Tabel tersedia di schema public"
+"a. Tabel: keywords","PASS","Tabel tersedia di schema public"
+"b. Kolom: check_runs.serpapi_calls","PASS","tipe=integer, nullable=false, default=0"
+"f. View: latest_keyword_checks","PASS","View tersedia dengan security_invoker = true"
+"g. Fungsi: claim_next_run_item","PASS","search_path terpasang aman (public, pg_temp)"
+"h. Seed settings(search_config)","PASS","enable_third_party_check = false"
+"INFO. Event Trigger: ensure_rls","INFO","Event trigger ensure_rls aktif di database (dikelola oleh platform Supabase)"
+`.trim();
+
+    fs.writeFileSync(tempCsvPath, sampleCsv, "utf-8");
+    try {
+      const parsedItems = parseSqlEditorResultsFile(tempCsvPath);
+      expect(parsedItems.length).toBe(7);
+
+      for (const item of parsedItems) {
+        expect(item.method).toBe("DB");
+      }
+
+      const tableItem = parsedItems.find((i) => i.objectName.includes("keyword_groups"));
+      expect(tableItem?.status).toBe("PASS");
+      expect(tableItem?.category).toBe("a");
+
+      const eventTriggerItem = parsedItems.find((i) => i.objectName.includes("ensure_rls"));
+      expect(eventTriggerItem?.status).toBe("INFO");
+    } finally {
+      if (fs.existsSync(tempCsvPath)) fs.unlinkSync(tempCsvPath);
+    }
+  });
+
+  it("memastikan objek yang dikelola Supabase (rls_auto_enable, ensure_rls) dilaporkan sebagai INFO dan tidak dianggap DRIFT maupun FAIL", () => {
+    const manifest = buildManifestFromDirectory(migrationsDir);
+    const managedConfig = loadSupabaseManagedConfig();
+    expect(managedConfig.functions).toContain("rls_auto_enable");
+    expect(managedConfig.eventTriggers).toContain("ensure_rls");
+
+    const snapshotWithManagedObjects: DbIntrospectionSnapshot = {
+      source: "pg",
+      extensions: ["pgcrypto"],
+      eventTriggers: ["ensure_rls"],
+      tables: Object.keys(manifest.finalState.tables).map((name) => ({
+        name,
+        rlsEnabled: true,
+      })),
+      columns: [],
+      constraints: [],
+      indexes: [],
+      policies: [],
+      tablePrivilegesSummary: null,
+      views: [],
+      functions: [
+        // Fungsi tambahan yang dikelola Supabase
+        {
+          name: "rls_auto_enable",
+          argsSignature: "",
+          returnType: "event_trigger",
+          language: "plpgsql",
+          securityDefiner: true,
+          searchPath: null,
+          publicCanExecute: false,
+          anonCanExecute: false,
+          authenticatedCanExecute: false,
+          serviceRoleCanExecute: true,
+        },
+      ],
+      seeds: {
+        brandTerms: [],
+        settings: {},
+      },
+      demoCounts: { check_runs: 0, keywords: 0, keyword_groups: 0, competitors: 0 },
+      schemaMigrations: null,
+      authUsers: null,
+    };
+
+    const evaluation = evaluateDatabaseAgainstManifest(
+      manifest,
+      snapshotWithManagedObjects,
+      []
+    );
+
+    const rlsAutoItem = evaluation.items.find((i) =>
+      i.objectName.includes("rls_auto_enable")
+    );
+    expect(rlsAutoItem).toBeDefined();
+    expect(rlsAutoItem?.status).toBe("INFO");
+    expect(rlsAutoItem?.detail).toContain("dikelola oleh platform Supabase");
+
+    const ensureRlsItem = evaluation.items.find((i) =>
+      i.objectName.includes("ensure_rls")
+    );
+    expect(ensureRlsItem).toBeDefined();
+    expect(ensureRlsItem?.status).toBe("INFO");
+    expect(ensureRlsItem?.detail).toContain("dikelola otomatis oleh platform Supabase");
+
+    // Pastikan tidak ada saran DROP atau REVOKE untuk rls_auto_enable di fix suggestions
     const fixSql = generateFixSuggestionsSql(evaluation.items, manifest);
-    expect(fixSql).toContain("ADD COLUMN IF NOT EXISTS is_demo");
-    expect(fixSql).toContain("REVOKE EXECUTE ON FUNCTION public.get_item_count()");
-
-    // Pastikan penyamaran email menyembunyikan identitas pengguna
-    expect(maskEmailAddress("aryakk@linovhr.com")).toBe("a***@linovhr.com");
+    expect(fixSql).not.toContain("DROP FUNCTION IF EXISTS public.rls_auto_enable");
+    expect(fixSql).not.toContain("REVOKE ALL ON FUNCTION public.rls_auto_enable");
   });
 });

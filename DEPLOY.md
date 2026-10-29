@@ -6,7 +6,7 @@ Dokumen ini menjelaskan langkah-langkah men-deploy aplikasi **Pemantau Kutipan G
 
 ## 1. Urutan Migrasi Database Supabase (`supabase/migrations/`)
 
-Sebelum menjalankan aplikasi di produksi, jalankan ketujuh file migrasi SQL berikut secara berurutan sesuai nama file di folder `supabase/migrations/`:
+Sebelum menjalankan aplikasi di produksi, jalankan kedelapan file migrasi SQL berikut secara berurutan sesuai nama file di folder `supabase/migrations/`:
 
 1. `supabase/migrations/20261029000000_init_schema.sql` — Membuat 9 tabel inti (`keyword_groups`, `keywords`, `brand_terms`, `competitors`, `check_runs`, `run_items`, `checks`, `check_sources`, `page_cache`), indeks, kebijakan RLS, dan data awal `brand_terms`.
 2. `supabase/migrations/20261029010000_phase3_queue_and_calls.sql` — Menambahkan kolom `serpapi_calls` di `check_runs` dan fungsi RPC atomik `claim_next_run_item()`.
@@ -15,6 +15,7 @@ Sebelum menjalankan aplikasi di produksi, jalankan ketujuh file migrasi SQL beri
 5. `supabase/migrations/20261029040000_phase4_fixes.sql` — Menambahkan kolom `is_demo` ke `keywords`, `keyword_groups`, dan `competitors`, memperbarui view `latest_keyword_checks`, serta menambahkan fungsi `get_database_size_bytes()` dan `cleanup_old_checks_raw()` khusus `service_role`.
 6. `supabase/migrations/20261029050000_phase5_third_party_default.sql` — Mengatur nilai awal `enable_third_party_check: false` (mati secara bawaan) pada tabel `settings`.
 7. `supabase/migrations/20261029060000_predeploy_hardening.sql` — Memastikan `enable_third_party_check` bernilai `false` di database serta mencabut eksplisit `EXECUTE` dari `PUBLIC`, `anon`, dan `authenticated` pada seluruh fungsi di schema `public` (`get_database_size_bytes()`, `claim_next_run_item()`, `cleanup_old_checks_raw()`) dan memberi hak hanya ke `service_role`.
+8. `supabase/migrations/20261029070000_function_search_path.sql` — Menetapkan `search_path = public, pg_temp` pada seluruh fungsi `SECURITY DEFINER` di schema `public` (`claim_next_run_item`, `get_database_size_bytes`, `cleanup_old_checks_raw`), memastikan prefix `public.` pada nama tabel, dan mempertahankan hak `EXECUTE` khusus `service_role`.
 
 ---
 
@@ -75,8 +76,16 @@ Skrip `npm run verify:db` membandingkan manifest migrasi di repositori (`supabas
 Jika `DATABASE_URL` dikosongkan:
 1. Jalankan `npm run verify:db`. Skrip tidak akan gagal, melainkan:
    - Menghasilkan file `supabase/verify/verify.sql` yang berisi kueri SQL baca-saja (`SELECT` pada katalog sistem Postgres).
-   - Melakukan pemeriksaan baca-saja otomatis melalui Supabase OpenAPI & REST API menggunakan `SUPABASE_SECRET_KEY`.
-2. Untuk menginspeksi metadata internal katalog Postgres (`pg_constraint`, `pg_indexes`, `pg_policies`, `pg_proc`, `pg_extension`) secara penuh tanpa `DATABASE_URL`, buka **Supabase Dashboard** -> **SQL Editor**, tempel seluruh isi file `supabase/verify/verify.sql`, lalu klik **Run**. Kueri tersebut menghasilkan satu tabel hasil dengan kolom `(objek, status, detail)`.
+   - Melakukan pemeriksaan baca-saja otomatis melalui Supabase OpenAPI & REST API menggunakan `SUPABASE_SECRET_KEY` (kategori yang tidak diekspos oleh API akan berstatus `UNVERIFIED`).
+2. Untuk memverifikasi seluruh kategori katalog Postgres (`pg_constraint`, `pg_indexes`, `pg_policy`, `pg_proc`, `pg_extension`, dan `pg_class`) secara penuh dengan status **Metode `DB`**:
+   - Buka **Supabase Dashboard** -> **SQL Editor**.
+   - Buka file `supabase/verify/verify.sql`, salin seluruh isinya, lalu klik **Run**.
+   - Pada tabel hasil di kanan bawah, klik tombol **Export** -> **Export to CSV** dan simpan file (misal ke `hasil-verify.csv`), atau salin baris hasil dari grid SQL Editor.
+   - Jalankan perintah:
+     ```bash
+     npm run verify:db -- --from-file hasil-verify.csv
+     ```
+   - Skrip akan membaca hasil eksekusi SQL Editor dan menyusun laporan konsistensi lengkap dengan **Metode `DB`** tanpa memerlukan `DATABASE_URL`.
 
 ---
 
@@ -145,7 +154,7 @@ Aplikasi dirancang sepenuhnya netral terhadap platform (tanpa `@vercel/*`, KV, E
 
 ## 8. Urutan Go-Live
 
-1. Jalankan ketujuh file migrasi di `supabase/migrations/` sesuai urutan pada bagian 1, lalu verifikasi konsistensi dengan `npm run verify:db`.
+1. Jalankan kedelapan file migrasi di `supabase/migrations/` sesuai urutan pada bagian 1, lalu verifikasi konsistensi dengan `npm run verify:db`.
 2. Bersihkan seluruh data contoh (`is_demo = true`) dari database:
    ```bash
    npm run seed:clear

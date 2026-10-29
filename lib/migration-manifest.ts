@@ -155,6 +155,7 @@ export function normalizeSqlDefault(rawDefault: string | null): string | null {
     .trim()
     .replace(/::[a-zA-Z0-9_ ]+/g, "")
     .replace(/^\((.*)\)$/, "$1")
+    .replace(/^['"]|['"]$/g, "")
     .trim()
     .toLowerCase();
 }

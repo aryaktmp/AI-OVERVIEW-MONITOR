@@ -84,10 +84,6 @@ describe("Fase 0: Fondasi & Konfigurasi", () => {
     expect(DEFAULT_SEARCH_SETTINGS.enable_third_party_check).toBe(false);
 
     const migrationsDir = path.join(process.cwd(), "supabase", "migrations");
-    const files = fs
-      .readdirSync(migrationsDir)
-      .filter((f) => f.endsWith(".sql"))
-      .sort();
 
     const phase5Sql = fs.readFileSync(
       path.join(migrationsDir, "20261029050000_phase5_third_party_default.sql"),
@@ -96,12 +92,12 @@ describe("Fase 0: Fondasi & Konfigurasi", () => {
     expect(phase5Sql).toContain('"enable_third_party_check": false');
     expect(phase5Sql).toContain("'false'::jsonb");
 
-    const latestSql = fs.readFileSync(
-      path.join(migrationsDir, files[files.length - 1]!),
+    const predeploySql = fs.readFileSync(
+      path.join(migrationsDir, "20261029060000_predeploy_hardening.sql"),
       "utf-8"
     );
-    expect(latestSql).toContain('"enable_third_party_check": false');
-    expect(latestSql).toContain("'false'::jsonb");
+    expect(predeploySql).toContain('"enable_third_party_check": false');
+    expect(predeploySql).toContain("'false'::jsonb");
   });
 
   it("membaca semua file migrasi dan gagal jika ada CREATE FUNCTION di schema public tanpa REVOKE EXECUTE untuk fungsi itu", () => {

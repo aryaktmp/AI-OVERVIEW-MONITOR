@@ -7,7 +7,8 @@
     "20261029030000_phase4_settings_and_views.sql",
     "20261029040000_phase4_fixes.sql",
     "20261029050000_phase5_third_party_default.sql",
-    "20261029060000_predeploy_hardening.sql"
+    "20261029060000_predeploy_hardening.sql",
+    "20261029070000_function_search_path.sql"
   ],
   "perFileSummary": [
     {
@@ -441,6 +442,156 @@
       "seedUpdates": [
         "settings(search_config)"
       ]
+    },
+    {
+      "fileName": "20261029070000_function_search_path.sql",
+      "extensionsCreated": [],
+      "tablesCreated": [],
+      "columnsAdded": [],
+      "indexesCreated": [],
+      "rlsEnabledTables": [],
+      "policiesCreated": [],
+      "viewsCreatedOrReplaced": [],
+      "functionsCreatedOrReplaced": [
+        "claim_next_run_item",
+        "get_database_size_bytes",
+        "cleanup_old_checks_raw"
+      ],
+      "permissionOps": [
+        {
+          "action": "REVOKE",
+          "privileges": [
+            "ALL",
+            "EXECUTE"
+          ],
+          "objectType": "FUNCTION",
+          "objectName": "claim_next_run_item",
+          "argsSignature": "timestamp with time zone",
+          "roles": [
+            "public",
+            "anon",
+            "authenticated"
+          ],
+          "sourceMigration": "20261029070000_function_search_path.sql"
+        },
+        {
+          "action": "REVOKE",
+          "privileges": [
+            "EXECUTE"
+          ],
+          "objectType": "FUNCTION",
+          "objectName": "claim_next_run_item",
+          "argsSignature": "timestamp with time zone",
+          "roles": [
+            "public",
+            "anon",
+            "authenticated"
+          ],
+          "sourceMigration": "20261029070000_function_search_path.sql"
+        },
+        {
+          "action": "GRANT",
+          "privileges": [
+            "EXECUTE"
+          ],
+          "objectType": "FUNCTION",
+          "objectName": "claim_next_run_item",
+          "argsSignature": "timestamp with time zone",
+          "roles": [
+            "service_role"
+          ],
+          "sourceMigration": "20261029070000_function_search_path.sql"
+        },
+        {
+          "action": "REVOKE",
+          "privileges": [
+            "ALL",
+            "EXECUTE"
+          ],
+          "objectType": "FUNCTION",
+          "objectName": "get_database_size_bytes",
+          "argsSignature": "",
+          "roles": [
+            "public",
+            "anon",
+            "authenticated"
+          ],
+          "sourceMigration": "20261029070000_function_search_path.sql"
+        },
+        {
+          "action": "REVOKE",
+          "privileges": [
+            "EXECUTE"
+          ],
+          "objectType": "FUNCTION",
+          "objectName": "get_database_size_bytes",
+          "argsSignature": "",
+          "roles": [
+            "public",
+            "anon",
+            "authenticated"
+          ],
+          "sourceMigration": "20261029070000_function_search_path.sql"
+        },
+        {
+          "action": "GRANT",
+          "privileges": [
+            "EXECUTE"
+          ],
+          "objectType": "FUNCTION",
+          "objectName": "get_database_size_bytes",
+          "argsSignature": "",
+          "roles": [
+            "service_role"
+          ],
+          "sourceMigration": "20261029070000_function_search_path.sql"
+        },
+        {
+          "action": "REVOKE",
+          "privileges": [
+            "ALL",
+            "EXECUTE"
+          ],
+          "objectType": "FUNCTION",
+          "objectName": "cleanup_old_checks_raw",
+          "argsSignature": "integer",
+          "roles": [
+            "public",
+            "anon",
+            "authenticated"
+          ],
+          "sourceMigration": "20261029070000_function_search_path.sql"
+        },
+        {
+          "action": "REVOKE",
+          "privileges": [
+            "EXECUTE"
+          ],
+          "objectType": "FUNCTION",
+          "objectName": "cleanup_old_checks_raw",
+          "argsSignature": "integer",
+          "roles": [
+            "public",
+            "anon",
+            "authenticated"
+          ],
+          "sourceMigration": "20261029070000_function_search_path.sql"
+        },
+        {
+          "action": "GRANT",
+          "privileges": [
+            "EXECUTE"
+          ],
+          "objectType": "FUNCTION",
+          "objectName": "cleanup_old_checks_raw",
+          "argsSignature": "integer",
+          "roles": [
+            "service_role"
+          ],
+          "sourceMigration": "20261029070000_function_search_path.sql"
+        }
+      ],
+      "seedUpdates": []
     }
   ],
   "finalState": {
@@ -1517,10 +1668,10 @@
         "argTypes": [
           "timestamp with time zone"
         ],
-        "returnType": "setof run_items",
+        "returnType": "setof public.run_items",
         "language": "sql",
         "securityDefiner": true,
-        "searchPath": null,
+        "searchPath": "public, pg_temp",
         "revokedFrom": [
           "public",
           "anon",
@@ -1533,7 +1684,8 @@
         "modifiedByMigrations": [
           "20261029010000_phase3_queue_and_calls.sql",
           "20261029020000_phase3_fixes.sql",
-          "20261029060000_predeploy_hardening.sql"
+          "20261029060000_predeploy_hardening.sql",
+          "20261029070000_function_search_path.sql"
         ]
       },
       "get_database_size_bytes": {
@@ -1544,7 +1696,7 @@
         "returnType": "bigint",
         "language": "sql",
         "securityDefiner": true,
-        "searchPath": "public",
+        "searchPath": "public, pg_temp",
         "revokedFrom": [
           "public",
           "anon",
@@ -1556,7 +1708,8 @@
         "sourceMigration": "20261029040000_phase4_fixes.sql",
         "modifiedByMigrations": [
           "20261029040000_phase4_fixes.sql",
-          "20261029060000_predeploy_hardening.sql"
+          "20261029060000_predeploy_hardening.sql",
+          "20261029070000_function_search_path.sql"
         ]
       },
       "cleanup_old_checks_raw": {
@@ -1569,7 +1722,7 @@
         "returnType": "int",
         "language": "plpgsql",
         "securityDefiner": true,
-        "searchPath": "public",
+        "searchPath": "public, pg_temp",
         "revokedFrom": [
           "public",
           "anon",
@@ -1581,7 +1734,8 @@
         "sourceMigration": "20261029040000_phase4_fixes.sql",
         "modifiedByMigrations": [
           "20261029040000_phase4_fixes.sql",
-          "20261029060000_predeploy_hardening.sql"
+          "20261029060000_predeploy_hardening.sql",
+          "20261029070000_function_search_path.sql"
         ]
       }
     },
@@ -1802,6 +1956,138 @@
           "service_role"
         ],
         "sourceMigration": "20261029060000_predeploy_hardening.sql"
+      },
+      {
+        "action": "REVOKE",
+        "privileges": [
+          "ALL",
+          "EXECUTE"
+        ],
+        "objectType": "FUNCTION",
+        "objectName": "claim_next_run_item",
+        "argsSignature": "timestamp with time zone",
+        "roles": [
+          "public",
+          "anon",
+          "authenticated"
+        ],
+        "sourceMigration": "20261029070000_function_search_path.sql"
+      },
+      {
+        "action": "REVOKE",
+        "privileges": [
+          "EXECUTE"
+        ],
+        "objectType": "FUNCTION",
+        "objectName": "claim_next_run_item",
+        "argsSignature": "timestamp with time zone",
+        "roles": [
+          "public",
+          "anon",
+          "authenticated"
+        ],
+        "sourceMigration": "20261029070000_function_search_path.sql"
+      },
+      {
+        "action": "GRANT",
+        "privileges": [
+          "EXECUTE"
+        ],
+        "objectType": "FUNCTION",
+        "objectName": "claim_next_run_item",
+        "argsSignature": "timestamp with time zone",
+        "roles": [
+          "service_role"
+        ],
+        "sourceMigration": "20261029070000_function_search_path.sql"
+      },
+      {
+        "action": "REVOKE",
+        "privileges": [
+          "ALL",
+          "EXECUTE"
+        ],
+        "objectType": "FUNCTION",
+        "objectName": "get_database_size_bytes",
+        "argsSignature": "",
+        "roles": [
+          "public",
+          "anon",
+          "authenticated"
+        ],
+        "sourceMigration": "20261029070000_function_search_path.sql"
+      },
+      {
+        "action": "REVOKE",
+        "privileges": [
+          "EXECUTE"
+        ],
+        "objectType": "FUNCTION",
+        "objectName": "get_database_size_bytes",
+        "argsSignature": "",
+        "roles": [
+          "public",
+          "anon",
+          "authenticated"
+        ],
+        "sourceMigration": "20261029070000_function_search_path.sql"
+      },
+      {
+        "action": "GRANT",
+        "privileges": [
+          "EXECUTE"
+        ],
+        "objectType": "FUNCTION",
+        "objectName": "get_database_size_bytes",
+        "argsSignature": "",
+        "roles": [
+          "service_role"
+        ],
+        "sourceMigration": "20261029070000_function_search_path.sql"
+      },
+      {
+        "action": "REVOKE",
+        "privileges": [
+          "ALL",
+          "EXECUTE"
+        ],
+        "objectType": "FUNCTION",
+        "objectName": "cleanup_old_checks_raw",
+        "argsSignature": "integer",
+        "roles": [
+          "public",
+          "anon",
+          "authenticated"
+        ],
+        "sourceMigration": "20261029070000_function_search_path.sql"
+      },
+      {
+        "action": "REVOKE",
+        "privileges": [
+          "EXECUTE"
+        ],
+        "objectType": "FUNCTION",
+        "objectName": "cleanup_old_checks_raw",
+        "argsSignature": "integer",
+        "roles": [
+          "public",
+          "anon",
+          "authenticated"
+        ],
+        "sourceMigration": "20261029070000_function_search_path.sql"
+      },
+      {
+        "action": "GRANT",
+        "privileges": [
+          "EXECUTE"
+        ],
+        "objectType": "FUNCTION",
+        "objectName": "cleanup_old_checks_raw",
+        "argsSignature": "integer",
+        "roles": [
+          "service_role"
+        ],
+        "sourceMigration": "20261029070000_function_search_path.sql"
       }
     ],
     "seeds": {

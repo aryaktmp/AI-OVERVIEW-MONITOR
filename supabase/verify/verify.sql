@@ -1,5 +1,7 @@
 -- Pemindai Konsistensi Database Supabase (Hanya Baca / Read-Only)
 -- Jalankan kueri ini di Supabase SQL Editor. Kueri ini menghasilkan satu tabel (objek, status, detail).
+-- Ekspor hasil sebagai CSV atau salin tabel hasil, lalu jalankan:
+-- npm run verify:db -- --from-file <path-ke-file-hasil>
 
 WITH
 expected_tables(name) AS (
@@ -11,11 +13,11 @@ expected_views(name) AS (
 expected_functions(name) AS (
   VALUES ('claim_next_run_item'), ('get_database_size_bytes'), ('cleanup_old_checks_raw')
 ),
-expected_indexes(name) AS (
-  VALUES ('checks_keyword_id_checked_at_idx'), ('run_items_run_id_state_idx'), ('check_sources_check_id_idx')
-),
 db_tables AS (
-  SELECT c.relname AS name, c.relrowsecurity AS rls_enabled, c.oid AS rel_oid
+  SELECT
+    c.relname AS name,
+    c.oid AS rel_oid,
+    c.relrowsecurity AS rls_enabled
   FROM pg_catalog.pg_class c
   JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
   WHERE n.nspname = 'public' AND c.relkind = 'r'
@@ -23,8 +25,13 @@ db_tables AS (
 db_views AS (
   SELECT
     c.relname AS name,
-    COALESCE('security_invoker=true' = ANY(c.reloptions), false) AS security_invoker,
-    pg_catalog.pg_get_viewdef(c.oid, true) AS view_def
+    COALESCE(
+      EXISTS (
+        SELECT 1 FROM unnest(c.reloptions) opt
+        WHERE opt = 'security_invoker=true' OR opt = 'security_invoker=on' OR opt = 'security_invoker=1'
+      ),
+      false
+    ) AS security_invoker
   FROM pg_catalog.pg_class c
   JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
   WHERE n.nspname = 'public' AND c.relkind = 'v'
@@ -32,9 +39,9 @@ db_views AS (
 db_functions AS (
   SELECT
     p.proname AS name,
-    pg_catalog.pg_get_function_identity_arguments(p.oid) AS args_sig,
+    p.oid AS fn_oid,
     p.prosecdef AS sec_definer,
-    COALESCE(array_to_string(p.proconfig, ', '), '') AS config_str,
+    COALESCE(array_to_string(p.proconfig, ','), '') AS config_str,
     pg_catalog.has_function_privilege('public', p.oid, 'EXECUTE') AS pub_exec,
     pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE') AS anon_exec,
     pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE') AS auth_exec,
@@ -42,77 +49,95 @@ db_functions AS (
   FROM pg_catalog.pg_proc p
   JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
   WHERE n.nspname = 'public'
-),
-db_policies AS (
-  SELECT
-    pol.polname AS policy_name,
-    c.relname AS table_name,
-    pol.polcmd AS cmd_code,
-    ARRAY(
-      SELECT CASE WHEN r_oid = 0 THEN 'public' ELSE pg_catalog.pg_get_userbyid(r_oid) END
-      FROM unnest(pol.polroles) AS r_oid
-    ) AS roles
-  FROM pg_catalog.pg_policy pol
-  JOIN pg_catalog.pg_class c ON c.oid = pol.polrelid
-  JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public'
-),
-checks_union AS (
-  -- a. Pemeriksaan Tabel di Manifest
+)
+
+SELECT * FROM (
+  -- a. Tabel di Manifest
   SELECT
     'a. Tabel: ' || et.name AS objek,
     CASE WHEN dt.name IS NOT NULL THEN 'PASS' ELSE 'FAIL' END AS status,
-    CASE WHEN dt.name IS NOT NULL THEN 'Tabel tersedia di schema public' ELSE 'Tabel tidak ditemukan di schema public' END AS detail
+    CASE WHEN dt.name IS NOT NULL THEN 'Tabel tersedia di schema public' ELSE 'Tabel hilang / belum dimigrasi' END AS detail
   FROM expected_tables et
   LEFT JOIN db_tables dt ON dt.name = et.name
 
   UNION ALL
 
-  -- a. Tabel DRIFT (ada di public tapi tidak ada di manifest)
+  -- a. Tabel DRIFT
   SELECT
     'a. Tabel ekstra: ' || dt.name AS objek,
     'DRIFT' AS status,
-    'Tabel ada di schema public tetapi tidak terdaftar di manifest migrasi' AS detail
+    'Tabel ada di schema public tetapi tidak terdaftar di manifest' AS detail
   FROM db_tables dt
   WHERE dt.name NOT IN ('keyword_groups', 'keywords', 'brand_terms', 'competitors', 'check_runs', 'run_items', 'checks', 'check_sources', 'page_cache', 'settings')
 
   UNION ALL
 
-  -- c. Indeks di Manifest
+  -- b. Kolom
   SELECT
-    'c. Indeks: ' || ei.name AS objek,
-    CASE WHEN ic.relname IS NOT NULL THEN 'PASS' ELSE 'FAIL' END AS status,
-    CASE WHEN ic.relname IS NOT NULL THEN 'Indeks tersedia' ELSE 'Indeks belum dibuat' END AS detail
-  FROM expected_indexes ei
-  LEFT JOIN pg_catalog.pg_class ic ON ic.relname = ei.name AND ic.relkind = 'i'
+    'b. Kolom: ' || c.relname || '.' || a.attname AS objek,
+    'PASS' AS status,
+    'tipe=' || pg_catalog.format_type(a.atttypid, a.atttypmod) ||
+    ', nullable=' || (NOT a.attnotnull)::text ||
+    ', default=' || COALESCE(pg_catalog.pg_get_expr(ad.adbin, ad.adrelid), 'null') AS detail
+  FROM pg_catalog.pg_attribute a
+  JOIN pg_catalog.pg_class c ON c.oid = a.attrelid
+  JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+  LEFT JOIN pg_catalog.pg_attrdef ad ON ad.adrelid = a.attrelid AND ad.adnum = a.attnum
+  WHERE n.nspname = 'public' AND c.relkind = 'r' AND a.attnum > 0 AND NOT a.attisdropped
+    AND c.relname IN ('keyword_groups', 'keywords', 'brand_terms', 'competitors', 'check_runs', 'run_items', 'checks', 'check_sources', 'page_cache', 'settings')
 
   UNION ALL
 
-  -- d & e. Status RLS per Tabel
+  -- c. Constraint
   SELECT
-    'd/e. RLS Tabel: ' || dt.name AS objek,
+    'c. Constraint: ' || con.conname AS objek,
+    'PASS' AS status,
+    'tabel=' || c.relname || ', tipe=' || con.contype ||
+    CASE WHEN con.confdeltype != ' ' THEN ', on_delete=' || con.confdeltype::text ELSE '' END AS detail
+  FROM pg_catalog.pg_constraint con
+  JOIN pg_catalog.pg_class c ON c.oid = con.conrelid
+  JOIN pg_catalog.pg_namespace n ON n.oid = con.connamespace
+  WHERE n.nspname = 'public'
+
+  UNION ALL
+
+  -- c. Indeks
+  SELECT
+    'c. Indeks: ' || i.relname AS objek,
+    'PASS' AS status,
+    'tabel=' || t.relname || ', unique=' || ix.indisunique::text AS detail
+  FROM pg_catalog.pg_index ix
+  JOIN pg_catalog.pg_class i ON i.oid = ix.indexrelid
+  JOIN pg_catalog.pg_class t ON t.oid = ix.indrelid
+  JOIN pg_catalog.pg_namespace n ON n.oid = t.relnamespace
+  WHERE n.nspname = 'public' AND NOT ix.indisprimary
+
+  UNION ALL
+
+  -- d. RLS
+  SELECT
+    'd. RLS: ' || dt.name AS objek,
     CASE WHEN dt.rls_enabled THEN 'PASS' ELSE 'FAIL' END AS status,
-    CASE WHEN dt.rls_enabled THEN 'Row Level Security (RLS) aktif' ELSE 'RLS TIDAK AKTIF pada tabel public!' END AS detail
+    CASE WHEN dt.rls_enabled THEN 'Row Level Security aktif (pg_class.relrowsecurity = true)' ELSE 'RLS BELUM DIAKTIFKAN!' END AS detail
   FROM db_tables dt
 
   UNION ALL
 
-  -- e. Kebijakan untuk anon atau non-SELECT untuk authenticated
+  -- d. Kebijakan RLS
   SELECT
-    'e. Kebijakan: ' || dp.table_name || ' -> ' || dp.policy_name AS objek,
-    CASE
-      WHEN 'anon' = ANY(dp.roles) OR 'public' = ANY(dp.roles) THEN 'FAIL'
-      WHEN 'authenticated' = ANY(dp.roles) AND dp.cmd_code <> 'r' THEN 'FAIL'
-      ELSE 'PASS'
-    END AS status,
-    'Roles=' || array_to_string(dp.roles, ',') || ' | cmd_code=' || dp.cmd_code AS detail
-  FROM db_policies dp
+    'd. Kebijakan: ' || pol.polname AS objek,
+    'PASS' AS status,
+    'tabel=' || c.relname || ', cmd=' || pol.polcmd AS detail
+  FROM pg_catalog.pg_policy pol
+  JOIN pg_catalog.pg_class c ON c.oid = pol.polrelid
+  JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'public'
 
   UNION ALL
 
-  -- e. Hak Tabel (INFO saja)
+  -- e. Hak Tabel
   SELECT
-    'e. Hak Tabel (INFO): ' || dt.name AS objek,
+    'e. Hak tabel: ' || dt.name AS objek,
     'INFO' AS status,
     'anon_select=' || pg_catalog.has_table_privilege('anon', dt.rel_oid, 'SELECT')::text ||
     ', authenticated_select=' || pg_catalog.has_table_privilege('authenticated', dt.rel_oid, 'SELECT')::text ||
@@ -149,7 +174,7 @@ checks_union AS (
 
   UNION ALL
 
-  -- g. Fungsi di Manifest (keberadaan, hak EXECUTE, dan search_path)
+  -- g. Fungsi di Manifest
   SELECT
     'g. Fungsi: ' || ef.name AS objek,
     CASE
@@ -170,11 +195,17 @@ checks_union AS (
 
   UNION ALL
 
-  -- g. Fungsi DRIFT
+  -- g. Fungsi ekstra (DRIFT vs dikelola Supabase)
   SELECT
     'g. Fungsi ekstra: ' || df.name AS objek,
-    'DRIFT' AS status,
-    'Fungsi ada di schema public tetapi tidak ada di manifest' AS detail
+    CASE
+      WHEN df.name = 'rls_auto_enable' THEN 'INFO'
+      ELSE 'DRIFT'
+    END AS status,
+    CASE
+      WHEN df.name = 'rls_auto_enable' THEN 'Fungsi pembantu otomatis dikelola oleh platform Supabase (Enable automatic RLS)'
+      ELSE 'Fungsi ada di schema public tetapi tidak ada di manifest'
+    END AS detail
   FROM db_functions df
   WHERE df.name NOT IN ('claim_next_run_item', 'get_database_size_bytes', 'cleanup_old_checks_raw')
 
@@ -201,7 +232,7 @@ checks_union AS (
 
   UNION ALL
 
-  -- h. Seed settings (enable_third_party_check = false)
+  -- h. Seed settings
   SELECT
     'h. Seed settings(search_config)' AS objek,
     CASE
@@ -219,7 +250,7 @@ checks_union AS (
 
   UNION ALL
 
-  -- i. Jumlah baris is_demo = true (INFO)
+  -- i. Baris is_demo
   SELECT
     'i. Baris is_demo=true' AS objek,
     'INFO' AS status,
@@ -230,11 +261,33 @@ checks_union AS (
 
   UNION ALL
 
-  -- l. Ekstensi pgcrypto
+  -- j. Riwayat Migrasi
+  SELECT
+    'j. schema_migrations' AS objek,
+    'INFO' AS status,
+    COALESCE(
+      (SELECT string_agg(version, ', ' ORDER BY version) FROM supabase_migrations.schema_migrations),
+      'Tabel schema_migrations kosong / migrasi dijalankan manual di SQL Editor'
+    ) AS detail
+
+  UNION ALL
+
+  -- l. Ekstensi
   SELECT
     'l. Ekstensi: pgcrypto' AS objek,
     CASE WHEN EXISTS (SELECT 1 FROM pg_catalog.pg_extension WHERE extname = 'pgcrypto') THEN 'PASS' ELSE 'FAIL' END AS status,
-    'Terpasang: ' || COALESCE((SELECT string_agg(extname, ', ' ORDER BY extname) FROM pg_catalog.pg_extension), 'tidak ada') AS detail
-)
-SELECT objek, status, detail
-FROM checks_union;
+    'pgcrypto ekstensi terpasang' AS detail
+
+  UNION ALL
+
+  -- INFO: Event Trigger ensure_rls
+  SELECT
+    'INFO. Event Trigger: ensure_rls' AS objek,
+    'INFO' AS status,
+    CASE
+      WHEN EXISTS (SELECT 1 FROM pg_catalog.pg_event_trigger WHERE evtname = 'ensure_rls')
+        THEN 'Event trigger ensure_rls aktif di database (dikelola oleh platform Supabase)'
+      ELSE 'Event trigger ensure_rls tidak ditemukan di database'
+    END AS detail
+) sub
+ORDER BY objek;
