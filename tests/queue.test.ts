@@ -13,7 +13,10 @@ import {
 } from "@/lib/queue";
 import { DEFAULT_BRAND_TERMS } from "@/lib/detect";
 import { POST as startRunPost } from "@/app/api/cron/start-run/route";
-import { POST as processPost } from "@/app/api/cron/process/route";
+import {
+  POST as processPost,
+  maxDuration as processMaxDuration,
+} from "@/app/api/cron/process/route";
 import type { SerpApiCheckResult } from "@/lib/serpapi";
 
 function createInMemoryQueueStore(initial?: {
@@ -32,10 +35,13 @@ function createInMemoryQueueStore(initial?: {
   const baseHourlyCalls = initial?.hourlyCalls ?? 0;
 
   const store: QueueStore = {
+    async getRunningCheckRun() {
+      return runs.find((r) => r.status === "running") ?? null;
+    },
     async getActiveKeywords() {
       return keywords.filter((k) => k.active);
     },
-    async createCheckRun(total, nowIso) {
+    async createCheckRun(total, nowIso, isDemo = false) {
       const run: CheckRunRecord = {
         id: `run-${runs.length + 1}`,
         started_at: nowIso,
@@ -43,6 +49,7 @@ function createInMemoryQueueStore(initial?: {
         status: total === 0 ? "done" : "running",
         total,
         done: 0,
+        is_demo: isDemo,
         serpapi_calls: 0,
       };
       runs.push(run);
@@ -78,7 +85,11 @@ function createInMemoryQueueStore(initial?: {
     },
     async getHourlySerpApiCalls() {
       const fromSavedChecks = checks.reduce(
-        (acc, c) => acc + c.serpapi_callsCount,
+        (acc, c) =>
+          acc +
+          extractSerpApiCallsFromRaw(c.raw, {
+            includeDryRun: false,
+          }),
         0
       );
       return baseHourlyCalls + fromSavedChecks;
@@ -91,7 +102,9 @@ function createInMemoryQueueStore(initial?: {
         .map((i) => ({ ...i }));
     },
     async claimPendingItemAtomically(itemId, nowIso) {
-      const target = items.find((i) => i.id === itemId && i.state === "pending");
+      const target = items.find(
+        (i) => i.id === itemId && i.state === "pending"
+      );
       if (!target) return null;
       target.state = "processing";
       target.updated_at = nowIso;
@@ -134,7 +147,11 @@ function createInMemoryQueueStore(initial?: {
         target.updated_at = nowIso;
       }
     },
-    async syncRunProgress(runId, nowIso): Promise<RunSummary> {
+    async syncRunProgress(
+      runId,
+      nowIso,
+      forceIsDemo
+    ): Promise<RunSummary> {
       const runItems = items.filter((i) => i.run_id === runId);
       const total = runItems.length;
       const done = runItems.filter((i) => i.state === "done").length;
@@ -142,9 +159,13 @@ function createInMemoryQueueStore(initial?: {
       const pending = runItems.filter(
         (i) => i.state === "pending" || i.state === "processing"
       ).length;
-      const serpApiCalls = checks
-        .filter((c) => c.run_id === runId)
-        .reduce((sum, c) => sum + c.serpapi_callsCount, 0);
+      const runChecks = checks.filter((c) => c.run_id === runId);
+      const serpApiCalls = runChecks.reduce(
+        (sum, c) =>
+          sum + extractSerpApiCallsFromRaw(c.raw, { includeDryRun: true }),
+        0
+      );
+      const hasDryRun = runChecks.some((c) => c.raw.dry_run === true);
 
       const status =
         pending > 0
@@ -154,11 +175,13 @@ function createInMemoryQueueStore(initial?: {
             : "done";
 
       const run = runs.find((r) => r.id === runId);
+      const isDemo = Boolean(forceIsDemo || run?.is_demo || hasDryRun);
       if (run) {
         run.done = done;
         run.status = status;
         run.finished_at = pending === 0 ? nowIso : null;
         run.serpapi_calls = serpApiCalls;
+        run.is_demo = isDemo;
       }
 
       return {
@@ -169,6 +192,7 @@ function createInMemoryQueueStore(initial?: {
         errors,
         pending,
         serpApiCalls,
+        isDemo,
       };
     },
   };
@@ -176,7 +200,10 @@ function createInMemoryQueueStore(initial?: {
   return { store, runs, items, checks };
 }
 
-function makeFakeSerpResult(apiCallsCount: 1 | 2 = 1): SerpApiCheckResult {
+function makeFakeSerpResult(
+  apiCallsCount: 1 | 2 = 1,
+  dryRun = false
+): SerpApiCheckResult {
   return {
     parsed: {
       hasAiOverview: true,
@@ -191,7 +218,7 @@ function makeFakeSerpResult(apiCallsCount: 1 | 2 = 1): SerpApiCheckResult {
       ],
       pageToken: null,
     },
-    raw: { serpapi_calls_count: apiCallsCount },
+    raw: { serpapi_calls_count: apiCallsCount, dry_run: dryRun },
     firstRaw: {},
     secondRaw: apiCallsCount === 2 ? {} : null,
     usedFollowUpPageToken: apiCallsCount === 2,
@@ -199,10 +226,35 @@ function makeFakeSerpResult(apiCallsCount: 1 | 2 = 1): SerpApiCheckResult {
   };
 }
 
-describe("Fase 3: Antrean, Klaim Atomik, Batas Laju, Percobaan Ulang, & Cron Auth", () => {
+describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron", () => {
+  it("memastikan startCheckRun bersifat idempoten saat sudah ada run berstatus running", async () => {
+    const { store, runs, items } = createInMemoryQueueStore();
+
+    const first = await startCheckRun(store, new Date("2026-10-29T08:00:00Z"), {
+      isDemo: false,
+    });
+    expect(first.isExisting).toBe(false);
+    expect(first.runId).toBe("run-1");
+    expect(runs).toHaveLength(1);
+    expect(items).toHaveLength(3);
+
+    // Panggilan kedua saat run-1 masih berstatus running
+    const second = await startCheckRun(
+      store,
+      new Date("2026-10-29T08:01:00Z"),
+      { isDemo: false }
+    );
+    expect(second.isExisting).toBe(true);
+    expect(second.runId).toBe("run-1");
+    expect(runs).toHaveLength(1);
+    expect(items).toHaveLength(3);
+  });
+
   it("mengklaim item pending secara atomik sehingga dua pekerja paralel tidak memproses item yang sama", async () => {
     const { store, items } = createInMemoryQueueStore();
-    await startCheckRun(store, new Date("2026-10-29T08:00:00Z"));
+    await startCheckRun(store, new Date("2026-10-29T08:00:00Z"), {
+      isDemo: false,
+    });
 
     const processedKeywords: string[] = [];
     const slowFetcher = async (kw: string) => {
@@ -212,8 +264,8 @@ describe("Fase 3: Antrean, Klaim Atomik, Batas Laju, Percobaan Ulang, & Cron Aut
     };
 
     const [worker1, worker2] = await Promise.all([
-      processQueue(store, { serpApiFetcher: slowFetcher }),
-      processQueue(store, { serpApiFetcher: slowFetcher }),
+      processQueue(store, { dryRun: false, serpApiFetcher: slowFetcher }),
+      processQueue(store, { dryRun: false, serpApiFetcher: slowFetcher }),
     ]);
 
     expect(worker1.processedCount + worker2.processedCount).toBe(3);
@@ -226,10 +278,10 @@ describe("Fase 3: Antrean, Klaim Atomik, Batas Laju, Percobaan Ulang, & Cron Aut
     const baseTime = new Date("2026-10-29T09:00:00Z");
     const stuckTimeIso = new Date(
       baseTime.getTime() - 12 * 60 * 1000
-    ).toISOString(); // 12 menit lalu (> 10 menit)
+    ).toISOString();
     const recentTimeIso = new Date(
       baseTime.getTime() - 3 * 60 * 1000
-    ).toISOString(); // 3 menit lalu (< 10 menit)
+    ).toISOString();
 
     const { store, items } = createInMemoryQueueStore({
       items: [
@@ -255,6 +307,7 @@ describe("Fase 3: Antrean, Klaim Atomik, Batas Laju, Percobaan Ulang, & Cron Aut
     });
 
     const result = await processQueue(store, {
+      dryRun: false,
       nowFn: () => baseTime,
       serpApiFetcher: async () => makeFakeSerpResult(1),
     });
@@ -265,27 +318,57 @@ describe("Fase 3: Antrean, Klaim Atomik, Batas Laju, Percobaan Ulang, & Cron Aut
     expect(items.find((i) => i.id === "item-recent")?.state).toBe("processing");
   });
 
-  it("mematuhi batas laju SERPAPI_MAX_PER_HOUR termasuk menghitung 2 panggilan untuk kasus page_token", async () => {
-    const { store, items } = createInMemoryQueueStore({
-      hourlyCalls: 48, // Sudah terpakai 48 dari 50 dalam 60 menit terakhir
-    });
-    await startCheckRun(store, new Date("2026-10-29T09:00:00Z"));
+  it("mematuhi batas laju SERPAPI_MAX_PER_HOUR untuk panggilan nyata dan tidak menghitung panggilan dry-run", async () => {
+    // 1. Pastikan dry-run tidak dihitung ke batas laju per jam
+    expect(
+      extractSerpApiCallsFromRaw(
+        { serpapi_calls_count: 2, dry_run: true },
+        { includeDryRun: false }
+      )
+    ).toBe(0);
+    expect(
+      extractSerpApiCallsFromRaw(
+        { serpapi_calls_count: 2, dry_run: true },
+        { includeDryRun: true }
+      )
+    ).toBe(2);
 
-    // Item pertama membutuhkan panggilan kedua page_token (2 panggilan SerpApi -> 48 + 2 = 50)
+    const { store: dryStore, runs: dryRuns } = createInMemoryQueueStore({
+      hourlyCalls: 49,
+    });
+    await startCheckRun(dryStore, new Date("2026-10-29T09:00:00Z"), {
+      isDemo: true,
+    });
+
+    const dryResult = await processQueue(dryStore, {
+      maxPerHour: 50,
+      dryRun: true,
+      serpApiFetcher: async () => makeFakeSerpResult(2, true),
+    });
+    expect(dryResult.processedCount).toBe(3);
+    expect(dryResult.hourlySerpApiCallsUsed).toBe(49); // Tidak bertambah karena dry-run
+    expect(dryRuns[0]?.is_demo).toBe(true);
+
+    // 2. Pastikan panggilan nyata dihitung termasuk panggilan kedua page_token (48 + 2 = 50 -> berhenti)
+    const { store, items } = createInMemoryQueueStore({
+      hourlyCalls: 48,
+    });
+    await startCheckRun(store, new Date("2026-10-29T09:00:00Z"), {
+      isDemo: false,
+    });
+
     const result = await processQueue(store, {
       maxPerHour: 50,
-      serpApiFetcher: async () => makeFakeSerpResult(2),
+      dryRun: false,
+      serpApiFetcher: async () => makeFakeSerpResult(2, false),
     });
 
     expect(result.processedCount).toBe(1);
     expect(result.serpApiCallsUsedInBatch).toBe(2);
     expect(result.hourlySerpApiCallsUsed).toBe(50);
     expect(result.stoppedReason).toBe("rate_limit");
-
-    // 1 item selesai, 2 item lainnya tetap pending
     expect(items.filter((i) => i.state === "done")).toHaveLength(1);
     expect(items.filter((i) => i.state === "pending")).toHaveLength(2);
-    expect(extractSerpApiCallsFromRaw({ serpapi_calls_count: 2 })).toBe(2);
   });
 
   it("mengulangi item gagal maksimal 2 kali dengan jeda bertambah lalu menandai error tanpa menghentikan run", async () => {
@@ -296,7 +379,7 @@ describe("Fase 3: Antrean, Klaim Atomik, Batas Laju, Percobaan Ulang, & Cron Aut
         { id: "kw-ok", text: "keyword berhasil", active: true },
       ],
     });
-    await startCheckRun(store, currentClock);
+    await startCheckRun(store, currentClock, { isDemo: false });
 
     const fetcher = async (kw: string) => {
       if (kw === "keyword selalu gagal") {
@@ -305,8 +388,8 @@ describe("Fase 3: Antrean, Klaim Atomik, Batas Laju, Percobaan Ulang, & Cron Aut
       return makeFakeSerpResult(1);
     };
 
-    // Run 1: kw-fail gagal ke-1 (attempts=1, kembali ke pending), kw-ok tetap berhasil (done)
     const res1 = await processQueue(store, {
+      dryRun: false,
       nowFn: () => currentClock,
       retryBaseDelayMs: 15_000,
       serpApiFetcher: fetcher,
@@ -317,18 +400,18 @@ describe("Fase 3: Antrean, Klaim Atomik, Batas Laju, Percobaan Ulang, & Cron Aut
     expect(failItem.state).toBe("pending");
     expect(failItem.attempts).toBe(1);
 
-    // Jika dipanggil sebelum jeda 15 detik berlalu, item belum diambil
     currentClock = new Date(currentClock.getTime() + 5_000);
     const resTooEarly = await processQueue(store, {
+      dryRun: false,
       nowFn: () => currentClock,
       retryBaseDelayMs: 15_000,
       serpApiFetcher: fetcher,
     });
     expect(resTooEarly.processedCount).toBe(0);
 
-    // Run 2 (setelah 16 detik): percobaan ulang ke-1 gagal -> attempts=2, state=pending, jeda berikutnya 30 detik
     currentClock = new Date(currentClock.getTime() + 15_000);
     const res2 = await processQueue(store, {
+      dryRun: false,
       nowFn: () => currentClock,
       retryBaseDelayMs: 15_000,
       serpApiFetcher: fetcher,
@@ -338,9 +421,9 @@ describe("Fase 3: Antrean, Klaim Atomik, Batas Laju, Percobaan Ulang, & Cron Aut
     expect(failItem.attempts).toBe(2);
     expect(getRetryDelayMs(2, 15_000)).toBe(30_000);
 
-    // Run 3 (setelah 31 detik): percobaan ulang ke-2 gagal -> attempts=3 (> MAX_RETRIES=2), state=error
     currentClock = new Date(currentClock.getTime() + 31_000);
     const res3 = await processQueue(store, {
+      dryRun: false,
       nowFn: () => currentClock,
       retryBaseDelayMs: 15_000,
       serpApiFetcher: fetcher,
@@ -352,7 +435,8 @@ describe("Fase 3: Antrean, Klaim Atomik, Batas Laju, Percobaan Ulang, & Cron Aut
     expect(res3.runsSummary[0]?.status).toBe("done");
   });
 
-  it("mengembalikan HTTP 401 pada POST /api/cron/start-run dan POST /api/cron/process jika tanpa header Authorization", async () => {
+  it("mengekspor maxDuration pada /api/cron/process dan mengembalikan HTTP 401 jika tanpa header Authorization", async () => {
+    expect(processMaxDuration).toBeGreaterThanOrEqual(30);
     process.env.CRON_SECRET = "a".repeat(32);
 
     const reqWithoutHeader1 = new Request(

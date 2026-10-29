@@ -38,6 +38,7 @@ export interface CheckRunRecord {
   status: CheckRunStatus;
   total: number;
   done: number;
+  is_demo?: boolean;
   serpapi_calls?: number;
 }
 
@@ -69,13 +70,26 @@ export interface RunSummary {
   errors: number;
   pending: number;
   serpApiCalls: number;
+  isDemo: boolean;
 }
 
 export interface QueueStore {
+  getRunningCheckRun(): Promise<CheckRunRecord | null>;
   getActiveKeywords(): Promise<KeywordRecord[]>;
-  createCheckRun(total: number, nowIso: string): Promise<CheckRunRecord>;
-  insertRunItems(runId: string, keywordIds: string[], nowIso: string): Promise<void>;
-  recoverStuckProcessingItems(cutoffIso: string, nowIso: string): Promise<string[]>;
+  createCheckRun(
+    total: number,
+    nowIso: string,
+    isDemo?: boolean
+  ): Promise<CheckRunRecord>;
+  insertRunItems(
+    runId: string,
+    keywordIds: string[],
+    nowIso: string
+  ): Promise<void>;
+  recoverStuckProcessingItems(
+    cutoffIso: string,
+    nowIso: string
+  ): Promise<string[]>;
   getHourlySerpApiCalls(sinceIso: string): Promise<number>;
   listPendingCandidates(limit: number): Promise<RunItemRecord[]>;
   claimPendingItemAtomically(
@@ -97,7 +111,11 @@ export interface QueueStore {
     callsUsedInAttempt: number,
     nowIso: string
   ): Promise<void>;
-  syncRunProgress(runId: string, nowIso: string): Promise<RunSummary>;
+  syncRunProgress(
+    runId: string,
+    nowIso: string,
+    forceIsDemo?: boolean
+  ): Promise<RunSummary>;
 }
 
 /**
@@ -115,12 +133,28 @@ export function getRetryDelayMs(
 }
 
 /**
+ * Memeriksa apakah objek raw berasal dari dry-run / demo.
+ */
+export function isDryRunRaw(raw: unknown): boolean {
+  if (!raw || typeof raw !== "object") return false;
+  return (raw as Record<string, unknown>).dry_run === true;
+}
+
+/**
  * Mengekstrak jumlah panggilan SerpApi dari kolom raw pada tabel checks.
  * Menghitung panggilan ke-2 (page_token) sebagai 2 panggilan.
+ * Jika includeDryRun = false (bawaan untuk batas laju per jam), panggilan dari dry-run bernilai 0.
  */
-export function extractSerpApiCallsFromRaw(raw: unknown): number {
+export function extractSerpApiCallsFromRaw(
+  raw: unknown,
+  options: { includeDryRun?: boolean } = {}
+): number {
+  const includeDryRun = options.includeDryRun ?? false;
   if (!raw || typeof raw !== "object") return 1;
   const obj = raw as Record<string, unknown>;
+  if (!includeDryRun && obj.dry_run === true) {
+    return 0;
+  }
   if (
     typeof obj.serpapi_calls_count === "number" &&
     Number.isInteger(obj.serpapi_calls_count) &&
@@ -145,6 +179,21 @@ export function extractFailedCallsFromError(errorText: string | null): number {
 
 export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
   return {
+    async getRunningCheckRun(): Promise<CheckRunRecord | null> {
+      const { data, error } = await supabase
+        .from("check_runs")
+        .select("*")
+        .eq("status", "running")
+        .order("started_at", { ascending: false })
+        .limit(1);
+
+      if (error) {
+        throw new Error(`Gagal memeriksa check_runs aktif: ${error.message}`);
+      }
+      if (!data || data.length === 0) return null;
+      return data[0] as CheckRunRecord;
+    },
+
     async getActiveKeywords(): Promise<KeywordRecord[]> {
       const { data, error } = await supabase
         .from("keywords")
@@ -157,8 +206,30 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
       return (data ?? []) as KeywordRecord[];
     },
 
-    async createCheckRun(total: number, nowIso: string): Promise<CheckRunRecord> {
+    async createCheckRun(
+      total: number,
+      nowIso: string,
+      isDemo: boolean = false
+    ): Promise<CheckRunRecord> {
       const initialStatus: CheckRunStatus = total === 0 ? "done" : "running";
+      const insertWithDemo = await supabase
+        .from("check_runs")
+        .insert({
+          started_at: nowIso,
+          finished_at: total === 0 ? nowIso : null,
+          status: initialStatus,
+          total,
+          done: 0,
+          is_demo: isDemo,
+        })
+        .select("*")
+        .single();
+
+      if (!insertWithDemo.error && insertWithDemo.data) {
+        return insertWithDemo.data as CheckRunRecord;
+      }
+
+      // Fallback apabila kolom is_demo belum diterapkan di database
       const { data, error } = await supabase
         .from("check_runs")
         .insert({
@@ -172,9 +243,11 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
         .single();
 
       if (error || !data) {
-        throw new Error(`Gagal membuat check_runs: ${error?.message ?? "unknown"}`);
+        throw new Error(
+          `Gagal membuat check_runs: ${error?.message ?? "unknown"}`
+        );
       }
-      return data as CheckRunRecord;
+      return { ...(data as CheckRunRecord), is_demo: isDemo };
     },
 
     async insertRunItems(
@@ -221,23 +294,48 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
     async getHourlySerpApiCalls(sinceIso: string): Promise<number> {
       const { data: checksData, error: checksError } = await supabase
         .from("checks")
-        .select("raw")
+        .select("raw, run_id, check_runs(is_demo)")
         .gte("checked_at", sinceIso);
 
       if (checksError) {
-        throw new Error(
-          `Gagal menghitung batas laju dari checks: ${checksError.message}`
-        );
+        // Fallback jika kolom is_demo belum ada di check_runs
+        const fallback = await supabase
+          .from("checks")
+          .select("raw")
+          .gte("checked_at", sinceIso);
+        if (fallback.error) {
+          throw new Error(
+            `Gagal menghitung batas laju dari checks: ${fallback.error.message}`
+          );
+        }
+        let fallbackCalls = 0;
+        for (const row of fallback.data ?? []) {
+          fallbackCalls += extractSerpApiCallsFromRaw(
+            (row as { raw: unknown }).raw,
+            { includeDryRun: false }
+          );
+        }
+        return fallbackCalls;
       }
 
       let totalCalls = 0;
       for (const row of checksData ?? []) {
-        totalCalls += extractSerpApiCallsFromRaw(
-          (row as { raw: unknown }).raw
-        );
+        const typedRow = row as unknown as {
+          raw: unknown;
+          check_runs?: { is_demo?: boolean } | Array<{ is_demo?: boolean }>;
+        };
+        const runObj = Array.isArray(typedRow.check_runs)
+          ? typedRow.check_runs[0]
+          : typedRow.check_runs;
+        if (runObj?.is_demo === true) {
+          continue;
+        }
+        totalCalls += extractSerpApiCallsFromRaw(typedRow.raw, {
+          includeDryRun: false,
+        });
       }
 
-      // Hitung juga panggilan SerpApi pada run_items yang gagal dalam 60 menit terakhir
+      // Hitung juga panggilan SerpApi pada run_items yang gagal dalam 60 menit terakhir (bukan demo)
       const { data: failedItems, error: itemsError } = await supabase
         .from("run_items")
         .select("error")
@@ -274,8 +372,6 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
       itemId: string,
       nowIso: string
     ): Promise<RunItemRecord | null> {
-      // UPDATE atomik dengan kondisi .eq("state", "pending")
-      // Jika pekerja lain sudah mengklaim item ini terlebih dahulu, 0 baris dikembalikan.
       const { data, error } = await supabase
         .from("run_items")
         .update({
@@ -430,7 +526,11 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
       }
     },
 
-    async syncRunProgress(runId: string, nowIso: string): Promise<RunSummary> {
+    async syncRunProgress(
+      runId: string,
+      nowIso: string,
+      forceIsDemo?: boolean
+    ): Promise<RunSummary> {
       const { data: items, error: itemsErr } = await supabase
         .from("run_items")
         .select("state, error")
@@ -459,10 +559,15 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
         .eq("run_id", runId);
 
       let serpApiCalls = 0;
+      let hasDryRunCheck = false;
       for (const c of runChecks ?? []) {
-        serpApiCalls += extractSerpApiCallsFromRaw(
-          (c as { raw: unknown }).raw
-        );
+        const rawObj = (c as { raw: unknown }).raw;
+        if (isDryRunRaw(rawObj)) {
+          hasDryRunCheck = true;
+        }
+        serpApiCalls += extractSerpApiCallsFromRaw(rawObj, {
+          includeDryRun: true,
+        });
       }
       for (const item of list) {
         if (item.state !== "done") {
@@ -477,14 +582,30 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
           ? "failed"
           : "done";
 
-      const updatePayload: Record<string, unknown> = {
-        total,
-        done,
-        status,
-        finished_at: isFinished ? nowIso : null,
-      };
+      const isDemo = Boolean(forceIsDemo || hasDryRunCheck);
 
-      await supabase.from("check_runs").update(updatePayload).eq("id", runId);
+      const updateWithDemo = await supabase
+        .from("check_runs")
+        .update({
+          total,
+          done,
+          status,
+          finished_at: isFinished ? nowIso : null,
+          is_demo: isDemo,
+        })
+        .eq("id", runId);
+
+      if (updateWithDemo.error) {
+        await supabase
+          .from("check_runs")
+          .update({
+            total,
+            done,
+            status,
+            finished_at: isFinished ? nowIso : null,
+          })
+          .eq("id", runId);
+      }
 
       return {
         runId,
@@ -494,27 +615,52 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
         errors,
         pending,
         serpApiCalls,
+        isDemo,
       };
     },
   };
+}
+
+export interface StartRunOptions {
+  isDemo?: boolean;
 }
 
 export interface StartRunResult {
   runId: string;
   total: number;
   status: CheckRunStatus;
+  isExisting: boolean;
+  isDemo: boolean;
 }
 
 /**
  * Membuat satu baris check_runs dan satu run_items untuk setiap keyword aktif.
+ * Bersifat idempoten: jika sudah ada run berstatus 'running', kembalikan run tersebut tanpa membuat baru.
  */
 export async function startCheckRun(
   store: QueueStore,
-  now: Date = new Date()
+  now: Date = new Date(),
+  options: StartRunOptions = {}
 ): Promise<StartRunResult> {
+  const existingRun = await store.getRunningCheckRun();
+  if (existingRun) {
+    return {
+      runId: existingRun.id,
+      total: existingRun.total,
+      status: existingRun.status,
+      isExisting: true,
+      isDemo: Boolean(existingRun.is_demo),
+    };
+  }
+
+  const isDemo =
+    options.isDemo ??
+    (process.env.SERPAPI_DRY_RUN === "true" ||
+      process.env.SERPAPI_DRY_RUN === "1");
+
   const nowIso = now.toISOString();
   const activeKeywords = await store.getActiveKeywords();
-  const run = await store.createCheckRun(activeKeywords.length, nowIso);
+  const run = await store.createCheckRun(activeKeywords.length, nowIso, isDemo);
 
   if (activeKeywords.length > 0) {
     await store.insertRunItems(
@@ -528,6 +674,8 @@ export async function startCheckRun(
     runId: run.id,
     total: activeKeywords.length,
     status: run.status,
+    isExisting: false,
+    isDemo: Boolean(run.is_demo ?? isDemo),
   };
 }
 
@@ -567,7 +715,7 @@ export interface ProcessQueueResult {
 /**
  * Memproses item antrean dengan:
  * 1. Pemulihan item macet (> 10 menit di state processing)
- * 2. Kepatuhan penuh terhadap batas laju SERPAPI_MAX_PER_HOUR (termasuk panggilan ke-2 page_token)
+ * 2. Kepatuhan penuh terhadap batas laju SERPAPI_MAX_PER_HOUR (hanya menghitung panggilan non-dry-run)
  * 3. Klaim item pending secara atomik
  * 4. Percobaan ulang maksimal 2 kali dengan jeda bertambah sebelum ditandai error
  * 5. Satu item gagal tidak menghentikan run
@@ -578,6 +726,12 @@ export async function processQueue(
 ): Promise<ProcessQueueResult> {
   const nowFn = options.nowFn ?? (() => new Date());
   const startTimeMs = nowFn().getTime();
+
+  const isDryRunMode =
+    options.dryRun ??
+    (!options.serpApiFetcher &&
+      (process.env.SERPAPI_DRY_RUN === "true" ||
+        process.env.SERPAPI_DRY_RUN === "1"));
 
   const maxPerHour =
     options.maxPerHour ??
@@ -605,13 +759,13 @@ export async function processQueue(
     currentNow.toISOString()
   );
 
-  // 2. Hitung panggilan SerpApi dalam 60 menit terakhir dari database
+  // 2. Hitung panggilan SerpApi nyata (non-dry-run) dalam 60 menit terakhir dari database
   const oneHourAgoIso = new Date(
     currentNow.getTime() - RATE_LIMIT_WINDOW_MS
   ).toISOString();
   let hourlySerpApiCallsUsed = await store.getHourlySerpApiCalls(oneHourAgoIso);
 
-  if (hourlySerpApiCallsUsed >= maxPerHour) {
+  if (!isDryRunMode && hourlySerpApiCallsUsed >= maxPerHour) {
     return {
       recoveredCount: recoveredIds.length,
       processedCount: 0,
@@ -643,7 +797,7 @@ export async function processQueue(
       break;
     }
 
-    if (hourlySerpApiCallsUsed >= maxPerHour) {
+    if (!isDryRunMode && hourlySerpApiCallsUsed >= maxPerHour) {
       stoppedReason = "rate_limit";
       break;
     }
@@ -669,7 +823,6 @@ export async function processQueue(
     );
 
     if (!claimed) {
-      // Diklaim oleh proses paralel lain, lanjut cari kandidat berikutnya
       continue;
     }
 
@@ -687,8 +840,13 @@ export async function processQueue(
       });
 
       const callsUsed = serpResult.apiCallsCount;
+      const itemIsDryRun =
+        Boolean(options.dryRun) || isDryRunRaw(serpResult.raw);
+
       serpApiCallsUsedInBatch += callsUsed;
-      hourlySerpApiCallsUsed += callsUsed;
+      if (!itemIsDryRun) {
+        hourlySerpApiCallsUsed += callsUsed;
+      }
 
       const evaluation = evaluateAiOverviewDetection(serpResult.parsed, {
         brandDomain,
@@ -714,14 +872,13 @@ export async function processQueue(
       await store.markRunItemDone(claimed.id, doneIso);
       succeededCount++;
     } catch (err) {
-      // Satu keyword yang gagal tidak menghentikan run
       const nextAttempts = claimed.attempts + 1;
       const nextState: "pending" | "error" =
         nextAttempts <= MAX_RETRIES ? "pending" : "error";
       const errMsg = err instanceof Error ? err.message : String(err);
 
-      // Jika galat berasal dari panggilan ke-2 atau ke-1 SerpApi, catat 1 panggilan terpakai
-      const callsUsedOnError = /SerpApi/i.test(errMsg) ? 1 : 0;
+      const callsUsedOnError =
+        !isDryRunMode && /SerpApi/i.test(errMsg) ? 1 : 0;
       serpApiCallsUsedInBatch += callsUsedOnError;
       hourlySerpApiCallsUsed += callsUsedOnError;
 
@@ -746,7 +903,7 @@ export async function processQueue(
       break;
     }
 
-    if (hourlySerpApiCallsUsed >= maxPerHour) {
+    if (!isDryRunMode && hourlySerpApiCallsUsed >= maxPerHour) {
       stoppedReason = "rate_limit";
       break;
     }
@@ -754,7 +911,11 @@ export async function processQueue(
 
   const runsSummary: RunSummary[] = [];
   for (const runId of touchedRunIds) {
-    const summary = await store.syncRunProgress(runId, nowFn().toISOString());
+    const summary = await store.syncRunProgress(
+      runId,
+      nowFn().toISOString(),
+      isDryRunMode ? true : undefined
+    );
     runsSummary.push(summary);
   }
 

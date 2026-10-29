@@ -287,6 +287,33 @@ async function main() {
     );
   }
 
+  // 9b. Format/Lingkungan: Peringatan jika SERPAPI_DRY_RUN=true di produksi atau Vercel
+  const dryRunVal = (
+    localEnv["SERPAPI_DRY_RUN"] ??
+    process.env.SERPAPI_DRY_RUN ??
+    "false"
+  ).toLowerCase();
+  const isDryRunActive = dryRunVal === "true" || dryRunVal === "1";
+  const isProductionOrVercel =
+    process.env.NODE_ENV === "production" ||
+    localEnv["NODE_ENV"] === "production" ||
+    Boolean(process.env.VERCEL) ||
+    Boolean(localEnv["VERCEL"]);
+
+  if (isDryRunActive && isProductionOrVercel) {
+    addResult(
+      "Lingkungan: SERPAPI_DRY_RUN",
+      "WARN",
+      "SERPAPI_DRY_RUN=true aktif saat NODE_ENV=production atau di Vercel. Setel SERPAPI_DRY_RUN=false di produksi agar memakai data SerpApi nyata."
+    );
+  } else {
+    addResult(
+      "Lingkungan: SERPAPI_DRY_RUN",
+      "PASS",
+      `SERPAPI_DRY_RUN=${isDryRunActive ? "true (mode lokal/simulasi)" : "false (mode nyata)"}`
+    );
+  }
+
   // ============================================================================
   // KONEKSI NYATA
   // ============================================================================
