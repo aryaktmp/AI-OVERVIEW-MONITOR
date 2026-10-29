@@ -69,7 +69,7 @@ async function main() {
   loadEnvLocal();
   const { keyword, saveFixtureName } = parseArgs(process.argv.slice(2));
 
-  const result = await fetchKeywordAiOverview(keyword);
+  const result = await fetchKeywordAiOverview(keyword, { dryRun: false });
   const evaluation = evaluateAiOverviewDetection(result.parsed, {
     brandDomain: process.env.BRAND_DOMAIN ?? "linovhr.com",
   });

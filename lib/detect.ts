@@ -1,4 +1,4 @@
-import type { ParsedAiOverview, ParsedAiOverviewSource } from "@/lib/serpapi";
+import type { ParsedAiOverview, ParsedAiOverviewSource } from "./serpapi.ts";
 
 export type CheckStatus = "no_ai_overview" | "not_detected" | "detected";
 

@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { z } from "zod";
 
 export const serpApiSearchParamsSchema = z.object({
@@ -65,6 +67,8 @@ export interface SerpApiRawResponse {
   text_blocks?: SerpApiTextBlock[];
   references?: SerpApiReference[];
   error?: string;
+  serpapi_calls_count?: number;
+  dry_run?: boolean;
   [key: string]: unknown;
 }
 
@@ -74,7 +78,10 @@ export interface SerpApiRawResponse {
  */
 export function sanitizeSerpApiRaw<T>(input: T): T {
   if (typeof input === "string") {
-    return input.replace(/([?&])api_key=[^&\s"']+/gi, "$1api_key=[REDACTED]") as unknown as T;
+    return input.replace(
+      /([?&])api_key=[^&\s"']+/gi,
+      "$1api_key=[REDACTED]"
+    ) as unknown as T;
   }
   if (Array.isArray(input)) {
     return input.map((item) => sanitizeSerpApiRaw(item)) as unknown as T;
@@ -236,6 +243,7 @@ export function parseSerpApiResponse(raw: unknown): ParsedAiOverview {
 export interface SerpApiClientOptions {
   apiKey?: string;
   fetchFn?: typeof fetch;
+  dryRun?: boolean;
 }
 
 export interface SerpApiCheckResult {
@@ -247,8 +255,87 @@ export interface SerpApiCheckResult {
   apiCallsCount: number;
 }
 
+function hashKeyword(keyword: string): number {
+  let h = 0;
+  for (let i = 0; i < keyword.length; i++) {
+    h = (h * 31 + keyword.charCodeAt(i)) >>> 0;
+  }
+  return h;
+}
+
+function loadFixtureJson(fileName: string): SerpApiRawResponse {
+  const filePath = path.join(process.cwd(), "tests", "fixtures", fileName);
+  return JSON.parse(fs.readFileSync(filePath, "utf-8")) as SerpApiRawResponse;
+}
+
+function simulateDryRunKeyword(keyword: string): SerpApiCheckResult {
+  const bucket = hashKeyword(keyword.toLowerCase()) % 3;
+
+  if (bucket === 0) {
+    const firstRaw = sanitizeSerpApiRaw({
+      ...loadFixtureJson("ai-overview-ada.json"),
+      dry_run: true,
+      serpapi_calls_count: 1,
+    });
+    return {
+      parsed: parseSerpApiResponse(firstRaw),
+      raw: firstRaw,
+      firstRaw,
+      secondRaw: null,
+      usedFollowUpPageToken: false,
+      apiCallsCount: 1,
+    };
+  }
+
+  if (bucket === 1) {
+    const firstRaw = sanitizeSerpApiRaw({
+      ...loadFixtureJson("ai-overview-tidak-ada.json"),
+      dry_run: true,
+      serpapi_calls_count: 1,
+    });
+    return {
+      parsed: parseSerpApiResponse(firstRaw),
+      raw: firstRaw,
+      firstRaw,
+      secondRaw: null,
+      usedFollowUpPageToken: false,
+      apiCallsCount: 1,
+    };
+  }
+
+  // Bucket 2: simulasi kasus page_token (2 panggilan SerpApi)
+  const firstRaw = sanitizeSerpApiRaw(
+    loadFixtureJson("ai-overview-page-token.json")
+  );
+  const secondRaw = sanitizeSerpApiRaw(
+    loadFixtureJson("ai-overview-page-token-followup.json")
+  );
+  const mergedRaw: SerpApiRawResponse = sanitizeSerpApiRaw({
+    ...firstRaw,
+    ai_overview: {
+      ...firstRaw.ai_overview,
+      text_blocks: secondRaw.text_blocks,
+      references: secondRaw.references,
+      error: secondRaw.error,
+    },
+    ai_overview_followup: secondRaw,
+    dry_run: true,
+    serpapi_calls_count: 2,
+  });
+
+  return {
+    parsed: parseSerpApiResponse(mergedRaw),
+    raw: mergedRaw,
+    firstRaw,
+    secondRaw,
+    usedFollowUpPageToken: true,
+    apiCallsCount: 2,
+  };
+}
+
 /**
  * Memanggil SerpApi di sisi server untuk satu keyword.
+ * Jika SERPAPI_DRY_RUN=true (dan tidak ada fetchFn khusus), mengembalikan data dari fixture tanpa memanggil jaringan.
  * Jika respons pertama hanya mengembalikan page_token di dalam ai_overview,
  * otomatis melakukan panggilan kedua ke engine=google_ai_overview.
  */
@@ -259,6 +346,16 @@ export async function fetchKeywordAiOverview(
   const params = serpApiSearchParamsSchema.parse(
     typeof input === "string" ? { keyword: input } : input
   );
+
+  const isDryRun =
+    options.dryRun ??
+    (!options.fetchFn &&
+      (process.env.SERPAPI_DRY_RUN === "true" ||
+        process.env.SERPAPI_DRY_RUN === "1"));
+
+  if (isDryRun) {
+    return simulateDryRunKeyword(params.keyword);
+  }
 
   const apiKey = options.apiKey ?? process.env.SERPAPI_KEY;
   if (!apiKey) {
@@ -287,7 +384,10 @@ export async function fetchKeywordAiOverview(
   if (firstRawUnsanitized.error) {
     throw new Error(`SerpApi mengembalikan galat: ${firstRawUnsanitized.error}`);
   }
-  const firstRaw = sanitizeSerpApiRaw(firstRawUnsanitized);
+  const firstRaw = sanitizeSerpApiRaw({
+    ...firstRawUnsanitized,
+    serpapi_calls_count: 1,
+  });
 
   const firstParsed = parseSerpApiResponse(firstRaw);
 
@@ -347,6 +447,7 @@ export async function fetchKeywordAiOverview(
       ...secondAiOverview,
     },
     ai_overview_followup: secondRaw,
+    serpapi_calls_count: 2,
   });
 
   const secondParsed = parseSerpApiResponse(mergedRaw);
