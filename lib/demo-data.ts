@@ -60,83 +60,102 @@ export function isKnownDemoCompetitorDomain(domain: string): boolean {
 }
 
 /**
- * Menghapus seluruh data contoh di keempat tabel:
- * 1. check_runs (beserta checks & check_sources via ON DELETE CASCADE)
+ * Deletes demo data strictly where is_demo = true across:
+ * 1. check_runs (and associated checks/sources via ON DELETE CASCADE)
  * 2. keywords (is_demo = true)
  * 3. keyword_groups (is_demo = true)
  * 4. competitors (is_demo = true)
+ *
+ * Safety check:
+ * Rejects if there are any check_runs with is_demo = true whose checks have raw.dry_run !== true.
  */
 export async function clearAllDemoData(supabase: SupabaseClient): Promise<{
   deletedRunsCount: number;
 }> {
-  // 1. Cari semua run_id yang memiliki checks dengan dry_run = true
-  const { data: dryChecks } = await supabase
-    .from("checks")
-    .select("run_id, raw");
-
-  const demoRunIds = new Set<string>();
-  for (const c of dryChecks ?? []) {
-    const typed = c as { run_id: string; raw: Record<string, unknown> | null };
-    if (typed.raw?.dry_run === true) {
-      demoRunIds.add(typed.run_id);
-    }
-  }
-
-  // Hapus check_runs dengan is_demo = true (jika kolom sudah dimigrasi)
-  const { data: demoRuns } = await supabase
+  // 1. Find all check_runs with is_demo = true
+  const { data: demoRuns, error: runsErr } = await supabase
     .from("check_runs")
     .select("id")
     .eq("is_demo", true);
-  for (const r of demoRuns ?? []) {
-    demoRunIds.add((r as { id: string }).id);
+
+  if (runsErr) {
+    throw new Error(`Failed to query demo check_runs: ${runsErr.message}`);
   }
 
-  await supabase.from("check_runs").delete().eq("is_demo", true);
+  const demoRunIds = (demoRuns ?? []).map((r: { id: string }) => r.id);
 
-  if (demoRunIds.size > 0) {
-    await supabase
+  if (demoRunIds.length > 0) {
+    // 2. Safety check: inspect all checks under demo runs
+    const { data: demoChecks, error: checksErr } = await supabase
+      .from("checks")
+      .select("id, run_id, raw")
+      .in("run_id", demoRunIds);
+
+    if (checksErr) {
+      throw new Error(
+        `Failed to inspect demo checks for safety verification: ${checksErr.message}`
+      );
+    }
+
+    for (const chk of demoChecks ?? []) {
+      const typed = chk as {
+        id: string;
+        run_id: string;
+        raw: Record<string, unknown> | null;
+      };
+      if (!typed.raw || typed.raw.dry_run !== true) {
+        throw new Error(
+          `Safety violation: Check ${typed.id} in is_demo run ${typed.run_id} does not have checks.raw.dry_run = true. Aborting demo clear.`
+        );
+      }
+    }
+
+    // 3. Delete check_runs where is_demo = true
+    const { error: delRunsErr } = await supabase
       .from("check_runs")
       .delete()
-      .in("id", Array.from(demoRunIds));
+      .eq("is_demo", true);
+
+    if (delRunsErr) {
+      throw new Error(
+        `Failed to delete demo check_runs: ${delRunsErr.message}`
+      );
+    }
   }
 
-  // 2. Hapus keywords contoh (is_demo = true, dengan fallback daftar teks seeder)
-  const delKwRes = await supabase
+  // 4. Delete keywords where is_demo = true
+  const { error: delKwErr } = await supabase
     .from("keywords")
     .delete()
     .eq("is_demo", true);
-  if (delKwRes.error) {
-    await supabase
-      .from("keywords")
-      .delete()
-      .in("text", ALL_KNOWN_DEMO_KEYWORD_TEXTS);
+
+  if (delKwErr) {
+    throw new Error(`Failed to delete demo keywords: ${delKwErr.message}`);
   }
 
-  // 3. Hapus keyword_groups contoh (is_demo = true, dengan fallback nama grup seeder)
-  const delGrpRes = await supabase
+  // 5. Delete keyword_groups where is_demo = true
+  const { error: delGrpErr } = await supabase
     .from("keyword_groups")
     .delete()
     .eq("is_demo", true);
-  if (delGrpRes.error) {
-    await supabase
-      .from("keyword_groups")
-      .delete()
-      .in("name", DEMO_GROUP_NAMES);
+
+  if (delGrpErr) {
+    throw new Error(
+      `Failed to delete demo keyword_groups: ${delGrpErr.message}`
+    );
   }
 
-  // 4. Hapus competitors contoh (is_demo = true, dengan fallback domain seeder)
-  const delCompRes = await supabase
+  // 6. Delete competitors where is_demo = true
+  const { error: delCompErr } = await supabase
     .from("competitors")
     .delete()
     .eq("is_demo", true);
-  if (delCompRes.error) {
-    await supabase
-      .from("competitors")
-      .delete()
-      .in("domain", DEMO_COMPETITOR_DOMAINS);
+
+  if (delCompErr) {
+    throw new Error(`Failed to delete demo competitors: ${delCompErr.message}`);
   }
 
   return {
-    deletedRunsCount: demoRunIds.size,
+    deletedRunsCount: demoRunIds.length,
   };
 }

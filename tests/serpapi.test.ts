@@ -116,6 +116,7 @@ describe("Fase 2: Parser & Klien SerpApi dengan Fixture Asli", () => {
     const result = await fetchKeywordAiOverview("succession planning system", {
       apiKey: "fake_test_key",
       fetchFn: mockFetch,
+      dryRun: false,
     });
 
     expect(mockFetch).toHaveBeenCalledTimes(2);
@@ -140,6 +141,7 @@ describe("Fase 2: Parser & Klien SerpApi dengan Fixture Asli", () => {
     const result = await fetchKeywordAiOverview("succession planning system", {
       apiKey: "fake_test_key",
       fetchFn: mockFetch,
+      dryRun: false,
     });
 
     expect(mockFetch).toHaveBeenCalledTimes(2);

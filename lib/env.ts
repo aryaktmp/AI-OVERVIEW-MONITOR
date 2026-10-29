@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isDryRun } from "./dry-run";
 
 export const envSchema = z.object({
   SERPAPI_KEY: z.string().min(1, "SERPAPI_KEY wajib diisi"),
@@ -13,10 +14,9 @@ export const envSchema = z.object({
   BRAND_DOMAIN: z.string().min(1).default("linovhr.com"),
   SERPAPI_MAX_PER_HOUR: z.coerce.number().int().positive().default(50),
   SERPAPI_DRY_RUN: z
-    .enum(["true", "false", "1", "0"])
+    .string()
     .optional()
-    .default("true")
-    .transform((v) => v === "true" || v === "1"),
+    .transform((v) => isDryRun(v)),
   ALLOWED_EMAILS: z.string().default(""),
 });
 

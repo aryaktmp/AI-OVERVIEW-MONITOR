@@ -7,6 +7,7 @@ import path from "node:path";
 import type { Readable } from "node:stream";
 import zlib from "node:zlib";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { isDryRun } from "./dry-run.ts";
 import {
   DEFAULT_BRAND_TERMS,
   detectBrandMentionInText,
@@ -1130,14 +1131,13 @@ export async function checkThirdPartySourcePage(
     }
   }
 
-  const isDryRun =
+  const isDryRunActive =
     options.dryRun ??
     (!options.fetchFn &&
       !options.dnsLookupFn &&
-      (process.env.SERPAPI_DRY_RUN === "true" ||
-        process.env.SERPAPI_DRY_RUN === "1"));
+      isDryRun());
 
-  if (isDryRun) {
+  if (isDryRunActive) {
     const html = loadThirdPartyFixtureHtml(url);
     const analysis = analyzeHtmlForBrand(html, {
       brandDomain: options.brandDomain,

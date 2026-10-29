@@ -12,6 +12,7 @@ import {
 } from "@/lib/queue";
 import { clearAllDemoData } from "@/lib/demo-data";
 import { MAX_CSV_IMPORT_ROWS, parseKeywordCsvPreview } from "@/lib/csv-import";
+import { isDryRun } from "@/lib/dry-run";
 
 async function requireAllowedAdminUser() {
   const supabase = await createSupabaseServerClient();
@@ -527,8 +528,7 @@ export async function processRunBatchAction(runId?: string) {
 
   const supabase = createSupabaseAdminClient();
   const store = createSupabaseQueueStore(supabase);
-  const isDryRunEnv =
-    (process.env.SERPAPI_DRY_RUN ?? "").trim().toLowerCase() === "true";
+  const isDryRunEnv = isDryRun();
 
   // Jika SERPAPI_DRY_RUN=false, jangan jalankan pemrosesan untuk run dengan is_demo = true
   if (!isDryRunEnv) {

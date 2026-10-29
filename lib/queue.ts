@@ -18,6 +18,7 @@ import {
   evaluateThirdPartySourcesForCheck,
   type PageCacheStore,
 } from "./fetch-page.ts";
+import { isDryRun } from "./dry-run.ts";
 
 export const STUCK_PROCESSING_TIMEOUT_MS = 10 * 60 * 1000; // 10 menit
 export const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 60 menit
@@ -226,7 +227,7 @@ export function compactSerpApiRawForStorage(
     sanitized.used_followup_page_token === true
       ? { used_followup_page_token: true }
       : {}),
-    ...(sanitized.dry_run === true ? { dry_run: true } : {}),
+    dry_run: sanitized.dry_run === true,
     ...(sanitized.demo_seed === true ? { demo_seed: true } : {}),
     ...(typeof sanitized.week_label === "string"
       ? { week_label: sanitized.week_label }
@@ -788,10 +789,7 @@ export async function startCheckRun(
     };
   }
 
-  const isDemo =
-    options.isDemo ??
-    (process.env.SERPAPI_DRY_RUN === "true" ||
-      process.env.SERPAPI_DRY_RUN === "1");
+  const isDemo = options.isDemo ?? isDryRun();
 
   const nowIso = now.toISOString();
   const allActiveKeywords = await store.getActiveKeywords();
@@ -893,9 +891,7 @@ export async function processQueue(
 
   const isDryRunMode =
     options.dryRun ??
-    (!options.serpApiFetcher &&
-      (process.env.SERPAPI_DRY_RUN === "true" ||
-        process.env.SERPAPI_DRY_RUN === "1"));
+    (!options.serpApiFetcher && isDryRun());
 
   const maxPerHour =
     options.maxPerHour ??
@@ -1123,13 +1119,13 @@ export async function processQueue(
             )
           : baseEvaluation;
 
-      const rawWithThirdPartyStats =
-        "thirdPartyStats" in evaluation && evaluation.thirdPartyStats
-          ? {
-              ...serpResult.raw,
-              third_party_check: evaluation.thirdPartyStats,
-            }
-          : serpResult.raw;
+      const rawWithThirdPartyStats = {
+        ...serpResult.raw,
+        dry_run: itemIsDryRun,
+        ...("thirdPartyStats" in evaluation && evaluation.thirdPartyStats
+          ? { third_party_check: evaluation.thirdPartyStats }
+          : {}),
+      };
 
       const doneIso = nowFn().toISOString();
       await store.saveCheckAndSources({

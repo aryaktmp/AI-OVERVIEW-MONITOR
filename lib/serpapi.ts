@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { z } from "zod";
+import { isDryRun } from "./dry-run";
 
 export const serpApiSearchParamsSchema = z.object({
   keyword: z.string().trim().min(1, "Keyword tidak boleh kosong"),
@@ -347,13 +348,9 @@ export async function fetchKeywordAiOverview(
     typeof input === "string" ? { keyword: input } : input
   );
 
-  const isDryRun =
-    options.dryRun ??
-    (!options.fetchFn &&
-      (process.env.SERPAPI_DRY_RUN === "true" ||
-        process.env.SERPAPI_DRY_RUN === "1"));
+  const dryRunMode = options.dryRun ?? isDryRun();
 
-  if (isDryRun) {
+  if (dryRunMode) {
     return simulateDryRunKeyword(params.keyword);
   }
 

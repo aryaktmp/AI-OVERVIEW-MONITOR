@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { execSync } from "node:child_process";
 import { createClient } from "@supabase/supabase-js";
+import { isDryRun } from "../lib/dry-run.ts";
 
 type CheckStatus = "PASS" | "WARN" | "FAIL" | "SKIP";
 
@@ -303,35 +304,40 @@ async function main() {
   }
 
   // 9b. Format/Lingkungan: Peringatan jika SERPAPI_DRY_RUN=true di produksi atau Vercel
-  const dryRunVal = (
-    localEnv["SERPAPI_DRY_RUN"] ??
-    process.env.SERPAPI_DRY_RUN ??
-    "false"
-  ).toLowerCase();
-  const isDryRunActive = dryRunVal === "true" || dryRunVal === "1";
+  const explicitDryRunVal =
+    localEnv["SERPAPI_DRY_RUN"] ?? process.env.SERPAPI_DRY_RUN;
+  const isExplicitlySet =
+    explicitDryRunVal !== undefined && explicitDryRunVal.trim() !== "";
+  const isDryRunActive = isDryRun(explicitDryRunVal);
   const isProductionOrVercel =
     process.env.NODE_ENV === "production" ||
     localEnv["NODE_ENV"] === "production" ||
     Boolean(process.env.VERCEL) ||
     Boolean(localEnv["VERCEL"]);
 
-  if (isDryRunActive && isProductionMode) {
+  if (isProductionMode && !isExplicitlySet) {
     addResult(
-      "Lingkungan: SERPAPI_DRY_RUN",
+      "Environment: SERPAPI_DRY_RUN",
       "FAIL",
-      "Mode --production aktif tetapi SERPAPI_DRY_RUN masih bernilai true. Ubah SERPAPI_DRY_RUN=false untuk lingkungan produksi."
+      "Mode --production requires SERPAPI_DRY_RUN to be explicitly set in the environment (must be set to 'false' or '0')."
+    );
+  } else if (isDryRunActive && isProductionMode) {
+    addResult(
+      "Environment: SERPAPI_DRY_RUN",
+      "FAIL",
+      "Mode --production is active but SERPAPI_DRY_RUN is set to dry run (true). Change SERPAPI_DRY_RUN=false for production environment."
     );
   } else if (isDryRunActive && isProductionOrVercel) {
     addResult(
-      "Lingkungan: SERPAPI_DRY_RUN",
+      "Environment: SERPAPI_DRY_RUN",
       "WARN",
-      "SERPAPI_DRY_RUN=true aktif saat NODE_ENV=production atau di Vercel. Setel SERPAPI_DRY_RUN=false di produksi agar memakai data SerpApi nyata."
+      "SERPAPI_DRY_RUN=true is active while NODE_ENV=production or on Vercel. Set SERPAPI_DRY_RUN=false in production to use real SerpApi data."
     );
   } else {
     addResult(
-      "Lingkungan: SERPAPI_DRY_RUN",
+      "Environment: SERPAPI_DRY_RUN",
       "PASS",
-      `SERPAPI_DRY_RUN=${isDryRunActive ? "true (mode lokal/simulasi)" : "false (mode nyata)"}`
+      `SERPAPI_DRY_RUN=${isDryRunActive ? "true (local/simulation mode)" : "false (real/live mode)"}`
     );
   }
 

@@ -23,6 +23,7 @@ import {
   isKnownDemoGroupName,
   isKnownDemoKeywordText,
 } from "@/lib/demo-data";
+import { isDryRun } from "@/lib/dry-run";
 
 export interface SearchSettingsConfig {
   location: string;
@@ -519,9 +520,7 @@ export async function getSettingsPageData(): Promise<{
     Number(process.env.SERPAPI_MAX_PER_HOUR) > 0
       ? Number(process.env.SERPAPI_MAX_PER_HOUR)
       : 50;
-  const isDryRunEnv =
-    process.env.SERPAPI_DRY_RUN === "true" ||
-    process.env.SERPAPI_DRY_RUN === "1";
+  const isDryRunEnv = isDryRun();
 
   const hasDemoCompetitors = (compData ?? []).some((c: { domain: string }) =>
     isKnownDemoCompetitorDomain(c.domain)
