@@ -6,30 +6,21 @@ import {
   processQueue,
   extractSerpApiCallsFromRaw,
   type QueueStore,
+  type CheckRunRecord,
+  type RunItemRecord,
+  type CheckRunStatus,
+  type RunSummary,
+  type KeywordRecord,
 } from "@/lib/queue";
 import { clearAllDemoData } from "@/lib/demo-data";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 function createMockQueueStore(options?: { hourlyCalls?: number }) {
-  const keywords = [{ id: "kw-1", text: "software hr terbaik", active: true }];
-  const runs: Array<{
-    id: string;
-    started_at: string;
-    finished_at: string | null;
-    status: string;
-    total: number;
-    done: number;
-    is_demo?: boolean;
-  }> = [];
-  const items: Array<{
-    id: string;
-    run_id: string;
-    keyword_id: string;
-    state: string;
-    attempts: number;
-    updated_at: string;
-    run_is_demo: boolean;
-  }> = [];
+  const keywords: KeywordRecord[] = [
+    { id: "kw-1", text: "software hr terbaik", active: true },
+  ];
+  const runs: CheckRunRecord[] = [];
+  const items: RunItemRecord[] = [];
 
   const store: QueueStore = {
     async getRunningCheckRun() {
@@ -39,11 +30,11 @@ function createMockQueueStore(options?: { hourlyCalls?: number }) {
       return keywords.filter((k) => k.active);
     },
     async createCheckRun(total: number, nowIso: string, isDemo = false) {
-      const run = {
+      const run: CheckRunRecord = {
         id: `run-${runs.length + 1}`,
         started_at: nowIso,
         finished_at: null,
-        status: "running",
+        status: "running" as CheckRunStatus,
         total,
         done: 0,
         is_demo: isDemo,
@@ -60,6 +51,7 @@ function createMockQueueStore(options?: { hourlyCalls?: number }) {
           keyword_id: kwId,
           state: "pending",
           attempts: 0,
+          error: null,
           updated_at: nowIso,
           run_is_demo: Boolean(parent?.is_demo),
         });
@@ -91,21 +83,6 @@ function createMockQueueStore(options?: { hourlyCalls?: number }) {
         enableThirdPartyCheck: false,
       };
     },
-    async getBrandTerms() {
-      return [];
-    },
-    async getCompetitorDomains() {
-      return [];
-    },
-    async getSearchConfig() {
-      return {
-        location: "Indonesia",
-        googleDomain: "google.co.id",
-        gl: "id",
-        hl: "id",
-        enableThirdPartyCheck: false,
-      };
-    },
     async saveCheckAndSources() {
       return "chk-1";
     },
@@ -113,14 +90,17 @@ function createMockQueueStore(options?: { hourlyCalls?: number }) {
       const itm = items.find((i) => i.id === itemId);
       if (itm) itm.state = "done";
     },
-    async markRunItemError() {},
-    async syncRunProgress(runId: string) {
+    async markRunItemFailedAttempt() {},
+    async syncRunProgress(runId: string): Promise<RunSummary> {
       const run = runs.find((r) => r.id === runId);
       return {
         runId,
         total: run?.total ?? 1,
         done: 1,
-        status: "done",
+        errors: 0,
+        pending: 0,
+        status: "done" as CheckRunStatus,
+        serpApiCalls: 2,
         isDemo: Boolean(run?.is_demo),
       };
     },
@@ -245,7 +225,12 @@ describe("Single source of truth: isDryRun (lib/dry-run.ts)", () => {
       dryRun: false,
       maxPerHour: 50,
       serpApiFetcher: async () => ({
-        parsed: { hasAiOverview: false, sources: [] },
+        parsed: {
+          hasAiOverview: false,
+          sources: [],
+          answerText: "",
+          pageToken: null,
+        },
         raw: { serpapi_calls_count: 2, dry_run: false },
         firstRaw: {},
         secondRaw: null,
