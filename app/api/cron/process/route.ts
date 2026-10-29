@@ -1,15 +1,17 @@
 import { NextResponse } from "next/server";
 import { verifyCronSecret } from "@/lib/cron-auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { createSupabaseQueueStore, processQueue } from "@/lib/queue";
+import {
+  createSupabaseQueueStore,
+  getConfiguredMaxDurationMs,
+  processQueue,
+} from "@/lib/queue";
 
 export const dynamic = "force-dynamic";
 
-// Batas durasi maksimum fungsi serverless (detik)
+// Tetap diekspor untuk kompatibilitas runtime serverless, sedangkan batas waktu kerja
+// sesungguhnya dikendalikan oleh variabel lingkungan MAX_DURATION_MS (nilai awal 50000 ms).
 export const maxDuration = 60;
-
-// Berhenti memproses 10 detik sebelum batas waktu fungsi habis
-const SAFE_PROCESS_BUDGET_MS = (maxDuration - 10) * 1000;
 
 async function handleProcessQueue(request: Request) {
   if (!verifyCronSecret(request)) {
@@ -22,14 +24,23 @@ async function handleProcessQueue(request: Request) {
   try {
     const supabase = createSupabaseAdminClient();
     const store = createSupabaseQueueStore(supabase);
+    const maxDurationMs = getConfiguredMaxDurationMs();
     const result = await processQueue(store, {
-      maxDurationMs: SAFE_PROCESS_BUDGET_MS,
+      maxDurationMs,
     });
 
-    return NextResponse.json(result, {
-      status: 200,
-      headers: { "Cache-Control": "no-store, max-age=0" },
-    });
+    return NextResponse.json(
+      {
+        ...result,
+        pending: result.pending,
+        stoppedReason: result.stoppedReason,
+        runStatus: result.runStatus,
+      },
+      {
+        status: 200,
+        headers: { "Cache-Control": "no-store, max-age=0" },
+      }
+    );
   } catch (err) {
     return NextResponse.json(
       {

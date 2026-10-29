@@ -840,6 +840,26 @@ export interface ProcessQueueOptions {
   ) => Promise<SerpApiCheckResult>;
 }
 
+export type RunStatus = "running" | "done" | "failed" | "idle";
+
+export const DEFAULT_MAX_DURATION_MS = 50_000;
+
+/**
+ * Membaca batas waktu pemrosesan dari variabel lingkungan MAX_DURATION_MS (nilai awal 50000 ms),
+ * sehingga netral terhadap platform hosting (Vercel maupun VPS sendiri).
+ */
+export function getConfiguredMaxDurationMs(
+  fallbackMs: number = DEFAULT_MAX_DURATION_MS
+): number {
+  const raw = process.env.MAX_DURATION_MS;
+  if (!raw) return fallbackMs;
+  const parsed = Number(raw.trim());
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return Math.floor(parsed);
+  }
+  return fallbackMs;
+}
+
 export interface ProcessQueueResult {
   recoveredCount: number;
   processedCount: number;
@@ -849,6 +869,8 @@ export interface ProcessQueueResult {
   serpApiCallsUsedInBatch: number;
   hourlySerpApiCallsUsed: number;
   maxPerHour: number;
+  pending: number;
+  runStatus: RunStatus;
   stoppedReason: ProcessStoppedReason;
   runsSummary: RunSummary[];
 }
@@ -856,10 +878,11 @@ export interface ProcessQueueResult {
 /**
  * Memproses item antrean dengan:
  * 1. Pemulihan item macet (> 10 menit di state processing)
- * 2. Kepatuhan penuh terhadap batas laju SERPAPI_MAX_PER_HOUR (hanya menghitung panggilan non-dry-run)
- * 3. Klaim item pending secara atomik
- * 4. Percobaan ulang maksimal 2 kali dengan jeda bertambah sebelum ditandai error
- * 5. Satu item gagal tidak menghentikan run
+ * 2. Jalur cepat (fast-path) jika tidak ada item pending agar segera mengembalikan HTTP 200
+ * 3. Kepatuhan penuh terhadap batas laju SERPAPI_MAX_PER_HOUR (hanya menghitung panggilan non-dry-run)
+ * 4. Klaim item pending secara atomik
+ * 5. Percobaan ulang maksimal 2 kali dengan jeda bertambah sebelum ditandai error
+ * 6. Satu item gagal tidak menghentikan run
  */
 export async function processQueue(
   store: QueueStore,
@@ -880,7 +903,8 @@ export async function processQueue(
       ? Number(process.env.SERPAPI_MAX_PER_HOUR)
       : 50);
   const maxItems = options.maxItems ?? 50;
-  const maxDurationMs = options.maxDurationMs ?? 50_000;
+  const maxDurationMs =
+    options.maxDurationMs ?? getConfiguredMaxDurationMs(DEFAULT_MAX_DURATION_MS);
   const retryBaseDelayMs =
     options.retryBaseDelayMs ?? DEFAULT_RETRY_BASE_DELAY_MS;
   const brandDomain =
@@ -900,13 +924,43 @@ export async function processQueue(
     currentNow.toISOString()
   );
 
-  // 2. Hitung panggilan SerpApi nyata (non-dry-run) dalam 60 menit terakhir dari database
+  const isCandidateEligible = (item: RunItemRecord, refNow: Date): boolean => {
+    if (!isDryRunMode && item.run_is_demo === true) {
+      return false;
+    }
+    if (item.attempts <= 0) return true;
+    const delayMs = getRetryDelayMs(item.attempts, retryBaseDelayMs);
+    const updatedMs = Date.parse(item.updated_at);
+    if (Number.isNaN(updatedMs)) return true;
+    return refNow.getTime() - updatedMs >= delayMs;
+  };
+
+  // 2. Jalur cepat: periksa kandidat pending terlebih dahulu supaya kembali 200 dengan cepat saat antrean kosong
+  const initialCandidates = await store.listPendingCandidates(20);
+  const firstEligible = initialCandidates.find((item) =>
+    isCandidateEligible(item, currentNow)
+  );
+
   const oneHourAgoIso = new Date(
     currentNow.getTime() - RATE_LIMIT_WINDOW_MS
   ).toISOString();
-  let hourlySerpApiCallsUsed = await store.getHourlySerpApiCalls(oneHourAgoIso);
 
-  if (!isDryRunMode && hourlySerpApiCallsUsed >= maxPerHour) {
+  if (!firstEligible) {
+    const activeRun = await store.getRunningCheckRun();
+    let pending = 0;
+    let runStatus: RunStatus = "idle";
+    if (activeRun) {
+      const summary = await store.syncRunProgress(
+        activeRun.id,
+        currentNow.toISOString(),
+        isDryRunMode ? true : undefined
+      );
+      pending = summary.pending;
+      runStatus = summary.status;
+    }
+    const hourlySerpApiCallsUsed =
+      await store.getHourlySerpApiCalls(oneHourAgoIso);
+
     return {
       recoveredCount: recoveredIds.length,
       processedCount: 0,
@@ -916,6 +970,41 @@ export async function processQueue(
       serpApiCallsUsedInBatch: 0,
       hourlySerpApiCallsUsed,
       maxPerHour,
+      pending,
+      runStatus,
+      stoppedReason: "queue_empty",
+      runsSummary: [],
+    };
+  }
+
+  // 3. Hitung panggilan SerpApi nyata (non-dry-run) dalam 60 menit terakhir dari database
+  let hourlySerpApiCallsUsed = await store.getHourlySerpApiCalls(oneHourAgoIso);
+
+  if (!isDryRunMode && hourlySerpApiCallsUsed >= maxPerHour) {
+    const activeRun = await store.getRunningCheckRun();
+    let pending = initialCandidates.length;
+    let runStatus: RunStatus = "running";
+    if (activeRun) {
+      const summary = await store.syncRunProgress(
+        activeRun.id,
+        currentNow.toISOString(),
+        isDryRunMode ? true : undefined
+      );
+      pending = summary.pending;
+      runStatus = summary.status;
+    }
+
+    return {
+      recoveredCount: recoveredIds.length,
+      processedCount: 0,
+      succeededCount: 0,
+      retriedCount: 0,
+      failedCount: 0,
+      serpApiCallsUsedInBatch: 0,
+      hourlySerpApiCallsUsed,
+      maxPerHour,
+      pending,
+      runStatus,
       stoppedReason: "rate_limit",
       runsSummary: [],
     };
@@ -1114,6 +1203,22 @@ export async function processQueue(
     runsSummary.push(summary);
   }
 
+  let pending = runsSummary.reduce((sum, r) => sum + r.pending, 0);
+  let runStatus: RunStatus = runsSummary[0]?.status ?? "idle";
+
+  if (runsSummary.length === 0) {
+    const activeRun = await store.getRunningCheckRun();
+    if (activeRun) {
+      const summary = await store.syncRunProgress(
+        activeRun.id,
+        nowFn().toISOString(),
+        isDryRunMode ? true : undefined
+      );
+      pending = summary.pending;
+      runStatus = summary.status;
+    }
+  }
+
   return {
     recoveredCount: recoveredIds.length,
     processedCount,
@@ -1123,6 +1228,8 @@ export async function processQueue(
     serpApiCallsUsedInBatch,
     hourlySerpApiCallsUsed,
     maxPerHour,
+    pending,
+    runStatus,
     stoppedReason,
     runsSummary,
   };

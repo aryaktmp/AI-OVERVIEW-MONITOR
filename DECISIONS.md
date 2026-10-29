@@ -65,5 +65,23 @@ Dokumen ini mencatat keputusan teknis yang diambil ketika spesifikasi di `SPEC.m
 2. **Cache Dua Lapis di `page_cache`**:
    - Hasil berhasil (`status` 200–299, `text/html`) disimpan dan dipakai ulang selama 7 hari.
    - Hasil gagal (timeout 8 detik, ditolak SSRF, status HTTP >= 400, atau bukan `text/html`) disimpan dengan `mentions_brand = false` dan `status = 0` (atau kode galat HTTP) selama 24 jam agar tidak diulang terus-menerus.
+3. **Batas Waktu Total 15 Detik per Keyword & Dekompresi Terbatas (Pengerasan Fase 5)**:
+   - Pemeriksaan sumber pihak ketiga dibatasi maksimal 15 detik per keyword (`KEYWORD_THIRD_PARTY_TIMEOUT_MS = 15_000`). Sumber yang belum selesai saat batas waktu habis dilewati (`mentions_brand = false`) tanpa memblokir keyword berikutnya, dan statistik durasinya dicatat di `checks.raw.third_party_check`.
+   - Batas ukuran 500 KB (`MAX_HTML_BYTES`) diterapkan pada aliran data setelah dekompresi (`gzip`, `deflate`, `br`) untuk mencegah payload terkompresi berukuran besar melampaui memori.
+
+## Fase 6: Ekspor CSV, Penjadwalan Vercel Hobby, dan Kesiapan Pindah ke VPS
+
+1. **Arsitektur Netral Platform (Tanpa Layanan Khusus Vercel)**:
+   - Aplikasi tidak memakai paket atau layanan khusus Vercel (`@vercel/*`, Vercel KV, Edge Config, Blob, maupun header `x-vercel-*`). Seluruh state antrean, cache halaman, dan pengaturan disimpan di PostgreSQL (Supabase).
+   - Semua penjadwalan hanya memanggil endpoint HTTP standar (`/api/cron/start-run`, `/api/cron/process`, `/api/cron/cleanup-raw`) dengan header `Authorization: Bearer <CRON_SECRET>`.
+2. **Batas Waktu Pemrosesan dari `MAX_DURATION_MS` (`lib/queue.ts`)**:
+   - Durasi kerja per pemanggilan `/api/cron/process` dibaca dari variabel lingkungan `MAX_DURATION_MS` (nilai awal `50000` ms) lewat `getConfiguredMaxDurationMs()`, bukan konstanta tetap yang terikat pada batas 60 detik Vercel. Saat dipindahkan ke VPS sendiri, batas ini dapat disesuaikan langsung dari `.env`.
+3. **Jalur Cepat (Fast-Path) & Respons Terstruktur pada `/api/cron/process`**:
+   - Endpoint `/api/cron/process` selalu menyertakan `pending`, `stoppedReason`, dan `runStatus` di dalam respons JSON.
+   - Jika tidak ada item `pending` yang memenuhi syarat, `processQueue` langsung mengembalikan HTTP `200` (`pending: 0, stoppedReason: "queue_empty"`) tanpa menjalankan query konteks deteksi yang tidak perlu.
+4. **Kombinasi Vercel Cron Harian + Loop GitHub Actions untuk Tahap Uji (Vercel Hobby)**:
+   - Karena Vercel Hobby hanya mengizinkan cron maksimal sekali sehari, `vercel.json` hanya mendaftarkan 2 cron: `/api/cron/start-run` (`0 1 * * 1`, Senin 01:00 UTC / 08:00 WIB, yang sekaligus membersihkan `checks.raw` > 90 hari) dan `/api/cron/process` (`0 2 * * *`, harian 02:00 UTC).
+   - Pengurasan antrean mingguan dijalankan oleh `.github/workflows/process-queue.yml` setiap jam pada hari Senin dan Selasa (`0 * * * 1,2`), yang memanggil `/api/cron/process` berulang kali dengan jeda 20 detik hingga `pending = 0`, `stoppedReason = "rate_limit"`, atau 10 menit habis. Saat pindah ke VPS, workflow ini langsung digantikan oleh `crontab` sistem di VPS.
+
 
 

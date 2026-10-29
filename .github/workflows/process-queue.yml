@@ -1,13 +1,20 @@
-# Opsional untuk Vercel Hobby:
-# Paket Vercel Hobby hanya mengizinkan cron maksimal 1 kali sehari (dipakai di vercel.json untuk start-run & cleanup-raw).
-# Workflow GitHub Actions ini memicu /api/cron/process setiap 5 menit untuk menguras antrean run_items secara bertahap.
-# Jika Anda menggunakan paket Vercel Pro, Anda dapat menonaktifkan workflow ini dan menambahkan "/api/cron/process" ("*/5 * * * *") langsung ke vercel.json.
+# Penjadwal Pemroses Antrean untuk Tahap Uji (Vercel Hobby):
+# Pada tahap uji di Vercel Hobby, cron bawaan hanya dapat berjalan sekali sehari.
+# Workflow GitHub Actions ini berjalan tiap jam pada hari Senin dan Selasa (0 * * * 1,2 UTC)
+# serta dapat dipicu manual lewat workflow_dispatch.
+# Setiap eksekusi memanggil /api/cron/process berulang kali dengan jeda 20 detik sampai
+# pending = 0, batas laju per jam (rate_limit) tercapai, atau batas waktu 10 menit habis.
+#
+# CATATAN MIGRASI VPS:
+# Saat aplikasi dipindahkan ke VPS sendiri, workflow GitHub Actions ini tidak lagi diperlukan
+# dan digantikan langsung oleh cron sistem (crontab / systemd timer) di VPS yang memanggil
+# endpoint HTTP /api/cron/start-run dan /api/cron/process dengan header Bearer CRON_SECRET.
 
 name: Proses Antrean AI Overview
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "0 * * * 1,2"
   workflow_dispatch:
 
 permissions:
@@ -19,12 +26,12 @@ concurrency:
 
 jobs:
   process-queue:
-    name: Panggil /api/cron/process
+    name: Kuras antrean /api/cron/process (maks 10 menit)
     if: ${{ vars.ENABLE_QUEUE_WORKFLOW != 'false' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 11
     steps:
-      - name: Panggil endpoint pemroses antrean
+      - name: Panggil /api/cron/process berulang hingga selesai atau batas laju
         env:
           APP_URL: ${{ secrets.APP_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
@@ -34,13 +41,54 @@ jobs:
             echo "Secret APP_URL atau CRON_SECRET belum diatur di GitHub Repository Secrets. Melewati eksekusi."
             exit 0
           fi
+
           TARGET_URL="${APP_URL%/}/api/cron/process"
-          HTTP_STATUS=$(curl -sS -o /tmp/cron_response.json -w "%{http_code}" \
-            -X POST "$TARGET_URL" \
-            -H "Authorization: Bearer ${CRON_SECRET}" \
-            -H "Content-Type: application/json")
-          echo "Status HTTP dari /api/cron/process: $HTTP_STATUS"
-          if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
-            echo "Pemanggilan /api/cron/process gagal dengan kode HTTP $HTTP_STATUS"
-            exit 1
-          fi
+          START_EPOCH=$(date +%s)
+          MAX_SECONDS=600
+          ITERATION=0
+
+          while true; do
+            NOW_EPOCH=$(date +%s)
+            ELAPSED=$((NOW_EPOCH - START_EPOCH))
+            if [ "$ELAPSED" -ge "$MAX_SECONDS" ]; then
+              echo "Batas waktu eksekusi 10 menit (${ELAPSED}s) tercapai. Menghentikan loop."
+              break
+            fi
+
+            ITERATION=$((ITERATION + 1))
+            HTTP_STATUS=$(curl -sS -o /tmp/cron_response.json -w "%{http_code}" \
+              -X POST "$TARGET_URL" \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              -H "Content-Type: application/json")
+
+            if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
+              echo "[Iterasi $ITERATION] Pemanggilan /api/cron/process gagal dengan kode HTTP $HTTP_STATUS"
+              exit 1
+            fi
+
+            PENDING=$(jq -r '.pending // 0' /tmp/cron_response.json 2>/dev/null || echo "0")
+            STOPPED_REASON=$(jq -r '.stoppedReason // "unknown"' /tmp/cron_response.json 2>/dev/null || echo "unknown")
+            RUN_STATUS=$(jq -r '.runStatus // "idle"' /tmp/cron_response.json 2>/dev/null || echo "idle")
+            PROCESSED=$(jq -r '.processedCount // 0' /tmp/cron_response.json 2>/dev/null || echo "0")
+
+            echo "[Iterasi $ITERATION | ${ELAPSED}s] HTTP=$HTTP_STATUSprocessed=$PROCESSED pending=$PENDING stoppedReason=$STOPPED_REASON runStatus=$RUN_STATUS"
+
+            if [ "$PENDING" = "0" ] || [ "$STOPPED_REASON" = "queue_empty" ] || [ "$STOPPED_REASON" = "no_more_items" ]; then
+              echo "Tidak ada item pending tersisa (pending=0). Selesai."
+              break
+            fi
+
+            if [ "$STOPPED_REASON" = "rate_limit" ]; then
+              echo "Batas laju per jam (SERPAPI_MAX_PER_HOUR) tercapai. Berhenti hingga jam berikutnya."
+              break
+            fi
+
+            NOW_AFTER=$(date +%s)
+            ELAPSED_AFTER=$((NOW_AFTER - START_EPOCH))
+            if [ $((ELAPSED_AFTER + 20)) -ge "$MAX_SECONDS" ]; then
+              echo "Sisa waktu kurang dari 20 detik sebelum batas 10 menit. Menghentikan loop."
+              break
+            fi
+
+            sleep 20
+          done

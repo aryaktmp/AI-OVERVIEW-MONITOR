@@ -90,13 +90,26 @@ async function main() {
 
   const localEnv = parseEnvFile(envLocalPath);
 
-  // 1. Format: Semua variabel di .env.example ada dan tidak kosong
+  const optionalExampleKeys = new Set([
+    "MAX_DURATION_MS",
+    "APP_URL",
+    "SITE_URL",
+  ]);
+
+  // 1. Format: Semua variabel wajib di .env.example ada dan tidak kosong
   const missingKeys: string[] = [];
   const summaryMeta: string[] = [];
   for (const key of exampleKeys) {
     const val = localEnv[key];
     if (val === undefined || val === "") {
-      missingKeys.push(key);
+      if (optionalExampleKeys.has(key)) {
+        const defaultVal = exampleEnv[key];
+        summaryMeta.push(
+          `${key}: opsional (${defaultVal ? `bawaan ${defaultVal}` : "kosong"})`
+        );
+      } else {
+        missingKeys.push(key);
+      }
     } else {
       summaryMeta.push(`${key}: terisi (${val.length} karakter)`);
     }
@@ -538,15 +551,13 @@ async function main() {
           );
         }
 
-        // Periksa Site URL (dari variabel lingkungan atau konfigurasi Auth jika dapat dibaca)
+        // Periksa Site URL (dari variabel lingkungan netral SITE_URL / APP_URL atau konfigurasi Auth jika dapat dibaca)
         const configuredSiteUrl =
           localEnv["SITE_URL"] ||
           localEnv["APP_URL"] ||
           process.env.SITE_URL ||
           process.env.APP_URL ||
-          (process.env.VERCEL_PROJECT_PRODUCTION_URL
-            ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-            : "");
+          "";
 
         let detectedSiteUrl = configuredSiteUrl;
         if (!detectedSiteUrl) {

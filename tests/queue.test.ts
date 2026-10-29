@@ -1,7 +1,11 @@
+import fs from "node:fs";
+import path from "node:path";
 import { describe, it, expect } from "vitest";
 import {
   compactSerpApiRawForStorage,
+  DEFAULT_MAX_DURATION_MS,
   extractSerpApiCallsFromRaw,
+  getConfiguredMaxDurationMs,
   getRetryDelayMs,
   processQueue,
   startCheckRun,
@@ -16,15 +20,18 @@ import { DEFAULT_BRAND_TERMS } from "@/lib/detect";
 import {
   GET as startRunGet,
   POST as startRunPost,
+  dynamic as startRunDynamic,
 } from "@/app/api/cron/start-run/route";
 import {
   GET as processGet,
   POST as processPost,
+  dynamic as processDynamic,
   maxDuration as processMaxDuration,
 } from "@/app/api/cron/process/route";
 import {
   GET as cleanupRawGet,
   POST as cleanupRawPost,
+  dynamic as cleanupRawDynamic,
 } from "@/app/api/cron/cleanup-raw/route";
 import type { SerpApiCheckResult } from "@/lib/serpapi";
 
@@ -645,5 +652,82 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
     expect(skippedDemoRes.processedCount).toBe(0);
     expect(demoStoreCtx.checks).toHaveLength(0);
     expect(demoStoreCtx.items[0]?.state).toBe("pending");
+  });
+
+  it("memakai MAX_DURATION_MS dari env (bawaan 50000), mengembalikan pending/stoppedReason/runStatus dengan cepat saat kosong, dan memvalidasi jadwal Hobby & VPS", async () => {
+    // 1. Semua route cron wajib mengekspor dynamic = "force-dynamic"
+    expect(startRunDynamic).toBe("force-dynamic");
+    expect(processDynamic).toBe("force-dynamic");
+    expect(cleanupRawDynamic).toBe("force-dynamic");
+
+    // 2. MAX_DURATION_MS dari variabel lingkungan (bawaan 50000)
+    const prevMaxDur = process.env.MAX_DURATION_MS;
+    delete process.env.MAX_DURATION_MS;
+    expect(DEFAULT_MAX_DURATION_MS).toBe(50_000);
+    expect(getConfiguredMaxDurationMs()).toBe(50_000);
+
+    process.env.MAX_DURATION_MS = "42000";
+    expect(getConfiguredMaxDurationMs()).toBe(42_000);
+
+    process.env.MAX_DURATION_MS = "bukan-angka";
+    expect(getConfiguredMaxDurationMs()).toBe(50_000);
+    if (prevMaxDur !== undefined) {
+      process.env.MAX_DURATION_MS = prevMaxDur;
+    } else {
+      delete process.env.MAX_DURATION_MS;
+    }
+
+    // 3. Jalur cepat saat tidak ada item pending: langsung mengembalikan pending=0, stoppedReason='queue_empty', runStatus='idle'
+    const emptyCtx = createInMemoryQueueStore({ items: [] });
+    const emptyRes = await processQueue(emptyCtx.store, { dryRun: false });
+    expect(emptyRes.processedCount).toBe(0);
+    expect(emptyRes.pending).toBe(0);
+    expect(emptyRes.stoppedReason).toBe("queue_empty");
+    expect(emptyRes.runStatus).toBe("idle");
+
+    // Saat ada 3 item dan baru diproses 1 item (maxItems: 1): pending=2, stoppedReason='max_items', runStatus='running'
+    const activeCtx = createInMemoryQueueStore();
+    await startCheckRun(activeCtx.store, new Date("2026-10-29T14:00:00Z"), {
+      isDemo: false,
+    });
+    const partialRes = await processQueue(activeCtx.store, {
+      maxItems: 1,
+      dryRun: false,
+      serpApiFetcher: async () => makeFakeSerpResult(1, false),
+    });
+    expect(partialRes.processedCount).toBe(1);
+    expect(partialRes.pending).toBe(2);
+    expect(partialRes.stoppedReason).toBe("max_items");
+    expect(partialRes.runStatus).toBe("running");
+
+    // 4. Validasi vercel.json untuk Vercel Hobby (maksimal 2 cron harian/mingguan, tanpa cleanup-raw)
+    const vercelJsonPath = path.join(process.cwd(), "vercel.json");
+    const vercelConfig = JSON.parse(
+      fs.readFileSync(vercelJsonPath, "utf-8")
+    ) as {
+      crons: Array<{ path: string; schedule: string }>;
+    };
+    expect(vercelConfig.crons).toHaveLength(2);
+    expect(vercelConfig.crons).toEqual([
+      { path: "/api/cron/start-run", schedule: "0 1 * * 1" },
+      { path: "/api/cron/process", schedule: "0 2 * * *" },
+    ]);
+    expect(
+      vercelConfig.crons.some((c) => c.path.includes("cleanup-raw"))
+    ).toBe(false);
+
+    // 5. Validasi workflow GitHub Actions (.github/workflows/process-queue.yml)
+    const workflowPath = path.join(
+      process.cwd(),
+      ".github",
+      "workflows",
+      "process-queue.yml"
+    );
+    const workflowContent = fs.readFileSync(workflowPath, "utf-8");
+    expect(workflowContent).toContain('cron: "0 * * * 1,2"');
+    expect(workflowContent).toContain("workflow_dispatch:");
+    expect(workflowContent).toContain("concurrency:");
+    expect(workflowContent).toContain("sleep 20");
+    expect(workflowContent).toContain("VPS");
   });
 });
