@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pemantau Kutipan AI Overview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F3F5F7;--surface:#fff;--ink:#14202B;--muted:#586674;--line:#DCE2E8;--cite:#0E6B62;--cite-bg:#CFEBE6;--seen:#B7791F;--seen-bg:#F6E3B8;--none:#E6EAEE;--accent:#14202B;
+color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10171E;--surface:#18222B;--ink:#E8EEF3;--muted:#98A6B3;--line:#2A3743;--cite:#5FD0C2;--cite-bg:#1B4A46;--seen:#E3B04B;--seen-bg:#4B3A16;--none:#243039;--accent:#E8EEF3;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10171E;--surface:#18222B;--ink:#E8EEF3;--muted:#98A6B3;--line:#2A3743;--cite:#5FD0C2;--cite-bg:#1B4A46;--seen:#E3B04B;--seen-bg:#4B3A16;--none:#243039;--accent:#E8EEF3;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:24px 16px 48px}
+header h1{font-size:22px;font-weight:800;margin:0 0 2px;letter-spacing:-.01em}
+header p{margin:0;color:var(--muted)}
+nav{display:flex;gap:4px;margin:20px 0;border-bottom:1px solid var(--line);overflow-x:auto}
+nav button{background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;font:600 14px inherit;font-family:inherit;color:var(--muted);cursor:pointer;white-space:nowrap}
+nav button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--cite);outline-offset:2px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.stat b{display:block;font-size:28px;font-weight:800;line-height:1.1}
+.stat span{color:var(--muted);font-size:13px}
+.stat i{font-style:normal;font-size:12px;font-weight:600;margin-left:6px}
+.up{color:var(--cite)}.down{color:#C0392B}
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:20px}
+h2{font-size:16px;font-weight:800;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 14px;font-size:13px}
+.scroll{overflow-x:auto}
+.grid{display:grid;grid-template-columns:minmax(190px,1.6fr) repeat(8,minmax(34px,1fr));gap:3px;align-items:center;min-width:520px}
+.grid .h{font-size:11px;color:var(--muted);text-align:center}
+.grid .g{grid-column:1/-1;font-weight:800;font-size:13px;margin-top:10px}
+.grid .k{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c{height:22px;border-radius:3px;background:var(--none)}
+.c.s2{background:var(--cite)}.c.s1{background:var(--seen-bg);box-shadow:inset 0 0 0 1px var(--seen)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:14px}
+.legend span:before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-2px;background:var(--none)}
+.legend .l2:before{background:var(--cite)}.legend .l1:before{background:var(--seen-bg);box-shadow:inset 0 0 0 1px var(--seen)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.tools input,.tools select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.tools input{flex:1;min-width:160px}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
+th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:8px;border-bottom:1px solid var(--line)}
+td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600}
+.p2{background:var(--cite-bg);color:var(--cite)}.p1{background:var(--seen-bg);color:var(--seen)}.p0{background:var(--none);color:var(--muted)}
+.mini{display:flex;gap:2px}.mini .c{width:12px;height:16px}
+.bar{display:grid;grid-template-columns:170px 1fr 36px;gap:10px;align-items:center;margin:8px 0;font-size:14px}
+.bar div.t{background:var(--none);border-radius:4px;height:14px}
+.bar div.t div{height:100%;border-radius:4px;background:var(--muted)}
+.bar.me{font-weight:800}.bar.me div.t div{background:var(--cite)}
+.bar span.n{text-align:right;font-weight:600}
+svg text{fill:var(--muted);font:11px "Plus Jakarta Sans",system-ui,sans-serif}
+.hide{display:none}
+@media (max-width:560px){.bar{grid-template-columns:110px 1fr 28px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<h1>Pemantau kutipan AI Overview</h1>
+<p>linovhr.com · Google Indonesia · data contoh, 19 dari 150 keyword</p>
+</header>
+<nav role="tablist">
+<button role="tab" data-t="ringkasan" aria-selected="true">Ringkasan</button>
+<button role="tab" data-t="keyword" aria-selected="false">Keyword</button>
+<button role="tab" data-t="kompetitor" aria-selected="false">Kompetitor</button>
+</nav>
+
+<div id="ringkasan">
+<div class="stats" id="stats"></div>
+<section class="card">
+<h2>Tingkat deteksi per minggu</h2>
+<p class="sub">Keyword yang menampilkan LinovHR, dibanding keyword yang memunculkan AI Overview.</p>
+<div id="trend"></div>
+</section>
+<section class="card">
+<h2>Status tiap keyword, 8 minggu terakhir</h2>
+<p class="sub">Tiap kolom adalah satu minggu. Kolom paling kanan adalah minggu ini.</p>
+<div class="scroll"><div class="grid" id="heat"></div></div>
+<div class="legend"><span class="l2">LinovHR terdeteksi</span><span class="l1">AI Overview muncul, LinovHR tidak terdeteksi</span><span>AI Overview tidak muncul</span></div>
+</section>
+</div>
+
+<div id="keyword" class="hide">
+<section class="card">
+<div class="tools">
+<input id="q" type="search" placeholder="Cari keyword" aria-label="Cari keyword">
+<select id="grp" aria-label="Filter grup"><option value="">Semua grup</option></select>
+<select id="st" aria-label="Filter status"><option value="">Semua status</option><option value="2">Terdeteksi</option><option value="1">Tidak terdeteksi</option><option value="0">Tanpa AI Overview</option></select>
+</div>
+<div class="scroll"><table><thead><tr><th>Keyword</th><th>Grup</th><th>Minggu ini</th><th>Jenis deteksi</th><th>8 minggu</th></tr></thead><tbody id="rows"></tbody></table></div>
+</section>
+</div>
+
+<div id="kompetitor" class="hide">
+<section class="card">
+<h2>Domain yang paling sering dikutip</h2>
+<p class="sub">Jumlah keyword yang mengutip tiap domain sebagai sumber minggu ini. Data contoh memakai nama domain fiktif.</p>
+<div id="bars"></div>
+</section>
+</div>
+</div>
+
+<script>
+(function(){
+var OWN="linovhr.com";
+var COMP=["hrisku.id","payrollpintar.com","timesheet.co.id","blogsdm.id","kerjaplus.com"];
+var WEEKS=["7 Sep","14 Sep","21 Sep","28 Sep","5 Okt","12 Okt","19 Okt","26 Okt"];
+var KW=[
+["software hr terbaik","Produk HR"],["aplikasi hris indonesia","Produk HR"],["software payroll terbaik","Produk HR"],["aplikasi absensi karyawan","Produk HR"],["software rekrutmen terbaik","Produk HR"],
+["apa itu hris","Panduan HR"],["cara hitung pph 21 karyawan","Panduan HR"],["cara mengelola cuti karyawan","Panduan HR"],["cara membuat slip gaji","Panduan HR"],
+["hris vs hrms","Perbandingan"],["hris lokal vs global","Perbandingan"],["payroll manual vs software","Perbandingan"],
+["linovhr","Merek"],["review linovhr","Merek"],["harga linovhr","Merek"],["linovhr vs aplikasi hr lain","Merek"],
+["software manajemen proyek terbaik","Umum"],["aplikasi akuntansi terbaik","Umum"],["cara meningkatkan produktivitas tim","Umum"]];
+var PA={"Produk HR":.7,"Panduan HR":.88,Perbandingan:.72,Merek:.6,Umum:.8};
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+var data=KW.map(function(k,i){var r=rng(i*97+13),bias=r()*.35,s=[];
+ for(var w=0;w<8;w++){var a=r()<PA[k[1]],c=r()<(.12+bias+w*.035+(k[1]=="Merek"?.4:0)+(k[1]=="Umum"?-.1:0));s.push(a?(c?2:1):0)}
+ var src=[];var t=Math.floor(rng(i*53+5)()*3);if(s[7]>0){var p=rng(i*31+7),pool=COMP.slice();if(s[7]==2&&t==0)src.push(OWN);
+  while(src.length<3){src.push(pool.splice(Math.floor(p()*pool.length),1)[0])}}
+ return{kw:k[0],g:k[1],s:s,src:src,t:t}});
+function count(w){var a=0,c=0;data.forEach(function(d){if(d.s[w]>0)a++;if(d.s[w]==2)c++});return{a:a,c:c,r:a?Math.round(c/a*100):0}}
+var rates=WEEKS.map(function(_,w){return count(w)});
+var now=rates[7],prev=rates[6];
+function delta(n,p,suffix){var d=n-p;return '<i class="'+(d>=0?'up':'down')+'">'+(d>=0?'+':'')+d+(suffix||'')+' vs minggu lalu</i>'}
+document.getElementById("stats").innerHTML=
+ '<div class="stat"><b>'+data.length+'</b><span>Keyword dipantau</span></div>'+
+ '<div class="stat"><b>'+now.a+'</b><span>AI Overview muncul</span>'+delta(now.a,prev.a)+'</div>'+
+ '<div class="stat"><b>'+now.c+'</b><span>LinovHR terdeteksi</span>'+delta(now.c,prev.c)+'</div>'+
+ '<div class="stat"><b>'+now.r+'%</b><span>Tingkat deteksi</span>'+delta(now.r,prev.r,' poin')+'</div>';
+// tren
+var W=640,H=200,L=34,B=24,T=12,max=100,pts=rates.map(function(r,i){return[L+i*(W-L-12)/7,T+(H-T-B)*(1-r.r/max)]});
+var svg='<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Grafik tingkat kutipan per minggu">';
+[0,25,50,75,100].forEach(function(v){var y=T+(H-T-B)*(1-v/max);svg+='<line x1="'+L+'" x2="'+(W-12)+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)"/><text x="'+(L-6)+'" y="'+(y+4)+'" text-anchor="end">'+v+'%</text>'});
+svg+='<polyline fill="none" stroke="var(--cite)" stroke-width="3" points="'+pts.map(function(p){return p.join(",")}).join(" ")+'"/>';
+pts.forEach(function(p,i){svg+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="4" fill="var(--cite)"/><text x="'+p[0]+'" y="'+(H-6)+'" text-anchor="middle">'+WEEKS[i]+'</text>';if(i==7||i==0)svg+='<text x="'+p[0]+'" y="'+(p[1]-10)+'" text-anchor="middle" style="fill:var(--ink);font-weight:600">'+rates[i].r+'%</text>'});
+document.getElementById("trend").innerHTML=svg+'</svg>';
+// heatmap
+var h='<div></div>'+WEEKS.map(function(w){return '<div class="h">'+w.split(" ")[0]+'<br>'+w.split(" ")[1]+'</div>'}).join(""),last="";
+data.slice().sort(function(a,b){return a.g<b.g?-1:a.g>b.g?1:0}).forEach(function(d){
+ if(d.g!=last){h+='<div class="g">'+d.g+'</div>';last=d.g}
+ h+='<div class="k" title="'+d.kw+'">'+d.kw+'</div>'+d.s.map(function(s){return '<div class="c s'+s+'"></div>'}).join("")});
+document.getElementById("heat").innerHTML=h;
+// tabel keyword
+var gs=[];data.forEach(function(d){if(gs.indexOf(d.g)<0)gs.push(d.g)});
+var grp=document.getElementById("grp");gs.forEach(function(g){grp.insertAdjacentHTML("beforeend",'<option>'+g+'</option>')});
+var LBL=["Tanpa AI Overview","Tidak terdeteksi","Terdeteksi"],TYPE=["Domain dikutip","Nama disebut di teks","Disebut di sumber lain"];
+function rows(){var q=document.getElementById("q").value.toLowerCase(),g=grp.value,st=document.getElementById("st").value,o="";
+ data.forEach(function(d){var s=d.s[7];if(q&&d.kw.indexOf(q)<0)return;if(g&&d.g!=g)return;if(st!==""&&String(s)!==st)return;
+  o+='<tr><td>'+d.kw+'</td><td>'+d.g+'</td><td><span class="pill p'+s+'">'+LBL[s]+'</span></td><td>'+(s==2?TYPE[d.t]:'-')+'</td><td><div class="mini">'+d.s.map(function(x){return '<div class="c s'+x+'"></div>'}).join("")+'</div></td></tr>'});
+ document.getElementById("rows").innerHTML=o||'<tr><td colspan="5">Tidak ada keyword yang cocok. Ubah kata kunci atau filter.</td></tr>'}
+["q","grp","st"].forEach(function(id){document.getElementById(id).addEventListener("input",rows)});rows();
+// kompetitor
+var cnt={};cnt[OWN]=0;COMP.forEach(function(c){cnt[c]=0});
+data.forEach(function(d){d.src.forEach(function(s){cnt[s]++})});
+var list=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]}),mx=Math.max.apply(null,list.map(function(k){return cnt[k]}))||1;
+document.getElementById("bars").innerHTML=list.map(function(k){return '<div class="bar'+(k==OWN?' me':'')+'"><span>'+k+(k==OWN?' (Anda)':'')+'</span><div class="t"><div style="width:'+cnt[k]/mx*100+'%"></div></div><span class="n">'+cnt[k]+'</span></div>'}).join("");
+// tab
+var tabs=document.querySelectorAll("nav button");
+function show(t){tabs.forEach(function(b){b.setAttribute("aria-selected",b.dataset.t==t)});["ringkasan","keyword","kompetitor"].forEach(function(id){document.getElementById(id).classList.toggle("hide",id!=t)})}
+tabs.forEach(function(b){b.addEventListener("click",function(){show(b.dataset.t)})});
+})();
+</script>
+</body>
+</html>
