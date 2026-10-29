@@ -72,6 +72,7 @@ function walkSourceFiles(dir: string, fileList: string[] = []): string[] {
 }
 
 async function main() {
+  const isProductionMode = process.argv.includes("--production");
   const rootDir = process.cwd();
   const envExamplePath = path.join(rootDir, ".env.example");
   const envLocalPath = path.join(rootDir, ".env.local");
@@ -300,7 +301,13 @@ async function main() {
     Boolean(process.env.VERCEL) ||
     Boolean(localEnv["VERCEL"]);
 
-  if (isDryRunActive && isProductionOrVercel) {
+  if (isDryRunActive && isProductionMode) {
+    addResult(
+      "Lingkungan: SERPAPI_DRY_RUN",
+      "FAIL",
+      "Mode --production aktif tetapi SERPAPI_DRY_RUN masih bernilai true. Ubah SERPAPI_DRY_RUN=false untuk lingkungan produksi."
+    );
+  } else if (isDryRunActive && isProductionOrVercel) {
     addResult(
       "Lingkungan: SERPAPI_DRY_RUN",
       "WARN",
@@ -490,6 +497,97 @@ async function main() {
             "Koneksi: Supabase Auth vs ALLOWED_EMAILS",
             "WARN",
             warnings.join(" | ")
+          );
+        }
+      }
+
+      // 12b. Pemeriksaan khusus mode --production: bebas data is_demo & Site URL bukan localhost
+      if (isProductionMode) {
+        const demoTables = [
+          "check_runs",
+          "keywords",
+          "keyword_groups",
+          "competitors",
+        ] as const;
+        const demoCounts: string[] = [];
+        let totalDemoRows = 0;
+
+        for (const tbl of demoTables) {
+          const { count } = await secClient
+            .from(tbl)
+            .select("*", { count: "exact", head: true })
+            .eq("is_demo", true);
+          const c = count ?? 0;
+          totalDemoRows += c;
+          if (c > 0) {
+            demoCounts.push(`${tbl}=${c}`);
+          }
+        }
+
+        if (totalDemoRows === 0) {
+          addResult(
+            "Produksi: Database bebas data is_demo",
+            "PASS",
+            "Tidak ada baris is_demo=true di check_runs, keywords, keyword_groups, maupun competitors."
+          );
+        } else {
+          addResult(
+            "Produksi: Database bebas data is_demo",
+            "FAIL",
+            `Ditemukan ${totalDemoRows} baris data contoh (${demoCounts.join(", ")}). Jalankan npm run seed:clear atau klik 'Hapus data contoh' di Pengaturan.`
+          );
+        }
+
+        // Periksa Site URL (dari variabel lingkungan atau konfigurasi Auth jika dapat dibaca)
+        const configuredSiteUrl =
+          localEnv["SITE_URL"] ||
+          localEnv["APP_URL"] ||
+          process.env.SITE_URL ||
+          process.env.APP_URL ||
+          (process.env.VERCEL_PROJECT_PRODUCTION_URL
+            ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+            : "");
+
+        let detectedSiteUrl = configuredSiteUrl;
+        if (!detectedSiteUrl) {
+          try {
+            const settingsRes = await fetch(`${supabaseUrl}/auth/v1/settings`, {
+              headers: {
+                apikey: secKey,
+                Authorization: `Bearer ${secKey}`,
+              },
+            });
+            if (settingsRes.ok) {
+              const settingsJson = (await settingsRes.json()) as Record<
+                string,
+                unknown
+              >;
+              if (typeof settingsJson.site_url === "string") {
+                detectedSiteUrl = settingsJson.site_url;
+              }
+            }
+          } catch {
+            // Abaikan jika endpoint tidak mengekspos site_url
+          }
+        }
+
+        if (!detectedSiteUrl) {
+          addResult(
+            "Produksi: Site URL bukan localhost",
+            "WARN",
+            "Site URL tidak dapat dibaca otomatis dari API Auth. Pastikan Site URL di Supabase Dashboard > Authentication > URL Configuration sudah diatur ke domain produksi (bukan http://localhost:3000)."
+          );
+        } else if (/localhost|127\.0\.0\.1/i.test(detectedSiteUrl)) {
+          addResult(
+            "Produksi: Site URL bukan localhost",
+            "FAIL",
+            `Site URL masih mengarah ke localhost (${detectedSiteUrl}). Ubah Site URL di Supabase Dashboard > Authentication > URL Configuration menjadi domain produksi Vercel Anda.`
+          );
+        } else {
+          addResult(
+            "Produksi: Site URL bukan localhost",
+            "PASS",
+            `Site URL terkonfigurasi ke domain non-localhost (${detectedSiteUrl}).`
           );
         }
       }

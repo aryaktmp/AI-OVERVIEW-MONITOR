@@ -1,0 +1,46 @@
+# Opsional untuk Vercel Hobby:
+# Paket Vercel Hobby hanya mengizinkan cron maksimal 1 kali sehari (dipakai di vercel.json untuk start-run & cleanup-raw).
+# Workflow GitHub Actions ini memicu /api/cron/process setiap 5 menit untuk menguras antrean run_items secara bertahap.
+# Jika Anda menggunakan paket Vercel Pro, Anda dapat menonaktifkan workflow ini dan menambahkan "/api/cron/process" ("*/5 * * * *") langsung ke vercel.json.
+
+name: Proses Antrean AI Overview
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: process-ai-overview-queue
+  cancel-in-progress: false
+
+jobs:
+  process-queue:
+    name: Panggil /api/cron/process
+    if: ${{ vars.ENABLE_QUEUE_WORKFLOW != 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Panggil endpoint pemroses antrean
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set +x
+          if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "Secret APP_URL atau CRON_SECRET belum diatur di GitHub Repository Secrets. Melewati eksekusi."
+            exit 0
+          fi
+          TARGET_URL="${APP_URL%/}/api/cron/process"
+          HTTP_STATUS=$(curl -sS -o /tmp/cron_response.json -w "%{http_code}" \
+            -X POST "$TARGET_URL" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json")
+          echo "Status HTTP dari /api/cron/process: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
+            echo "Pemanggilan /api/cron/process gagal dengan kode HTTP $HTTP_STATUS"
+            exit 1
+          fi

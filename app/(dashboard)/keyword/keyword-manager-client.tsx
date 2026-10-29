@@ -24,6 +24,7 @@ import {
 } from "@/app/(dashboard)/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ExportCsvButton } from "@/components/export-csv-button";
 import {
   Card,
   CardContent,
@@ -290,6 +291,7 @@ export function KeywordManagerClient({
                 </CardDescription>
               </div>
               <div className="flex flex-wrap items-center gap-2">
+                <ExportCsvButton />
                 <Button
                   type="button"
                   variant="outline"

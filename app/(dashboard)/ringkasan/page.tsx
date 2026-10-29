@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getDashboardOverviewData } from "@/lib/dashboard-data";
 import { DemoDataBanner } from "@/components/demo-banner";
+import { ExportCsvButton } from "@/components/export-csv-button";
 import { WeeklyTrendChart } from "@/components/weekly-trend-chart";
 import {
   Card,
@@ -144,10 +145,15 @@ export default async function RingkasanPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Status tiap keyword, 8 minggu terakhir</CardTitle>
-          <CardDescription>
-            Tiap kolom adalah satu minggu. Kolom paling kanan adalah minggu ini.
-          </CardDescription>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <CardTitle>Status tiap keyword, 8 minggu terakhir</CardTitle>
+              <CardDescription>
+                Tiap kolom adalah satu minggu. Kolom paling kanan adalah minggu ini.
+              </CardDescription>
+            </div>
+            <ExportCsvButton />
+          </div>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">

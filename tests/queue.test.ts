@@ -13,11 +13,19 @@ import {
   type RunSummary,
 } from "@/lib/queue";
 import { DEFAULT_BRAND_TERMS } from "@/lib/detect";
-import { POST as startRunPost } from "@/app/api/cron/start-run/route";
 import {
+  GET as startRunGet,
+  POST as startRunPost,
+} from "@/app/api/cron/start-run/route";
+import {
+  GET as processGet,
   POST as processPost,
   maxDuration as processMaxDuration,
 } from "@/app/api/cron/process/route";
+import {
+  GET as cleanupRawGet,
+  POST as cleanupRawPost,
+} from "@/app/api/cron/cleanup-raw/route";
 import type { SerpApiCheckResult } from "@/lib/serpapi";
 
 function createInMemoryQueueStore(initial?: {
@@ -465,6 +473,31 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
     );
     const res3 = await processPost(reqWrongToken);
     expect(res3.status).toBe(401);
+
+    // Pastikan GET pada ketiga endpoint cron juga menolak tanpa header (401)
+    const resGetStart = await startRunGet(
+      new Request("http://localhost:3000/api/cron/start-run", { method: "GET" })
+    );
+    expect(resGetStart.status).toBe(401);
+
+    const resGetProcess = await processGet(
+      new Request("http://localhost:3000/api/cron/process", { method: "GET" })
+    );
+    expect(resGetProcess.status).toBe(401);
+
+    const resPostCleanup = await cleanupRawPost(
+      new Request("http://localhost:3000/api/cron/cleanup-raw", {
+        method: "POST",
+      })
+    );
+    expect(resPostCleanup.status).toBe(401);
+
+    const resGetCleanup = await cleanupRawGet(
+      new Request("http://localhost:3000/api/cron/cleanup-raw", {
+        method: "GET",
+      })
+    );
+    expect(resGetCleanup.status).toBe(401);
   });
 
   it("mengabaikan keyword dengan is_demo = true saat SERPAPI_DRY_RUN=false (isDemo = false)", async () => {
