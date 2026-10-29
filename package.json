@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check:env": "node scripts/check-env.ts"
+    "check:env": "node scripts/check-env.ts",
+    "try:keyword": "node scripts/try-keyword.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.6",

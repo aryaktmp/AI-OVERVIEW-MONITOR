@@ -69,6 +69,30 @@ export interface SerpApiRawResponse {
 }
 
 /**
+ * Menghapus properti api_key dan parameter query api_key=... secara rekursif
+ * dari objek respons mentah SerpApi.
+ */
+export function sanitizeSerpApiRaw<T>(input: T): T {
+  if (typeof input === "string") {
+    return input.replace(/([?&])api_key=[^&\s"']+/gi, "$1api_key=[REDACTED]") as unknown as T;
+  }
+  if (Array.isArray(input)) {
+    return input.map((item) => sanitizeSerpApiRaw(item)) as unknown as T;
+  }
+  if (input && typeof input === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(input as Record<string, unknown>)) {
+      if (k.toLowerCase() === "api_key" || k.toLowerCase() === "apikey") {
+        continue;
+      }
+      out[k] = sanitizeSerpApiRaw(v);
+    }
+    return out as T;
+  }
+  return input;
+}
+
+/**
  * Mengekstrak hostname huruf kecil dari URL.
  * Mengembalikan string kosong jika URL tidak valid.
  */
@@ -119,7 +143,10 @@ function collectTextFromBlocks(blocks: SerpApiTextBlock[], out: string[]): void 
       for (const row of block.table) {
         if (Array.isArray(row)) {
           const line = row
-            .filter((cell): cell is string => typeof cell === "string" && cell.trim().length > 0)
+            .filter(
+              (cell): cell is string =>
+                typeof cell === "string" && cell.trim().length > 0
+            )
             .join(" | ");
           if (line) out.push(line);
         }
@@ -214,7 +241,10 @@ export interface SerpApiClientOptions {
 export interface SerpApiCheckResult {
   parsed: ParsedAiOverview;
   raw: SerpApiRawResponse;
+  firstRaw: SerpApiRawResponse;
+  secondRaw: SerpApiRawResponse | null;
   usedFollowUpPageToken: boolean;
+  apiCallsCount: number;
 }
 
 /**
@@ -253,10 +283,11 @@ export async function fetchKeywordAiOverview(
     );
   }
 
-  const firstRaw = (await firstRes.json()) as SerpApiRawResponse;
-  if (firstRaw.error) {
-    throw new Error(`SerpApi mengembalikan galat: ${firstRaw.error}`);
+  const firstRawUnsanitized = (await firstRes.json()) as SerpApiRawResponse;
+  if (firstRawUnsanitized.error) {
+    throw new Error(`SerpApi mengembalikan galat: ${firstRawUnsanitized.error}`);
   }
+  const firstRaw = sanitizeSerpApiRaw(firstRawUnsanitized);
 
   const firstParsed = parseSerpApiResponse(firstRaw);
 
@@ -265,7 +296,10 @@ export async function fetchKeywordAiOverview(
     return {
       parsed: firstParsed,
       raw: firstRaw,
+      firstRaw,
+      secondRaw: null,
       usedFollowUpPageToken: false,
+      apiCallsCount: 1,
     };
   }
 
@@ -276,18 +310,26 @@ export async function fetchKeywordAiOverview(
   followUpUrl.searchParams.set("api_key", apiKey);
 
   const secondRes = await fetchImpl(followUpUrl.toString());
-  if (!secondRes.ok) {
+  const secondRawUnsanitized = (await secondRes
+    .json()
+    .catch(() => ({}))) as SerpApiRawResponse;
+
+  const isNoResultError =
+    typeof secondRawUnsanitized.error === "string" &&
+    /Google hasn't returned any results/i.test(secondRawUnsanitized.error);
+
+  if (!secondRes.ok && !isNoResultError) {
     throw new Error(
       `Permintaan SerpApi engine=google_ai_overview gagal dengan status HTTP ${secondRes.status}`
     );
   }
 
-  const secondRaw = (await secondRes.json()) as SerpApiRawResponse;
-  if (secondRaw.error) {
+  if (secondRawUnsanitized.error && !isNoResultError) {
     throw new Error(
-      `SerpApi google_ai_overview mengembalikan galat: ${secondRaw.error}`
+      `SerpApi google_ai_overview mengembalikan galat: ${secondRawUnsanitized.error}`
     );
   }
+  const secondRaw = sanitizeSerpApiRaw(secondRawUnsanitized);
 
   const secondAiOverview: SerpApiAiOverviewRaw =
     secondRaw.ai_overview && typeof secondRaw.ai_overview === "object"
@@ -295,22 +337,26 @@ export async function fetchKeywordAiOverview(
       : {
           text_blocks: secondRaw.text_blocks,
           references: secondRaw.references,
+          error: secondRaw.error,
         };
 
-  const mergedRaw: SerpApiRawResponse = {
+  const mergedRaw: SerpApiRawResponse = sanitizeSerpApiRaw({
     ...firstRaw,
     ai_overview: {
       ...firstRaw.ai_overview,
       ...secondAiOverview,
     },
     ai_overview_followup: secondRaw,
-  };
+  });
 
   const secondParsed = parseSerpApiResponse(mergedRaw);
 
   return {
     parsed: secondParsed,
     raw: mergedRaw,
+    firstRaw,
+    secondRaw,
     usedFollowUpPageToken: true,
+    apiCallsCount: 2,
   };
 }

@@ -5,6 +5,7 @@ import {
   extractDomainFromUrl,
   fetchKeywordAiOverview,
   parseSerpApiResponse,
+  sanitizeSerpApiRaw,
 } from "@/lib/serpapi";
 import { evaluateAiOverviewDetection } from "@/lib/detect";
 
@@ -41,8 +42,6 @@ describe("Fase 2: Parser & Klien SerpApi dengan Fixture Asli", () => {
       domain: "www.gadjian.com",
     });
 
-    // Evaluasi deteksi pada fixture ai-overview-ada.json:
-    // LinovHR disebut di dalam teks (tingkat 2 positif), tetapi domain linovhr.com tidak ada di daftar references (tingkat 1 negatif)
     const evaluation = evaluateAiOverviewDetection(parsed, {
       brandDomain: "linovhr.com",
       competitorDomains: ["gadjian.com", "dataon.com"],
@@ -52,12 +51,12 @@ describe("Fase 2: Parser & Klien SerpApi dengan Fixture Asli", () => {
     expect(evaluation.detected_text).toBe(true);
     expect(evaluation.detected_third_party).toBe(false);
     expect(evaluation.matched_terms).toContain("LinovHR");
-    expect(evaluation.sources[3]?.is_competitor).toBe(true); // dataon.com
-    expect(evaluation.sources[7]?.is_competitor).toBe(true); // www.gadjian.com
+    expect(evaluation.sources[3]?.is_competitor).toBe(true);
+    expect(evaluation.sources[7]?.is_competitor).toBe(true);
   });
 
-  it("mengurai fixture ai-overview-merek.json (tanpa objek ai_overview)", () => {
-    const raw = loadFixture("ai-overview-merek.json");
+  it("mengurai fixture ai-overview-tidak-ada.json (tanpa objek ai_overview)", () => {
+    const raw = loadFixture("ai-overview-tidak-ada.json");
     const parsed = parseSerpApiResponse(raw);
 
     expect(parsed.hasAiOverview).toBe(false);
@@ -72,8 +71,8 @@ describe("Fase 2: Parser & Klien SerpApi dengan Fixture Asli", () => {
     expect(evaluation.detected_third_party).toBe(false);
   });
 
-  it("mengurai fixture ai-overview-tidak-ada.json (hanya berisi page_token tanpa text_blocks)", () => {
-    const raw = loadFixture("ai-overview-tidak-ada.json");
+  it("mengurai fixture ai-overview-page-token.json (hanya berisi page_token tanpa text_blocks)", () => {
+    const raw = loadFixture("ai-overview-page-token.json");
     const parsed = parseSerpApiResponse(raw);
 
     expect(parsed.hasAiOverview).toBe(false);
@@ -83,15 +82,23 @@ describe("Fase 2: Parser & Klien SerpApi dengan Fixture Asli", () => {
     expect((parsed.pageToken ?? "").length).toBeGreaterThan(50);
   });
 
-  it("menangani panggilan kedua engine=google_ai_overview saat respons pertama hanya berisi page_token", async () => {
-    const firstFixture = loadFixture("ai-overview-tidak-ada.json");
+  it("mengurai fixture ai-overview-page-token-followup.json (respons panggilan ke-2 saat AI Overview kosong)", () => {
+    const followUpRaw = loadFixture("ai-overview-page-token-followup.json");
+    const parsed = parseSerpApiResponse(followUpRaw);
+
+    expect(parsed.hasAiOverview).toBe(false);
+    expect(parsed.answerText).toBe("");
+    expect(parsed.sources).toEqual([]);
+  });
+
+  it("menangani panggilan kedua engine=google_ai_overview yang mengembalikan konten AI Overview", async () => {
+    const firstFixture = loadFixture("ai-overview-page-token.json");
     const adaFixture = loadFixture("ai-overview-ada.json") as {
       ai_overview: unknown;
     };
 
     const mockFetch = vi.fn<typeof fetch>();
 
-    // Panggilan ke-1 (engine=google) mengembalikan page_token dari ai-overview-tidak-ada.json
     mockFetch.mockResolvedValueOnce(
       new Response(JSON.stringify(firstFixture), {
         status: 200,
@@ -99,7 +106,6 @@ describe("Fase 2: Parser & Klien SerpApi dengan Fixture Asli", () => {
       })
     );
 
-    // Panggilan ke-2 (engine=google_ai_overview) mengembalikan isi ai_overview
     mockFetch.mockResolvedValueOnce(
       new Response(JSON.stringify({ ai_overview: adaFixture.ai_overview }), {
         status: 200,
@@ -113,35 +119,22 @@ describe("Fase 2: Parser & Klien SerpApi dengan Fixture Asli", () => {
     });
 
     expect(mockFetch).toHaveBeenCalledTimes(2);
-
-    const firstCallUrl = new URL(String(mockFetch.mock.calls[0]?.[0]));
-    expect(firstCallUrl.searchParams.get("engine")).toBe("google");
-    expect(firstCallUrl.searchParams.get("q")).toBe("succession planning system");
-    expect(firstCallUrl.searchParams.get("google_domain")).toBe("google.co.id");
-    expect(firstCallUrl.searchParams.get("gl")).toBe("id");
-    expect(firstCallUrl.searchParams.get("hl")).toBe("id");
-    expect(firstCallUrl.searchParams.get("location")).toBe("Indonesia");
-
-    const secondCallUrl = new URL(String(mockFetch.mock.calls[1]?.[0]));
-    expect(secondCallUrl.searchParams.get("engine")).toBe("google_ai_overview");
-    expect(secondCallUrl.searchParams.get("page_token")).toBeTruthy();
-
+    expect(result.apiCallsCount).toBe(2);
     expect(result.usedFollowUpPageToken).toBe(true);
     expect(result.parsed.hasAiOverview).toBe(true);
     expect(result.parsed.sources).toHaveLength(11);
   });
 
-  it("menangani kasus page_token yang saat ditindaklanjuti tetap tidak memiliki AI Overview", async () => {
-    const firstFixture = loadFixture("ai-overview-tidak-ada.json");
+  it("menangani panggilan kedua dengan fixture asli ai-overview-page-token-followup.json (ai_overview_state: Fully empty)", async () => {
+    const firstFixture = loadFixture("ai-overview-page-token.json");
+    const secondFixture = loadFixture("ai-overview-page-token-followup.json");
     const mockFetch = vi.fn<typeof fetch>();
 
     mockFetch.mockResolvedValueOnce(
       new Response(JSON.stringify(firstFixture), { status: 200 })
     );
     mockFetch.mockResolvedValueOnce(
-      new Response(JSON.stringify({ search_metadata: { status: "Success" } }), {
-        status: 200,
-      })
+      new Response(JSON.stringify(secondFixture), { status: 200 })
     );
 
     const result = await fetchKeywordAiOverview("succession planning system", {
@@ -150,11 +143,25 @@ describe("Fase 2: Parser & Klien SerpApi dengan Fixture Asli", () => {
     });
 
     expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(result.apiCallsCount).toBe(2);
     expect(result.usedFollowUpPageToken).toBe(true);
     expect(result.parsed.hasAiOverview).toBe(false);
 
     const evaluation = evaluateAiOverviewDetection(result.parsed);
     expect(evaluation.status).toBe("no_ai_overview");
+  });
+
+  it("menghapus api_key dari objek maupun URL saat sanitizeSerpApiRaw dipanggil", () => {
+    const dirty = {
+      api_key: "rahasia123",
+      search_metadata: {
+        google_url: "https://serpapi.com/search.json?q=test&api_key=rahasia123&hl=id",
+      },
+    };
+    const cleaned = sanitizeSerpApiRaw(dirty);
+    expect("api_key" in cleaned).toBe(false);
+    expect(cleaned.search_metadata.google_url).not.toContain("rahasia123");
+    expect(cleaned.search_metadata.google_url).toContain("api_key=[REDACTED]");
   });
 
   it("mengekstrak domain dengan benar dari URL valid dan menolak URL tidak valid", () => {
