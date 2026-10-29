@@ -18,6 +18,8 @@ const buttonVariants = cva(
           "border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--none)]",
         ghost:
           "text-[var(--muted)] hover:bg-[var(--none)] hover:text-[var(--ink)]",
+        link:
+          "text-[var(--cite)] underline-offset-4 hover:underline",
         destructive:
           "bg-[#C0392B] text-white hover:opacity-90",
       },
