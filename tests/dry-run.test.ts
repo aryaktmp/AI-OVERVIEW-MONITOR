@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
-import { isDryRun } from "@/lib/dry-run";
+import { isDryRun, isDryRunExplicit } from "@/lib/dry-run";
 import { fetchKeywordAiOverview } from "@/lib/serpapi";
 import {
   startCheckRun,
@@ -141,6 +141,47 @@ describe("Single source of truth: isDryRun (lib/dry-run.ts)", () => {
     expect(isDryRun(null)).toBe(true);
     expect(isDryRun("foobar")).toBe(true);
     expect(isDryRun("random")).toBe(true);
+  });
+
+  it("isDryRunExplicit mengembalikan 'explicit-true' untuk 'true' atau '1'", () => {
+    expect(isDryRunExplicit("true")).toBe("explicit-true");
+    expect(isDryRunExplicit("TRUE")).toBe("explicit-true");
+    expect(isDryRunExplicit(" 1 ")).toBe("explicit-true");
+    expect(isDryRunExplicit("1")).toBe("explicit-true");
+
+    process.env.SERPAPI_DRY_RUN = "true";
+    expect(isDryRunExplicit()).toBe("explicit-true");
+    process.env.SERPAPI_DRY_RUN = "1";
+    expect(isDryRunExplicit()).toBe("explicit-true");
+  });
+
+  it("isDryRunExplicit mengembalikan 'explicit-false' hanya untuk 'false' atau '0'", () => {
+    expect(isDryRunExplicit("false")).toBe("explicit-false");
+    expect(isDryRunExplicit("FALSE")).toBe("explicit-false");
+    expect(isDryRunExplicit(" 0 ")).toBe("explicit-false");
+    expect(isDryRunExplicit("0")).toBe("explicit-false");
+
+    process.env.SERPAPI_DRY_RUN = "false";
+    expect(isDryRunExplicit()).toBe("explicit-false");
+    process.env.SERPAPI_DRY_RUN = "0";
+    expect(isDryRunExplicit()).toBe("explicit-false");
+  });
+
+  it("isDryRunExplicit mengembalikan 'unset' untuk variabel tidak ada, kosong, spasi, null, atau nilai tak dikenal", () => {
+    expect(isDryRunExplicit("")).toBe("unset");
+    expect(isDryRunExplicit("   ")).toBe("unset");
+    expect(isDryRunExplicit(undefined)).toBe("unset");
+    expect(isDryRunExplicit(null)).toBe("unset");
+    expect(isDryRunExplicit("foobar")).toBe("unset");
+    expect(isDryRunExplicit("random")).toBe("unset");
+    expect(isDryRunExplicit("yes")).toBe("unset");
+
+    delete process.env.SERPAPI_DRY_RUN;
+    expect(isDryRunExplicit()).toBe("unset");
+    process.env.SERPAPI_DRY_RUN = "";
+    expect(isDryRunExplicit()).toBe("unset");
+    process.env.SERPAPI_DRY_RUN = "   ";
+    expect(isDryRunExplicit()).toBe("unset");
   });
 
   it("variabel kosong tidak menghasilkan panggilan jaringan", async () => {

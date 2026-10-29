@@ -65,7 +65,30 @@ describe("Fase 0: Fondasi & Konfigurasi", () => {
     expect(parsed.SUPABASE_SECRET_KEY).toBe("sb_secret_test_key");
     expect(parsed.BRAND_DOMAIN).toBe("linovhr.com");
     expect(parsed.SERPAPI_MAX_PER_HOUR).toBe(50);
+    expect(parsed.SERPAPI_DRY_RUN).toBe(true);
     expect(parsed.ALLOWED_EMAILS).toBe("");
+  });
+
+  it("memvalidasi SERPAPI_DRY_RUN pada envSchema mendelegasikan ke isDryRun tanpa default ganda", () => {
+    const parsedReal = envSchema.parse({
+      SERPAPI_KEY: "test_serp_key",
+      SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test_key",
+      SUPABASE_SECRET_KEY: "sb_secret_test_key",
+      CRON_SECRET: "test_cron_secret",
+      SERPAPI_DRY_RUN: "false",
+    });
+    expect(parsedReal.SERPAPI_DRY_RUN).toBe(false);
+
+    const parsedDry = envSchema.parse({
+      SERPAPI_KEY: "test_serp_key",
+      SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test_key",
+      SUPABASE_SECRET_KEY: "sb_secret_test_key",
+      CRON_SECRET: "test_cron_secret",
+      SERPAPI_DRY_RUN: "1",
+    });
+    expect(parsedDry.SERPAPI_DRY_RUN).toBe(true);
   });
 
   it("menolak variabel lingkungan jika URL Supabase tidak valid", () => {

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { execSync } from "node:child_process";
 import { createClient } from "@supabase/supabase-js";
-import { isDryRun } from "../lib/dry-run.ts";
+import { isDryRunExplicit } from "../lib/dry-run.ts";
 
 type CheckStatus = "PASS" | "WARN" | "FAIL" | "SKIP";
 
@@ -303,31 +303,39 @@ async function main() {
     );
   }
 
-  // 9b. Format/Lingkungan: Peringatan jika SERPAPI_DRY_RUN=true di produksi atau Vercel
-  const explicitDryRunVal =
-    localEnv["SERPAPI_DRY_RUN"] ?? process.env.SERPAPI_DRY_RUN;
-  const isExplicitlySet =
-    explicitDryRunVal !== undefined && explicitDryRunVal.trim() !== "";
-  const isDryRunActive = isDryRun(explicitDryRunVal);
+  // 9b. Format/Lingkungan: Validasi SERPAPI_DRY_RUN di mode produksi atau normal
+  const rawDryRun =
+    process.env.SERPAPI_DRY_RUN !== undefined
+      ? process.env.SERPAPI_DRY_RUN
+      : localEnv["SERPAPI_DRY_RUN"];
+  const dryRunState = isDryRunExplicit(rawDryRun);
   const isProductionOrVercel =
     process.env.NODE_ENV === "production" ||
     localEnv["NODE_ENV"] === "production" ||
     Boolean(process.env.VERCEL) ||
     Boolean(localEnv["VERCEL"]);
 
-  if (isProductionMode && !isExplicitlySet) {
-    addResult(
-      "Environment: SERPAPI_DRY_RUN",
-      "FAIL",
-      "Mode --production requires SERPAPI_DRY_RUN to be explicitly set in the environment (must be set to 'false' or '0')."
-    );
-  } else if (isDryRunActive && isProductionMode) {
-    addResult(
-      "Environment: SERPAPI_DRY_RUN",
-      "FAIL",
-      "Mode --production is active but SERPAPI_DRY_RUN is set to dry run (true). Change SERPAPI_DRY_RUN=false for production environment."
-    );
-  } else if (isDryRunActive && isProductionOrVercel) {
+  if (isProductionMode) {
+    if (dryRunState === "unset") {
+      addResult(
+        "Environment: SERPAPI_DRY_RUN",
+        "FAIL",
+        "Mode --production requires SERPAPI_DRY_RUN to be explicitly set in the environment (must be set to 'false' or '0'). Variable is missing, empty, or invalid."
+      );
+    } else if (dryRunState === "explicit-true") {
+      addResult(
+        "Environment: SERPAPI_DRY_RUN",
+        "FAIL",
+        `Mode --production is active but SERPAPI_DRY_RUN is set to dry run ('${rawDryRun}'). Change SERPAPI_DRY_RUN=false for production environment.`
+      );
+    } else {
+      addResult(
+        "Environment: SERPAPI_DRY_RUN",
+        "PASS",
+        `SERPAPI_DRY_RUN=${rawDryRun} (real/live mode)`
+      );
+    }
+  } else if (dryRunState === "explicit-true" && isProductionOrVercel) {
     addResult(
       "Environment: SERPAPI_DRY_RUN",
       "WARN",
@@ -337,7 +345,7 @@ async function main() {
     addResult(
       "Environment: SERPAPI_DRY_RUN",
       "PASS",
-      `SERPAPI_DRY_RUN=${isDryRunActive ? "true (local/simulation mode)" : "false (real/live mode)"}`
+      `SERPAPI_DRY_RUN=${dryRunState === "explicit-false" ? "false (real/live mode)" : "true (simulation mode / dry run)"}`
     );
   }
 
