@@ -268,6 +268,80 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
     expect(items).toHaveLength(3);
   });
 
+  it("tidak membuat run baru bila tidak ada keyword aktif dan mengembalikan skipped: 'no_active_keywords'", async () => {
+    const { store, runs, items } = createInMemoryQueueStore({
+      keywords: [],
+    });
+
+    const res = await startCheckRun(store, new Date("2026-10-29T08:00:00Z"), {
+      isDemo: false,
+    });
+
+    expect(res.skipped).toBe("no_active_keywords");
+    expect(res.total).toBe(0);
+    expect(res.isExisting).toBe(false);
+    expect(res.runId).toBeUndefined();
+    expect(runs).toHaveLength(0);
+    expect(items).toHaveLength(0);
+  });
+
+  it("tidak membuat run baru saat mode nyata (isDemo=false) dan semua keyword aktif adalah is_demo=true", async () => {
+    const { store, runs } = createInMemoryQueueStore({
+      keywords: [
+        { id: "kw-demo", text: "demo keyword", active: true, is_demo: true },
+      ],
+    });
+
+    const res = await startCheckRun(store, new Date("2026-10-29T08:00:00Z"), {
+      isDemo: false,
+    });
+
+    expect(res.skipped).toBe("no_active_keywords");
+    expect(res.total).toBe(0);
+    expect(runs).toHaveLength(0);
+  });
+
+  it("menutup otomatis run lama berstatus running yang tidak memiliki item pending sebelum membuat run baru", async () => {
+    const { store, runs } = createInMemoryQueueStore({
+      keywords: [
+        { id: "kw-real", text: "keyword nyata", active: true, is_demo: false },
+      ],
+    });
+
+    // Simulasikan ada run lama yang menggantung dengan status 'running' tapi 0 item pending
+    const oldRunIso = "2026-10-29T07:00:00Z";
+    runs.push({
+      id: "run-stuck-orphan",
+      started_at: oldRunIso,
+      finished_at: null,
+      status: "running",
+      total: 0,
+      done: 0,
+      is_demo: false,
+    });
+
+    expect(runs).toHaveLength(1);
+    expect(runs[0]?.status).toBe("running");
+
+    const newRun = await startCheckRun(
+      store,
+      new Date("2026-10-29T08:00:00Z"),
+      { isDemo: false }
+    );
+
+    // Run lama yang menggantung harus ditutup otomatis menjadi 'done'
+    const oldRun = runs.find((r) => r.id === "run-stuck-orphan");
+    expect(oldRun?.status).toBe("done");
+    expect(oldRun?.finished_at).not.toBeNull();
+
+    // Run baru dibuat untuk keyword aktif
+    expect(newRun.skipped).toBeUndefined();
+    expect(newRun.isExisting).toBe(false);
+    expect(newRun.runId).toBe("run-2");
+    expect(newRun.total).toBe(1);
+    expect(runs).toHaveLength(2);
+  });
+
   it("mengklaim item pending secara atomik sehingga dua pekerja paralel tidak memproses item yang sama", async () => {
     const { store, items } = createInMemoryQueueStore();
     await startCheckRun(store, new Date("2026-10-29T08:00:00Z"), {

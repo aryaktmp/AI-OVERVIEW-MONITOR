@@ -492,6 +492,22 @@ export async function runCheckNowAction() {
   const store = createSupabaseQueueStore(supabase);
 
   const started = await startCheckRun(store);
+  if (started.skipped) {
+    revalidateAllDashboardRoutes();
+    return {
+      ok: true,
+      skipped: started.skipped,
+      message: "No active keywords found to check.",
+      total: 0,
+      done: 0,
+      pending: 0,
+      errors: 0,
+      processedCount: 0,
+      succeededCount: 0,
+      serpApiCallsUsed: 0,
+    };
+  }
+
   const processed = await processQueue(store, {
     maxItems: 5,
     maxDurationMs: 15_000,

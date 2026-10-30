@@ -761,51 +761,90 @@ export interface StartRunOptions {
   isDemo?: boolean;
 }
 
-export interface StartRunResult {
-  runId: string;
-  total: number;
-  status: CheckRunStatus;
-  isExisting: boolean;
-  isDemo: boolean;
-}
+export type StartRunResult =
+  | {
+      runId: string;
+      total: number;
+      status: CheckRunStatus;
+      isExisting: boolean;
+      isDemo: boolean;
+      skipped?: undefined;
+    }
+  | {
+      runId?: undefined;
+      total: 0;
+      status?: undefined;
+      isExisting: false;
+      isDemo: boolean;
+      skipped: "no_active_keywords";
+    };
 
 /**
  * Membuat satu baris check_runs dan satu run_items untuk setiap keyword aktif.
  * Bersifat idempoten: jika sudah ada run berstatus 'running', kembalikan run tersebut tanpa membuat baru.
+ * Menutup otomatis run lama berstatus 'running' jika tidak lagi memiliki item pending.
+ * Mengembalikan skipped: "no_active_keywords" tanpa membuat run bila tidak ada keyword aktif.
  */
 export async function startCheckRun(
   store: QueueStore,
   now: Date = new Date(),
   options: StartRunOptions = {}
 ): Promise<StartRunResult> {
-  const existingRun = await store.getRunningCheckRun();
-  if (existingRun) {
-    return {
-      runId: existingRun.id,
-      total: existingRun.total,
-      status: existingRun.status,
-      isExisting: true,
-      isDemo: Boolean(existingRun.is_demo),
-    };
+  const nowIso = now.toISOString();
+
+  // 1. Periksa apakah ada run yang berstatus 'running'.
+  // Tutup otomatis run berstatus 'running' yang tidak punya item pending.
+  let existingRun = await store.getRunningCheckRun();
+  const checkedRunIds = new Set<string>();
+
+  while (existingRun && !checkedRunIds.has(existingRun.id)) {
+    checkedRunIds.add(existingRun.id);
+    const summary = await store.syncRunProgress(
+      existingRun.id,
+      nowIso,
+      existingRun.is_demo
+    );
+
+    if (summary.pending === 0 || summary.status !== "running") {
+      // Run lama tidak punya item pending dan telah disinkronkan menjadi done / failed.
+      existingRun = await store.getRunningCheckRun();
+    } else {
+      // Run masih memiliki item pending, pertahankan idempotensi
+      return {
+        runId: existingRun.id,
+        total: summary.total,
+        status: summary.status,
+        isExisting: true,
+        isDemo: Boolean(summary.isDemo),
+      };
+    }
   }
 
   const isDemo = options.isDemo ?? isDryRun();
 
-  const nowIso = now.toISOString();
   const allActiveKeywords = await store.getActiveKeywords();
   // Saat SERPAPI_DRY_RUN=false (isDemo === false), abaikan keyword dengan is_demo = true
   const activeKeywords = isDemo
     ? allActiveKeywords
     : allActiveKeywords.filter((k) => !k.is_demo);
+
+  // 2. Jangan membuat run bila tidak ada keyword aktif (kembalikan 200 dengan skipped: "no_active_keywords")
+  if (activeKeywords.length === 0) {
+    return {
+      total: 0,
+      isExisting: false,
+      isDemo,
+      skipped: "no_active_keywords",
+    };
+  }
+
   const run = await store.createCheckRun(activeKeywords.length, nowIso, isDemo);
 
-  if (activeKeywords.length > 0) {
-    await store.insertRunItems(
-      run.id,
-      activeKeywords.map((k) => k.id),
-      nowIso
-    );
-  }
+  await store.insertRunItems(
+    run.id,
+    activeKeywords.map((k) => k.id),
+    nowIso
+  );
 
   return {
     runId: run.id,

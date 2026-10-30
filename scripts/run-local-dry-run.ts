@@ -102,6 +102,10 @@ async function main() {
 
   console.log("=== Starting Local Dry-Run Test (SERPAPI_DRY_RUN=true) ===");
   const started = await startCheckRun(store);
+  if (started.skipped) {
+    console.log("No active keywords found to check (skipped: no_active_keywords).");
+    return;
+  }
   console.log(
     `Run created: runId=${started.runId}, totalKeywords=${started.total}, status=${started.status}`
   );

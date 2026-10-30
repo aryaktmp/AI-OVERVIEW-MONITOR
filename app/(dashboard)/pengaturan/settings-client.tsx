@@ -213,6 +213,15 @@ export function SettingsClient({
       try {
         const res = await runCheckNowAction();
         setShowRunConfirm(false);
+
+        if (res.skipped) {
+          setFeedback({
+            ok: true,
+            message: res.message || "No active keywords found to check.",
+          });
+          return;
+        }
+
         setLiveRun({
           runId: res.runId,
           status: res.status,
