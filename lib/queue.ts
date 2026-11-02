@@ -48,6 +48,7 @@ export interface CheckRunRecord {
   done: number;
   is_demo?: boolean;
   serpapi_calls?: number;
+  isExisting?: boolean;
 }
 
 export interface KeywordRecord {
@@ -114,6 +115,7 @@ export interface QueueStore {
   }>;
   saveCheckAndSources(payload: CheckInsertPayload): Promise<string>;
   markRunItemDone(itemId: string, nowIso: string): Promise<void>;
+  markCheckRunFailed(runId: string, nowIso: string): Promise<void>;
   markRunItemFailedAttempt(
     itemId: string,
     nextState: "pending" | "error",
@@ -251,7 +253,7 @@ export function extractFailedCallsFromError(errorText: string | null): number {
 }
 
 export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
-  return {
+  const store: QueueStore = {
     async getRunningCheckRun(): Promise<CheckRunRecord | null> {
       const { data, error } = await supabase
         .from("check_runs")
@@ -315,7 +317,18 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
         return insertWithDemo.data as CheckRunRecord;
       }
 
-      // Fallback apabila kolom is_demo belum diterapkan di database
+      const demoErrCode = (insertWithDemo.error as { code?: string } | null)?.code;
+      if (demoErrCode === "23505") {
+        const existing = await store.getRunningCheckRun();
+        if (existing) {
+          return { ...existing, isExisting: true };
+        }
+        throw new Error(
+          `Gagal membuat check_runs (konflik 23505): ${insertWithDemo.error?.message}`
+        );
+      }
+
+      // Fallback apabila kolom is_demo belum diterapkan di database (misal error code 42703)
       const { data, error } = await supabase
         .from("check_runs")
         .insert({
@@ -328,10 +341,19 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
         .select("*")
         .single();
 
-      if (error || !data) {
+      if (error) {
+        if ((error as { code?: string }).code === "23505") {
+          const existing = await store.getRunningCheckRun();
+          if (existing) {
+            return { ...existing, isExisting: true };
+          }
+        }
         throw new Error(
-          `Gagal membuat check_runs: ${error?.message ?? "unknown"}`
+          `Gagal membuat check_runs: ${error?.message ?? insertWithDemo.error?.message ?? "unknown"}`
         );
+      }
+      if (!data) {
+        throw new Error("Gagal membuat check_runs: respons data kosong");
       }
       return { ...(data as CheckRunRecord), is_demo: isDemo };
     },
@@ -630,6 +652,22 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
       }
     },
 
+    async markCheckRunFailed(runId: string, nowIso: string): Promise<void> {
+      const { error } = await supabase
+        .from("check_runs")
+        .update({
+          status: "failed",
+          finished_at: nowIso,
+        })
+        .eq("id", runId);
+
+      if (error) {
+        throw new Error(
+          `Gagal menutup check_runs ${runId} sebagai failed: ${error.message}`
+        );
+      }
+    },
+
     async markRunItemFailedAttempt(
       itemId: string,
       nextState: "pending" | "error",
@@ -755,6 +793,7 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
       };
     },
   };
+  return store;
 }
 
 export interface StartRunOptions {
@@ -840,11 +879,30 @@ export async function startCheckRun(
 
   const run = await store.createCheckRun(activeKeywords.length, nowIso, isDemo);
 
-  await store.insertRunItems(
-    run.id,
-    activeKeywords.map((k) => k.id),
-    nowIso
-  );
+  if (run.isExisting) {
+    return {
+      runId: run.id,
+      total: run.total,
+      status: run.status,
+      isExisting: true,
+      isDemo: Boolean(run.is_demo ?? isDemo),
+    };
+  }
+
+  try {
+    await store.insertRunItems(
+      run.id,
+      activeKeywords.map((k) => k.id),
+      nowIso
+    );
+  } catch (insertError) {
+    try {
+      await store.markCheckRunFailed(run.id, nowIso);
+    } catch {
+      // Abaikan error saat menutup run agar galat asli insertRunItems tetap dilempar
+    }
+    throw insertError;
+  }
 
   return {
     runId: run.id,

@@ -1,8 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, it, expect } from "vitest";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   compactSerpApiRawForStorage,
+  createSupabaseQueueStore,
   DEFAULT_MAX_DURATION_MS,
   extractSerpApiCallsFromRaw,
   getConfiguredMaxDurationMs,
@@ -147,6 +149,13 @@ function createInMemoryQueueStore(initial?: {
         target.state = "done";
         target.error = null;
         target.updated_at = nowIso;
+      }
+    },
+    async markCheckRunFailed(runId, nowIso) {
+      const run = runs.find((r) => r.id === runId);
+      if (run) {
+        run.status = "failed";
+        run.finished_at = nowIso;
       }
     },
     async markRunItemFailedAttempt(
@@ -385,6 +394,149 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
     expect(res.isExisting).toBe(true);
     expect(res.runId).toBe("run-processing");
     expect(runs).toHaveLength(1);
+  });
+
+  it("dua pemanggilan startCheckRun paralel dengan simulasi unique violation (23505) hanya menghasilkan satu run dan satu set run_items", async () => {
+    const { store, runs, items } = createInMemoryQueueStore();
+    let insertRunItemsCallCount = 0;
+    const originalInsertRunItems = store.insertRunItems.bind(store);
+    store.insertRunItems = async (runId, keywordIds, nowIso) => {
+      insertRunItemsCallCount++;
+      return originalInsertRunItems(runId, keywordIds, nowIso);
+    };
+
+    // Simulasikan race condition: dua panggilan paralel melewati getRunningCheckRun() bersamaan (keduanya melihat null),
+    // pemanggil pertama sukses insert check_runs, pemanggil kedua mengalami error 23505 dari partial unique index
+    let createCallCount = 0;
+    const originalCreateCheckRun = store.createCheckRun.bind(store);
+    store.createCheckRun = async (total, nowIso, isDemo) => {
+      createCallCount++;
+      if (createCallCount === 1) {
+        return originalCreateCheckRun(total, nowIso, isDemo);
+      }
+      // Pemanggil kedua mengalami unique violation 23505 dari Postgres:
+      // store menangkap 23505 dan mengambil run running yang ada
+      const running = await store.getRunningCheckRun();
+      if (!running) throw new Error("Unexpected: running run tidak ditemukan");
+      return { ...running, isExisting: true };
+    };
+
+    const [res1, res2] = await Promise.all([
+      startCheckRun(store, new Date("2026-10-29T08:00:00Z"), { isDemo: false }),
+      startCheckRun(store, new Date("2026-10-29T08:00:00Z"), { isDemo: false }),
+    ]);
+
+    const winner = res1.isExisting ? res2 : res1;
+    const loser = res1.isExisting ? res1 : res2;
+
+    expect(winner.isExisting).toBe(false);
+    expect(loser.isExisting).toBe(true);
+    expect(winner.runId).toBe(loser.runId);
+
+    // Hanya 1 check_runs yang dibuat
+    expect(runs).toHaveLength(1);
+    // insertRunItems hanya dijalankan 1 kali oleh pemenang (pemanggil yang kalah tidak boleh memasukkan item)
+    expect(insertRunItemsCallCount).toBe(1);
+    // Jumlah run_items sesuai jumlah keyword aktif (3 item), tidak duplikat menjadi 6
+    expect(items).toHaveLength(3);
+  });
+
+  it("melempar galat selain 23505 saat pembuatan check_runs gagal", async () => {
+    const { store } = createInMemoryQueueStore();
+    store.createCheckRun = async () => {
+      const err = new Error("koneksi database terputus");
+      (err as unknown as { code: string }).code = "08006";
+      throw err;
+    };
+
+    await expect(
+      startCheckRun(store, new Date("2026-10-29T08:00:00Z"), { isDemo: false })
+    ).rejects.toThrow("koneksi database terputus");
+  });
+
+  it("createSupabaseQueueStore menangkap galat 23505 dan mengembalikan isExisting: true, tetapi melempar galat lain", async () => {
+    // 1. Simulasi galat 23505: harus menangkap dan mengembalikan run yang ada dengan isExisting: true
+    const mockSupabase23505 = {
+      from: (table: string) => {
+        if (table === "check_runs") {
+          return {
+            insert: () => ({
+              select: () => ({
+                single: async () => ({
+                  data: null,
+                  error: {
+                    code: "23505",
+                    message: "duplicate key value violates unique constraint check_runs_single_running_idx",
+                  },
+                }),
+              }),
+            }),
+            select: () => ({
+              eq: () => ({
+                order: () => ({
+                  limit: async () => ({
+                    data: [
+                      {
+                        id: "run-existing-1",
+                        status: "running",
+                        total: 3,
+                        done: 0,
+                        started_at: "2026-10-29T08:00:00Z",
+                      },
+                    ],
+                    error: null,
+                  }),
+                }),
+              }),
+            }),
+          };
+        }
+        return {} as unknown;
+      },
+    } as unknown as SupabaseClient;
+
+    const sbStore23505 = createSupabaseQueueStore(mockSupabase23505);
+    const runResult = await sbStore23505.createCheckRun(3, "2026-10-29T08:00:00Z");
+    expect(runResult.isExisting).toBe(true);
+    expect(runResult.id).toBe("run-existing-1");
+
+    // 2. Simulasi galat selain 23505: harus tetap dilempar
+    const mockSupabaseOtherErr = {
+      from: () => ({
+        insert: () => ({
+          select: () => ({
+            single: async () => ({
+              data: null,
+              error: {
+                code: "42P01",
+                message: 'relation "check_runs" does not exist',
+              },
+            }),
+          }),
+        }),
+      }),
+    } as unknown as SupabaseClient;
+
+    const sbStoreOther = createSupabaseQueueStore(mockSupabaseOtherErr);
+    await expect(
+      sbStoreOther.createCheckRun(3, "2026-10-29T08:00:00Z")
+    ).rejects.toThrow('relation "check_runs" does not exist');
+  });
+
+  it("kegagalan pengisian run_items menutup run sebagai failed agar tidak menggantung", async () => {
+    const { store, runs } = createInMemoryQueueStore();
+    store.insertRunItems = async () => {
+      throw new Error("simulasi galat insert ke tabel run_items");
+    };
+
+    await expect(
+      startCheckRun(store, new Date("2026-10-29T08:00:00Z"), { isDemo: false })
+    ).rejects.toThrow("simulasi galat insert ke tabel run_items");
+
+    // Check_runs yang baru dibuat tidak boleh dibiarkan menggantung sebagai 'running', melainkan ditutup sebagai 'failed'
+    expect(runs).toHaveLength(1);
+    expect(runs[0]?.status).toBe("failed");
+    expect(runs[0]?.finished_at).not.toBeNull();
   });
 
   it("mengklaim item pending secara atomik sehingga dua pekerja paralel tidak memproses item yang sama", async () => {

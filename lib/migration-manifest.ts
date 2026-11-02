@@ -43,6 +43,7 @@ export interface ManifestIndex {
   columnsExpr: string;
   columns: Array<{ name: string; order: "ASC" | "DESC" }>;
   unique: boolean;
+  whereExpr?: string | null;
   sourceMigration: string;
 }
 
@@ -456,15 +457,16 @@ export function buildManifestFromSqlFiles(
       }
     }
 
-    // 4. CREATE INDEX
+    // 4. CREATE INDEX (mendukung klausa WHERE opsional untuk indeks parsial)
     const indexRegex =
-      /create\s+(unique\s+)?index\s+(?:if\s+not\s+exists\s+)?([a-zA-Z0-9_]+)\s+on\s+(?:public\.)?([a-zA-Z0-9_]+)\s*\(([^)]+)\)\s*;/gi;
+      /create\s+(unique\s+)?index\s+(?:if\s+not\s+exists\s+)?([a-zA-Z0-9_]+)\s+on\s+(?:public\.)?([a-zA-Z0-9_]+)\s*\(([^)]+)\)(?:\s+where\s+([^;]+))?\s*;/gi;
     let idxMatch: RegExpExecArray | null;
     while ((idxMatch = indexRegex.exec(cleanSql)) !== null) {
       const isUnique = Boolean(idxMatch[1]);
       const idxName = idxMatch[2]!.trim();
       const tableName = idxMatch[3]!.trim();
       const colsExpr = idxMatch[4]!.trim();
+      const whereExpr = idxMatch[5] ? idxMatch[5].trim() : null;
       const colsParsed = colsExpr.split(",").map((c) => {
         const tokens = c.trim().split(/\s+/);
         const name = tokens[0]!;
@@ -479,6 +481,7 @@ export function buildManifestFromSqlFiles(
         columnsExpr: colsExpr.replace(/\s+/g, " "),
         columns: colsParsed,
         unique: isUnique,
+        ...(whereExpr ? { whereExpr } : {}),
         sourceMigration: fileName,
       });
       stepSummary.indexesCreated.push(idxName);

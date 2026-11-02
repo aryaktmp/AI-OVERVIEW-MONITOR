@@ -5,6 +5,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Database,
+  Info,
   Play,
   Trash2,
 } from "lucide-react";
@@ -101,6 +102,7 @@ export function SettingsClient({
   const [feedback, setFeedback] = useState<{
     ok: boolean;
     message: string;
+    variant?: "default" | "destructive" | "success" | "warning" | "info";
   } | null>(null);
 
   const [showRunConfirm, setShowRunConfirm] = useState(false);
@@ -217,6 +219,7 @@ export function SettingsClient({
         if (res.skipped) {
           setFeedback({
             ok: true,
+            variant: "info",
             message: res.message || "No active keywords found to check.",
           });
           return;
@@ -360,8 +363,14 @@ export function SettingsClient({
   return (
     <div className="space-y-4">
       {feedback && (
-        <Alert variant={feedback.ok ? "success" : "destructive"}>
-          {feedback.ok ? (
+        <Alert
+          variant={
+            feedback.variant ?? (feedback.ok ? "success" : "destructive")
+          }
+        >
+          {feedback.variant === "info" ? (
+            <Info className="h-4 w-4" />
+          ) : feedback.ok ? (
             <CheckCircle2 className="h-4 w-4" />
           ) : (
             <AlertCircle className="h-4 w-4" />

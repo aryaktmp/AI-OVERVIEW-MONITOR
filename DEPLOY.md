@@ -6,7 +6,7 @@ Dokumen ini menjelaskan langkah-langkah men-deploy aplikasi **Pemantau Kutipan G
 
 ## 1. Urutan Migrasi Database Supabase (`supabase/migrations/`)
 
-Sebelum menjalankan aplikasi di produksi, jalankan kedelapan file migrasi SQL berikut secara berurutan sesuai nama file di folder `supabase/migrations/`:
+Sebelum menjalankan aplikasi di produksi, jalankan kesembilan file migrasi SQL berikut secara berurutan sesuai nama file di folder `supabase/migrations/`:
 
 1. `supabase/migrations/20261029000000_init_schema.sql` — Membuat 9 tabel inti (`keyword_groups`, `keywords`, `brand_terms`, `competitors`, `check_runs`, `run_items`, `checks`, `check_sources`, `page_cache`), indeks, kebijakan RLS, dan data awal `brand_terms`.
 2. `supabase/migrations/20261029010000_phase3_queue_and_calls.sql` — Menambahkan kolom `serpapi_calls` di `check_runs` dan fungsi RPC atomik `claim_next_run_item()`.
@@ -16,6 +16,7 @@ Sebelum menjalankan aplikasi di produksi, jalankan kedelapan file migrasi SQL be
 6. `supabase/migrations/20261029050000_phase5_third_party_default.sql` — Mengatur nilai awal `enable_third_party_check: false` (mati secara bawaan) pada tabel `settings`.
 7. `supabase/migrations/20261029060000_predeploy_hardening.sql` — Memastikan `enable_third_party_check` bernilai `false` di database serta mencabut eksplisit `EXECUTE` dari `PUBLIC`, `anon`, dan `authenticated` pada seluruh fungsi di schema `public` (`get_database_size_bytes()`, `claim_next_run_item()`, `cleanup_old_checks_raw()`) dan memberi hak hanya ke `service_role`.
 8. `supabase/migrations/20261029070000_function_search_path.sql` — Menetapkan `search_path = public, pg_temp` pada seluruh fungsi `SECURITY DEFINER` di schema `public` (`claim_next_run_item`, `get_database_size_bytes`, `cleanup_old_checks_raw`), memastikan prefix `public.` pada nama tabel, dan mempertahankan hak `EXECUTE` khusus `service_role`.
+9. `supabase/migrations/20261102000000_single_running_run.sql` — Menutup duplikat run lama dan membuat indeks unik parsial `check_runs_single_running_idx` pada `check_runs (status) WHERE status = 'running'` untuk mencegah kondisi balapan (*race condition*) konkuren.
 
 ---
 

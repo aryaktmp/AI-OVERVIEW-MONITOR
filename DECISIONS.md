@@ -117,3 +117,14 @@ Berdasarkan keputusan langsung dari pemilik proyek pada tanggal 30 Oktober 2026,
 - **Verifikasi**:
   - Seluruh rangkaian tes diperbarui untuk memverifikasi teks bahasa Inggris dan lulus penuh.
   - Pengecekan tipe TypeScript (`tsc --noEmit`), linting ESLint, dan `next build` berhasil tanpa galat.
+
+## 9. Proteksi Kondisi Balapan Konkuren pada Antrean Check Runs (2 November 2026)
+
+Untuk mencegah kondisi balapan (*race condition*) saat dua pemanggilan `/api/cron/start-run` datang bersamaan ketika tidak ada run yang sedang berjalan:
+1. **Indeks Unik Parsial Database (`supabase/migrations/20261102000000_single_running_run.sql`)**:
+   - Menambahkan indeks `CREATE UNIQUE INDEX IF NOT EXISTS check_runs_single_running_idx ON public.check_runs (status) WHERE status = 'running';`
+   - Migrasi terlebih dahulu menutup run duplikat lama berstatus `running` (jika ada) menjadi `failed` sebelum membuat indeks agar eksekusi migrasi di database eksisting dijamin berhasil tanpa galat keunikan.
+2. **Penanganan Idempoten & Penutupan Otomatis (`lib/queue.ts`)**:
+   - `createSupabaseQueueStore.createCheckRun`: menangkap galat Postgres berkode `23505` (*unique_violation*), lalu memanggil `getRunningCheckRun()` dan mengembalikan run yang ada dengan `isExisting: true`. Galat selain `23505` tetap dilempar ke atas.
+   - `startCheckRun`: hanya pemenang pembuatan run yang berhak mengisi `run_items`. Pemanggil yang kalah (`isExisting: true`) langsung mengembalikan run tersebut tanpa memasukkan item duplikat.
+   - Jika pengisian `run_items` gagal setelah run dibuat, run tersebut segera ditutup dengan `status = 'failed'` lewat `store.markCheckRunFailed()` agar tidak menggantung dan memblokir antrean run berikutnya.

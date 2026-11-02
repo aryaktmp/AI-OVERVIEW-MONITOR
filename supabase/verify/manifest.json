@@ -8,7 +8,8 @@
     "20261029040000_phase4_fixes.sql",
     "20261029050000_phase5_third_party_default.sql",
     "20261029060000_predeploy_hardening.sql",
-    "20261029070000_function_search_path.sql"
+    "20261029070000_function_search_path.sql",
+    "20261102000000_single_running_run.sql"
   ],
   "perFileSummary": [
     {
@@ -591,6 +592,21 @@
           "sourceMigration": "20261029070000_function_search_path.sql"
         }
       ],
+      "seedUpdates": []
+    },
+    {
+      "fileName": "20261102000000_single_running_run.sql",
+      "extensionsCreated": [],
+      "tablesCreated": [],
+      "columnsAdded": [],
+      "indexesCreated": [
+        "check_runs_single_running_idx"
+      ],
+      "rlsEnabledTables": [],
+      "policiesCreated": [],
+      "viewsCreatedOrReplaced": [],
+      "functionsCreatedOrReplaced": [],
+      "permissionOps": [],
       "seedUpdates": []
     }
   ],
@@ -1524,6 +1540,20 @@
         ],
         "unique": false,
         "sourceMigration": "20261029000000_init_schema.sql"
+      },
+      {
+        "name": "check_runs_single_running_idx",
+        "table": "check_runs",
+        "columnsExpr": "status",
+        "columns": [
+          {
+            "name": "status",
+            "order": "ASC"
+          }
+        ],
+        "unique": true,
+        "whereExpr": "status = 'running'",
+        "sourceMigration": "20261102000000_single_running_run.sql"
       }
     ],
     "policies": [

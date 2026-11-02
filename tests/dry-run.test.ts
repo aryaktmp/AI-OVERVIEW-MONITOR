@@ -90,6 +90,13 @@ function createMockQueueStore(options?: { hourlyCalls?: number }) {
       const itm = items.find((i) => i.id === itemId);
       if (itm) itm.state = "done";
     },
+    async markCheckRunFailed(runId: string, nowIso: string) {
+      const run = runs.find((r) => r.id === runId);
+      if (run) {
+        run.status = "failed";
+        run.finished_at = nowIso;
+      }
+    },
     async markRunItemFailedAttempt() {},
     async syncRunProgress(runId: string): Promise<RunSummary> {
       const run = runs.find((r) => r.id === runId);
