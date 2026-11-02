@@ -79,12 +79,18 @@ export function isMatchingDomain(
  * Referensi internal Google secara otomatis dikecualikan.
  */
 export function detectDomainCitation(
-  sources: Array<Pick<ParsedAiOverviewSource, "url" | "domain"> & { is_google_internal?: boolean }>,
+  sources: Array<
+    Pick<ParsedAiOverviewSource, "url" | "domain"> & {
+      is_google_internal?: boolean;
+      is_unresolved?: boolean;
+    }
+  >,
   brandDomain: string = process.env.BRAND_DOMAIN ?? "linovhr.com"
 ): boolean {
   for (const source of sources) {
     if (
       source.is_google_internal ||
+      source.is_unresolved ||
       isGoogleDomain(source.domain) ||
       isGoogleDomain(source.url)
     ) {
@@ -214,6 +220,7 @@ export function evaluateAiOverviewDetection(
 
   const annotatedSources: AnnotatedCheckSource[] = parsed.sources.map(
     (source) => {
+      const is_unresolved = Boolean(source.is_unresolved);
       const is_google_internal = Boolean(
         source.is_google_internal ||
           isGoogleDomain(source.domain) ||
@@ -221,10 +228,12 @@ export function evaluateAiOverviewDetection(
       );
       const is_own =
         !is_google_internal &&
+        !is_unresolved &&
         (isMatchingDomain(source.url, brandDomain) ||
           isMatchingDomain(source.domain, brandDomain));
       const is_competitor =
         !is_google_internal &&
+        !is_unresolved &&
         !is_own &&
         competitorDomains.some(
           (compDomain) =>
@@ -233,13 +242,14 @@ export function evaluateAiOverviewDetection(
         );
       const mentions_brand = is_own
         ? true
-        : is_google_internal
+        : is_google_internal || is_unresolved
           ? false
           : Boolean(thirdPartyMap[source.url]);
 
       return {
         ...source,
         is_google_internal,
+        is_unresolved,
         is_own,
         is_competitor,
         mentions_brand,

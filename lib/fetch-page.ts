@@ -1231,6 +1231,7 @@ export interface ThirdPartyKeywordStats {
   checked_count: number;
   skipped_count: number;
   timed_out: boolean;
+  third_party_skipped_origin_only?: number;
 }
 
 /**
@@ -1265,15 +1266,21 @@ export async function evaluateThirdPartySourcesForCheck(
     ...s,
   }));
 
+  let skippedOriginOnly = 0;
   const thirdPartyIndices: number[] = [];
   for (let i = 0; i < updatedSources.length; i++) {
     const s = updatedSources[i]!;
     if (
       !s.is_own &&
       !s.is_google_internal &&
+      !s.is_unresolved &&
       !isGoogleDomain(s.domain) &&
       !isGoogleDomain(s.url)
     ) {
+      if (s.url_is_origin_only) {
+        skippedOriginOnly++;
+        continue;
+      }
       thirdPartyIndices.push(i);
       if (thirdPartyIndices.length >= MAX_SOURCES_PER_KEYWORD) {
         break;
@@ -1378,6 +1385,7 @@ export async function evaluateThirdPartySourcesForCheck(
       checked_count: checkedCount,
       skipped_count: skippedCount,
       timed_out: timedOut,
+      third_party_skipped_origin_only: skippedOriginOnly,
     },
   };
 }

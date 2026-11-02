@@ -238,6 +238,21 @@ export function compactSerpApiRawForStorage(
     typeof sanitized.third_party_check === "object"
       ? { third_party_check: sanitized.third_party_check }
       : {}),
+    ...(typeof sanitized.third_party_skipped_origin_only === "number"
+      ? {
+          third_party_skipped_origin_only:
+            sanitized.third_party_skipped_origin_only,
+        }
+      : {}),
+    ...(typeof sanitized.sources_resolved === "number"
+      ? { sources_resolved: sanitized.sources_resolved }
+      : {}),
+    ...(typeof sanitized.sources_total === "number"
+      ? { sources_total: sanitized.sources_total }
+      : {}),
+    ...(typeof sanitized.parser_warning === "string"
+      ? { parser_warning: sanitized.parser_warning }
+      : {}),
   };
 
   return compact;
@@ -1216,9 +1231,28 @@ export async function processQueue(
             )
           : baseEvaluation;
 
+      const skippedOriginOnly =
+        "thirdPartyStats" in evaluation &&
+        typeof evaluation.thirdPartyStats?.third_party_skipped_origin_only ===
+          "number"
+          ? evaluation.thirdPartyStats.third_party_skipped_origin_only
+          : evaluation.sources.filter(
+              (s) =>
+                !s.is_own &&
+                !s.is_google_internal &&
+                !s.is_unresolved &&
+                s.url_is_origin_only
+            ).length;
+
       const rawWithThirdPartyStats = {
         ...serpResult.raw,
         dry_run: itemIsDryRun,
+        sources_resolved: serpResult.parsed.sources_resolved,
+        sources_total: serpResult.parsed.sources_total,
+        ...(serpResult.parsed.parser_warning
+          ? { parser_warning: serpResult.parsed.parser_warning }
+          : {}),
+        third_party_skipped_origin_only: skippedOriginOnly,
         ...("thirdPartyStats" in evaluation && evaluation.thirdPartyStats
           ? { third_party_check: evaluation.thirdPartyStats }
           : {}),

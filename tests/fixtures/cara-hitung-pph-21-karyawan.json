@@ -1,26 +1,4 @@
 {
-  "search_metadata": {
-    "id": "6ae87e09078106d1842415ef",
-    "status": "Success",
-    "json_endpoint": "https://serpapi.com/searches/-3yJnu49oUZFqlJ6CpHaGwGBfV_ha6GapqwferaeY4Y/6ae87e09078106d1842415ef.json",
-    "markdown_endpoint": "https://serpapi.com/searches/-3yJnu49oUZFqlJ6CpHaGwGBfV_ha6GapqwferaeY4Y/6ae87e09078106d1842415ef.md",
-    "pixel_position_endpoint": "https://serpapi.com/searches/-3yJnu49oUZFqlJ6CpHaGwGBfV_ha6GapqwferaeY4Y/6ae87e09078106d1842415ef.json_with_pixel_position",
-    "created_at": "2026-11-02 12:11:53 UTC",
-    "processed_at": "2026-11-02 12:11:53 UTC",
-    "google_url": "https://www.google.co.id/search?q=cara+hitung+pph+21+karyawan&oq=cara+hitung+pph+21+karyawan&uule=w+CAIQICIJSW5kb25lc2lh&hl=id&gl=id&sourceid=chrome&ie=UTF-8",
-    "raw_html_file": "https://serpapi.com/searches/-3yJnu49oUZFqlJ6CpHaGwGBfV_ha6GapqwferaeY4Y/6ae87e09078106d1842415ef.html",
-    "total_time_taken": 0.51
-  },
-  "search_parameters": {
-    "engine": "google",
-    "q": "cara hitung pph 21 karyawan",
-    "location_requested": "Indonesia",
-    "location_used": "Indonesia",
-    "google_domain": "google.co.id",
-    "hl": "id",
-    "gl": "id",
-    "device": "desktop"
-  },
   "search_information": {
     "query_displayed": "cara hitung pph 21 karyawan",
     "total_results": 117,

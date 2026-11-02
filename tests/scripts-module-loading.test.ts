@@ -44,4 +44,39 @@ describe("Requirement 6: Skrip tsx dan Pemuatan Modul", () => {
     expect(stdout).toContain("Daftar domain unik");
     expect(stdout).toContain("LinovHR");
   }, 30000);
+
+  it("memastikan mode replay try-keyword membaca fixture tanpa jaringan dan mencetak laporan identik", () => {
+    // 1. Fixture software-hr-terbaik.json
+    const stdout1 = execSync(
+      "npx tsx scripts/try-keyword.ts --replay tests/fixtures/software-hr-terbaik.json",
+      {
+        cwd: process.cwd(),
+        encoding: "utf-8",
+      }
+    );
+
+    const lines1 = stdout1.trim().split(/\r?\n/);
+    expect(lines1[0]).toBe("MODE: REPLAY (fixture, no network)");
+    expect(stdout1).toContain("Jumlah panggilan SerpApi       : 0");
+    expect(stdout1).toContain("Tingkat resolusi sumber        : 7/7 (100%)");
+    expect(stdout1).toContain("www.linovhr.com");
+    expect(stdout1).toContain("www.talenta.co");
+    expect(stdout1).toContain("LinovHR");
+
+    // 2. Fixture cara-hitung-pph-21-karyawan.json
+    const stdout2 = execSync(
+      "npx tsx scripts/try-keyword.ts --replay tests/fixtures/cara-hitung-pph-21-karyawan.json",
+      {
+        cwd: process.cwd(),
+        encoding: "utf-8",
+      }
+    );
+
+    const lines2 = stdout2.trim().split(/\r?\n/);
+    expect(lines2[0]).toBe("MODE: REPLAY (fixture, no network)");
+    expect(stdout2).toContain("Jumlah panggilan SerpApi       : 0");
+    expect(stdout2).toContain("Tingkat resolusi sumber        : 11/12 (92%)");
+    expect(stdout2).toContain("ortax.org");
+    expect(stdout2).toContain("kalkulator.pajak.go.id");
+  }, 30000);
 });

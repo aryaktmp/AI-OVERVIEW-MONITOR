@@ -489,6 +489,69 @@ describe("Perlindungan SSRF & Deteksi Tingkat 3 (lib/fetch-page.ts)", () => {
     ).toBe(true);
   });
 
+  it("mengecualikan sumber dengan url_is_origin_only dari pengambilan halaman tingkat 3 dan mencatat third_party_skipped_origin_only", async () => {
+    const visitedUrls: string[] = [];
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const urlStr = String(input);
+      visitedUrls.push(urlStr);
+      return new Response("<html><body>Artikel</body></html>", {
+        status: 200,
+        headers: { "content-type": "text/html" },
+      });
+    });
+
+    const sources: AnnotatedCheckSource[] = [
+      {
+        position: 0,
+        title: "Origin only 1",
+        url: "https://talenta.co",
+        domain: "talenta.co",
+        is_own: false,
+        is_competitor: true,
+        mentions_brand: false,
+        url_is_origin_only: true,
+      },
+      {
+        position: 1,
+        title: "Origin only 2",
+        url: "https://youtube.com",
+        domain: "youtube.com",
+        is_own: false,
+        is_competitor: false,
+        mentions_brand: false,
+        url_is_origin_only: true,
+      },
+      {
+        position: 2,
+        title: "Full URL page",
+        url: "https://media.example.com/review-hr",
+        domain: "media.example.com",
+        is_own: false,
+        is_competitor: false,
+        mentions_brand: false,
+        url_is_origin_only: false,
+      },
+    ];
+
+    const evaluated = await evaluateThirdPartySourcesForCheck(
+      {
+        hasAiOverview: true,
+        detected_domain: false,
+        detected_text: false,
+        sources,
+      },
+      {
+        dnsLookupFn: safeDnsMock,
+        fetchFn: fetchMock as unknown as typeof fetch,
+      }
+    );
+
+    // Hanya 1 URL yang diambil (media.example.com/review-hr), 2 origin-only dilewati
+    expect(visitedUrls).toEqual(["https://media.example.com/review-hr"]);
+    expect(evaluated.thirdPartyStats.third_party_skipped_origin_only).toBe(2);
+    expect(evaluated.thirdPartyStats.checked_count).toBe(1);
+  });
+
   it("memakai fixture HTML dari tests/fixtures saat mode dry-run aktif tanpa memanggil jaringan", async () => {
     const res = await checkThirdPartySourcePage(
       "https://blogsdm.id/artikel/software-hr-terbaik",

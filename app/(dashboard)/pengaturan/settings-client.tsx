@@ -771,18 +771,23 @@ export function SettingsClient({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
-                <Switch
-                  id="third-party-toggle"
-                  checked={thirdPartyEnabled}
-                  onCheckedChange={setThirdPartyEnabled}
-                />
-                <Label
-                  htmlFor="third-party-toggle"
-                  className="cursor-pointer font-medium"
-                >
-                  Check third-party sources
-                </Label>
+              <div className="space-y-1 pt-1">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="third-party-toggle"
+                    checked={thirdPartyEnabled}
+                    onCheckedChange={setThirdPartyEnabled}
+                  />
+                  <Label
+                    htmlFor="third-party-toggle"
+                    className="cursor-pointer font-medium"
+                  >
+                    Check third-party sources
+                  </Label>
+                </div>
+                <p className="text-[12px] text-[var(--muted)]">
+                  Sumber dengan URL beranda saja (origin-only) otomatis dilewati karena hanya merujuk ke beranda situs.
+                </p>
               </div>
 
               <div className="pt-1">
@@ -887,6 +892,7 @@ export function SettingsClient({
                   <TableHead>Run Type</TableHead>
                   <TableHead>Keywords Done</TableHead>
                   <TableHead className="text-right">SerpApi Calls</TableHead>
+                  <TableHead className="text-right">Source Resolution</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -926,6 +932,12 @@ export function SettingsClient({
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs font-semibold text-[var(--ink)]">
                       {run.serpapi_calls} calls
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-xs text-[var(--ink)]">
+                      {run.resolution_rate !== null &&
+                      run.resolution_rate !== undefined
+                        ? `${run.resolution_rate}%`
+                        : "-"}
                     </TableCell>
                   </TableRow>
                 ))}

@@ -128,3 +128,19 @@ Untuk mencegah kondisi balapan (*race condition*) saat dua pemanggilan `/api/cro
    - `createSupabaseQueueStore.createCheckRun`: menangkap galat Postgres berkode `23505` (*unique_violation*), lalu memanggil `getRunningCheckRun()` dan mengembalikan run yang ada dengan `isExisting: true`. Galat selain `23505` tetap dilempar ke atas.
    - `startCheckRun`: hanya pemenang pembuatan run yang berhak mengisi `run_items`. Pemanggil yang kalah (`isExisting: true`) langsung mengembalikan run tersebut tanpa memasukkan item duplikat.
    - Jika pengisian `run_items` gagal setelah run dibuat, run tersebut segera ditutup dengan `status = 'failed'` lewat `store.markCheckRunFailed()` agar tidak menggantung dan memblokir antrean run berikutnya.
+
+## 10. Resolusi Domain AI Overview dari Token Buram & Penanganan Origin-Only (2 November 2026)
+
+Berdasarkan investigasi respons langsung Google SerpApi pada kueri nyata ("software hr terbaik" dan "cara hitung pph 21 karyawan"):
+
+1. **Resolusi Domain dari Token Buram (`/goto?url=CAES...`)**:
+   - Pada Google SERP desktop terbaru, anchor link referensi AI Overview dibungkus tautan Google click-tracking `https://www.google.co.id/goto?url=CAES...` di mana parameter `url` berisi token protobuf biner terenkripsi (bukan parameter URL tujuan terbuka seperti `/url?q=`).
+   - Domain tujuan asli diekstrak dari parameter query `url` pada URL ikon favicon proxy Google (`https://encrypted-tbn*.gstatic.com/faviconV2?url=<DESTINATION_ORIGIN>&client=AIM...`) yang terdapat di `ref.source_icon`. Untuk platform media (seperti YouTube atau Instagram) yang menggunakan ikon lokal SerpApi, domain dipetakan dari nama platform pada `ref.source`.
+   - **Mekanisme Tidak Resmi**: Ekstraksi dari endpoint Google Favicon proxy merupakan mekanisme parsing heuristik tidak resmi yang bergantung pada markup SERP Google saat ini dan dapat berubah sewaktu-waktu.
+   - **Cakupan Asal Situs (Origin-Only)**: Karena parameter `url` pada `faviconV2` hanya memuat asal situs (`https://domain`), URL yang dihasilkan hanya merujuk ke beranda/origin dan tidak memuat path artikel spesifik.
+2. **Penanganan Sumber Origin-Only pada Deteksi & Tingkat 3**:
+   - Sumber dengan `url_is_origin_only = true` tetap valid untuk deteksi sitasi domain (Tingkat 1) dan peringkat kompetitor, namun otomatis dikecualikan dari pemindaian konten halaman Tingkat 3 karena hanya mengarah ke beranda situs. Jumlah sumber yang dilewati dicatat di `checks.raw.third_party_skipped_origin_only`.
+3. **Kunci Deduplikasi URL Ternormalisasi + Judul**:
+   - Karena URL berbasis asal situs dari domain yang sama memiliki URL dasar yang identik (misalnya beberapa video YouTube dari channel berbeda), kunci deduplikasi menggunakan gabungan URL ternormalisasi dan judul referensi (`${normUrl}::${title}`).
+4. **Kebijakan Nilai Source Tak Dikenal**:
+   - Nilai `source` yang tidak ada di daftar pemetaan platform (`KNOWN_SOURCE_PLATFORMS`) tidak ditebak menjadi domain dan ditandai `is_unresolved: true`, sehingga dikecualikan dari deteksi domain, peringkat kompetitor, dan tingkat 3 (seperti perlakuan pada referensi internal Google).

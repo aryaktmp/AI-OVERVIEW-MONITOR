@@ -262,10 +262,10 @@ describe("Fase 2: Parser & Klien SerpApi dengan Fixture Asli", () => {
             title: "Fitur LinovHR",
             link: "https://www.google.co.id/url?q=https://linovhr.com/fitur&sa=U",
           },
-          // Duplikat tautan yang sama setelah unwrap dan normalisasi (dengan parameter sa berbeda)
+          // Duplikat tautan yang sama setelah unwrap dan normalisasi (dengan judul sama, sa berbeda)
           {
             index: 1,
-            title: "Fitur LinovHR Duplicate",
+            title: "Fitur LinovHR",
             link: "https://www.google.co.id/url?q=https://linovhr.com/fitur/&sa=OTHER",
           },
           // Tautan perantara Google mengarah ke kompetitor talenta.co
@@ -350,8 +350,16 @@ describe("Fase 2: Parser & Klien SerpApi dengan Fixture Asli", () => {
     const parsed = parseSerpApiResponse(raw);
 
     expect(parsed.hasAiOverview).toBe(true);
-    // 7 referensi mentah, 2 adalah YouTube (1 duplikat terdeduplikasi) -> 6 sumber unik
-    expect(parsed.sources.length).toBeGreaterThanOrEqual(6);
+    // 7 referensi mentah, 2 YouTube dengan judul berbeda tetap dipertahankan (kunci dedup url+judul) -> 7 sumber
+    expect(parsed.sources).toHaveLength(7);
+    expect(parsed.sources_total).toBe(7);
+    expect(parsed.sources_resolved).toBe(7);
+    expect(parsed.parser_warning).toBeNull();
+
+    // Sumber hasil source_icon & platform media memiliki penanda url_is_origin_only
+    for (const s of parsed.sources) {
+      expect(s.url_is_origin_only).toBe(true);
+    }
 
     const domains = parsed.sources.map((s) => s.domain);
     // Pastikan TIDAK ADA domain www.google.co.id
@@ -389,6 +397,9 @@ describe("Fase 2: Parser & Klien SerpApi dengan Fixture Asli", () => {
 
     expect(parsed.hasAiOverview).toBe(true);
     expect(parsed.sources).toHaveLength(12);
+    expect(parsed.sources_total).toBe(12);
+    expect(parsed.sources_resolved).toBe(11);
+    expect(parsed.parser_warning).toBeNull();
 
     const domains = new Set(parsed.sources.map((s) => s.domain));
     // Domain unik harus lebih dari 10 domain nyata
@@ -415,6 +426,86 @@ describe("Fase 2: Parser & Klien SerpApi dengan Fixture Asli", () => {
 
     // Google internal tidak dianggap is_own
     expect(evaluation.detected_domain).toBe(false);
+  });
+
+  it("mempertahankan dua referensi dengan domain sama jika judulnya berbeda (dedup url + judul), dan menggabungkannya jika judul sama", () => {
+    const parsed = parseSerpApiResponse({
+      ai_overview: {
+        text_blocks: [{ snippet: "Video referensi HR" }],
+        references: [
+          {
+            index: 0,
+            title: "Video Tutorial HR 1",
+            source: "YouTube",
+            link: "https://www.google.co.id/goto?url=CAES1",
+          },
+          {
+            index: 1,
+            title: "Video Tutorial HR 2",
+            source: "YouTube",
+            link: "https://www.google.co.id/goto?url=CAES2",
+          },
+          {
+            index: 2,
+            title: "Video Tutorial HR 1", // Duplikat persis URL + judul
+            source: "YouTube",
+            link: "https://www.google.co.id/goto?url=CAES3",
+          },
+        ],
+      },
+    });
+
+    expect(parsed.sources).toHaveLength(2);
+    expect(parsed.sources[0]?.title).toBe("Video Tutorial HR 1");
+    expect(parsed.sources[1]?.title).toBe("Video Tutorial HR 2");
+    expect(parsed.sources[0]?.url_is_origin_only).toBe(true);
+  });
+
+  it("tidak menebak nilai source tak dikenal menjadi domain dan menandainya unresolved", () => {
+    const parsed = parseSerpApiResponse({
+      ai_overview: {
+        text_blocks: [{ snippet: "Teks pembahasan tanpa domain" }],
+        references: [
+          {
+            index: 0,
+            title: "Portal Berita Tak Dikenal",
+            source: "portalberita.co.id", // Bukan di KNOWN_SOURCE_PLATFORMS, tidak boleh ditebak
+            link: "https://www.google.co.id/goto?url=CAESxyz",
+          },
+        ],
+      },
+    });
+
+    expect(parsed.sources).toHaveLength(1);
+    // Link berupa goto tanpa favicon/parameter url berujung pada domain google internal
+    expect(parsed.sources[0]?.is_google_internal).toBe(true);
+
+    const evaluation = evaluateAiOverviewDetection(parsed, {
+      brandDomain: "linovhr.com",
+      competitorDomains: ["portalberita.co.id"],
+    });
+
+    // Tidak dianggap competitor meskipun string source cocok nama domain competitor
+    expect(evaluation.sources[0]?.is_competitor).toBe(false);
+  });
+
+  it("mencatat parser_warning=low_resolution jika resolusi di bawah 80% dari minimal 5 sumber", () => {
+    const parsed = parseSerpApiResponse({
+      ai_overview: {
+        text_blocks: [{ snippet: "Overview dengan semua tautan google internal" }],
+        references: [
+          { index: 0, title: "Ref 1", link: "https://www.google.co.id/goto?url=1" },
+          { index: 1, title: "Ref 2", link: "https://www.google.co.id/goto?url=2" },
+          { index: 2, title: "Ref 3", link: "https://www.google.co.id/goto?url=3" },
+          { index: 3, title: "Ref 4", link: "https://www.google.co.id/goto?url=4" },
+          { index: 4, title: "Ref 5", link: "https://www.google.co.id/goto?url=5" },
+        ],
+      },
+    });
+
+    expect(parsed.sources_total).toBe(5);
+    expect(parsed.sources_resolved).toBe(0);
+    expect(parsed.parser_warning).toBe("low_resolution");
   });
 
   it("memastikan deteksi domain menolak notlinovhr.com jika linovhr.com tidak ada", () => {

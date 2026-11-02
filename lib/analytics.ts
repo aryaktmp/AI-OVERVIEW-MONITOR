@@ -278,6 +278,7 @@ export interface SourceCitationInput {
   domain: string;
   url?: string;
   is_google_internal?: boolean;
+  is_unresolved?: boolean;
 }
 
 export interface CompetitorRankingRow {
@@ -312,6 +313,7 @@ export function computeCompetitorDomainRanking(
   for (const item of citations) {
     if (
       item.is_google_internal ||
+      item.is_unresolved ||
       isGoogleDomain(item.domain) ||
       (item.url ? isGoogleDomain(item.url) : false)
     ) {

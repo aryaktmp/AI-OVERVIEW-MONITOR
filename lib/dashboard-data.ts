@@ -386,6 +386,7 @@ export interface RunHistoryRow {
   done: number;
   is_demo: boolean;
   serpapi_calls: number;
+  resolution_rate?: number | null;
 }
 
 export interface DatabaseStorageStats {
@@ -474,6 +475,8 @@ export async function getSettingsPageData(): Promise<{
   const runIds = (runsData ?? []).map((r: { id: string }) => r.id);
   const callsByRunId = new Map<string, number>();
   const demoByRunId = new Map<string, boolean>();
+  const resolvedByRunId = new Map<string, number>();
+  const totalSourcesByRunId = new Map<string, number>();
 
   if (runIds.length > 0) {
     const { data: runChecks } = await supabase
@@ -482,7 +485,10 @@ export async function getSettingsPageData(): Promise<{
       .in("run_id", runIds);
 
     for (const c of runChecks ?? []) {
-      const typed = c as { run_id: string; raw: Record<string, unknown> | null };
+      const typed = c as {
+        run_id: string;
+        raw: Record<string, unknown> | null;
+      };
       const prev = callsByRunId.get(typed.run_id) ?? 0;
       callsByRunId.set(
         typed.run_id,
@@ -490,6 +496,18 @@ export async function getSettingsPageData(): Promise<{
       );
       if (typed.raw?.dry_run === true) {
         demoByRunId.set(typed.run_id, true);
+      }
+      if (typeof typed.raw?.sources_resolved === "number") {
+        resolvedByRunId.set(
+          typed.run_id,
+          (resolvedByRunId.get(typed.run_id) ?? 0) + typed.raw.sources_resolved
+        );
+      }
+      if (typeof typed.raw?.sources_total === "number") {
+        totalSourcesByRunId.set(
+          typed.run_id,
+          (totalSourcesByRunId.get(typed.run_id) ?? 0) + typed.raw.sources_total
+        );
       }
     }
   }
@@ -506,10 +524,21 @@ export async function getSettingsPageData(): Promise<{
     };
     const isDemo = Boolean(demoByRunId.get(typed.id));
     if (isDemo) hasDemoData = true;
+
+    const resolved = resolvedByRunId.get(typed.id);
+    const totalSources = totalSourcesByRunId.get(typed.id);
+    const resolution_rate =
+      typeof resolved === "number" &&
+      typeof totalSources === "number" &&
+      totalSources > 0
+        ? Math.round((resolved / totalSources) * 100)
+        : null;
+
     return {
       ...typed,
       is_demo: isDemo,
       serpapi_calls: callsByRunId.get(typed.id) ?? 0,
+      resolution_rate,
     };
   });
 

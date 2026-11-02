@@ -21,6 +21,8 @@ export interface ParsedAiOverviewSource {
   snippet?: string;
   sourceName?: string;
   is_google_internal?: boolean;
+  url_is_origin_only?: boolean;
+  is_unresolved?: boolean;
 }
 
 export interface ParsedAiOverview {
@@ -29,6 +31,9 @@ export interface ParsedAiOverview {
   sources: ParsedAiOverviewSource[];
   pageToken: string | null;
   uniqueSourcesCount?: number;
+  sources_total?: number;
+  sources_resolved?: number;
+  parser_warning?: "low_resolution" | null;
 }
 
 export interface SerpApiTextBlock {
@@ -74,6 +79,10 @@ export interface SerpApiRawResponse {
   error?: string;
   serpapi_calls_count?: number;
   dry_run?: boolean;
+  sources_total?: number;
+  sources_resolved?: number;
+  parser_warning?: string | null;
+  third_party_skipped_origin_only?: number;
   [key: string]: unknown;
 }
 
@@ -243,7 +252,7 @@ export function normalizeUrl(rawUrl: string): string {
   }
 }
 
-const KNOWN_SOURCE_PLATFORMS: Record<string, string> = {
+export const KNOWN_SOURCE_PLATFORMS: Record<string, string> = {
   youtube: "https://www.youtube.com",
   instagram: "https://www.instagram.com",
   facebook: "https://www.facebook.com",
@@ -258,17 +267,19 @@ const KNOWN_SOURCE_PLATFORMS: Record<string, string> = {
  *
  * Jalur yang dievaluasi berurutan:
  * 1. Direct link candidates (ref.link, ref.url, ref.destination_url, ref.target_url) setelah di-unwrap
- *    dari perantara Google (pengaman defensif untuk format /url?q=...). Jika non-Google, langsung dipakai.
+ *    dari perantara Google (pengaman defensif untuk format /url?q=...). Jika non-Google, langsung dipakai (full URL).
  * 2. Parameter `url` pada `ref.source_icon`: Pada Google SERP desktop terbaru, tautan AI Overview
  *    dibungkus token goto (/goto?url=CAES...), namun URL tujuan sebenarnya tersedia di parameter `url`
- *    pada favicon proxy Google (https://encrypted-tbn*.gstatic.com/faviconV2?url=https://...).
- * 3. Nama platform atau domain pada `ref.source`: Jika source merupakan platform media (YouTube, Instagram, Facebook)
- *    atau berformat domain (misal "humanis.id").
- * 4. Fallback ke ref.link (tetap disimpan dan ditandai is_google_internal jika tetap domain Google).
+ *    pada favicon proxy Google (https://encrypted-tbn*.gstatic.com/faviconV2?url=https://...). (origin-only).
+ * 3. Nama platform populer pada `ref.source` yang terdaftar di KNOWN_SOURCE_PLATFORMS (origin-only).
+ *    Nilai source yang tidak dikenal TIDAK ditebak menjadi domain dan ditandai unresolved.
+ * 4. Fallback ke ref.link (disimpan dan ditandai is_google_internal jika tetap domain Google, atau isUnresolved jika tidak ada).
  */
 export function resolveReferenceUrl(ref: SerpApiReference): {
   url: string;
   chosenField: string;
+  isOriginOnly: boolean;
+  isUnresolved: boolean;
 } {
   const record = ref as Record<string, unknown>;
 
@@ -285,7 +296,12 @@ export function resolveReferenceUrl(ref: SerpApiReference): {
       const unwrapped = unwrapGoogleUrl(cand.val.trim());
       const domain = extractDomainFromUrl(unwrapped);
       if (domain && !isGoogleDomain(domain)) {
-        return { url: unwrapped, chosenField: cand.field };
+        return {
+          url: unwrapped,
+          chosenField: cand.field,
+          isOriginOnly: false,
+          isUnresolved: false,
+        };
       }
     }
   }
@@ -303,7 +319,12 @@ export function resolveReferenceUrl(ref: SerpApiReference): {
       ) {
         const domain = extractDomainFromUrl(targetFromIcon);
         if (domain && !isGoogleDomain(domain)) {
-          return { url: targetFromIcon, chosenField: "source_icon.url" };
+          return {
+            url: targetFromIcon,
+            chosenField: "source_icon.url",
+            isOriginOnly: true,
+            isUnresolved: false,
+          };
         }
       }
     } catch {
@@ -311,7 +332,7 @@ export function resolveReferenceUrl(ref: SerpApiReference): {
     }
   }
 
-  // 3. Cek source jika merupakan domain atau platform populer
+  // 3. Cek source jika merupakan platform populer yang dikenal
   if (typeof ref.source === "string" && ref.source.trim()) {
     const src = ref.source.trim();
     const srcLower = src.toLowerCase();
@@ -320,15 +341,9 @@ export function resolveReferenceUrl(ref: SerpApiReference): {
       return {
         url: KNOWN_SOURCE_PLATFORMS[srcLower],
         chosenField: "source.platform",
+        isOriginOnly: true,
+        isUnresolved: false,
       };
-    }
-
-    if (srcLower.includes(".") && !srcLower.includes(" ")) {
-      const targetDomain = `https://${srcLower}`;
-      const domain = extractDomainFromUrl(targetDomain);
-      if (domain && !isGoogleDomain(domain)) {
-        return { url: `https://${domain}`, chosenField: "source.domain" };
-      }
     }
   }
 
@@ -338,7 +353,15 @@ export function resolveReferenceUrl(ref: SerpApiReference): {
     (typeof record.url === "string" && (record.url as string).trim()) ||
     "";
 
-  return { url: fallbackVal, chosenField: "link.fallback" };
+  const fallbackDomain = extractDomainFromUrl(fallbackVal);
+  const isGoogle = isGoogleDomain(fallbackDomain);
+
+  return {
+    url: fallbackVal,
+    chosenField: isGoogle ? "link.fallback" : "unresolved",
+    isOriginOnly: false,
+    isUnresolved: !isGoogle && !fallbackDomain,
+  };
 }
 
 function collectTextFromListItems(items: SerpApiListItem[], out: string[]): void {
@@ -399,6 +422,10 @@ export function parseSerpApiResponse(raw: unknown): ParsedAiOverview {
       answerText: "",
       sources: [],
       pageToken: null,
+      uniqueSourcesCount: 0,
+      sources_total: 0,
+      sources_resolved: 0,
+      parser_warning: null,
     };
   }
 
@@ -421,6 +448,10 @@ export function parseSerpApiResponse(raw: unknown): ParsedAiOverview {
       answerText: "",
       sources: [],
       pageToken: null,
+      uniqueSourcesCount: 0,
+      sources_total: 0,
+      sources_resolved: 0,
+      parser_warning: null,
     };
   }
 
@@ -436,38 +467,67 @@ export function parseSerpApiResponse(raw: unknown): ParsedAiOverview {
   const answerText = textSegments.join("\n");
 
   const sources: ParsedAiOverviewSource[] = [];
-  const seenNormalizedUrls = new Set<string>();
+  const seenDedupKeys = new Set<string>();
+  let sourcesResolvedCount = 0;
+  let sourcesTotalCount = 0;
 
   if (Array.isArray(aiOverview.references)) {
+    sourcesTotalCount = aiOverview.references.length;
+
     aiOverview.references.forEach((ref, idx) => {
       if (!ref || typeof ref !== "object") return;
-      const { url: resolvedUrl } = resolveReferenceUrl(ref);
+      const {
+        url: resolvedUrl,
+        isOriginOnly,
+        isUnresolved: refIsUnresolved,
+      } = resolveReferenceUrl(ref);
       if (!resolvedUrl) return;
 
       const domain = extractDomainFromUrl(resolvedUrl);
       if (!domain) return;
 
+      const title = typeof ref.title === "string" ? ref.title.trim() : "";
       const normUrl = normalizeUrl(resolvedUrl);
-      if (normUrl) {
-        if (seenNormalizedUrls.has(normUrl)) {
-          // Hapus duplikat berdasarkan URL ternormalisasi
-          return;
-        }
-        seenNormalizedUrls.add(normUrl);
+      const dedupKey = `${normUrl}::${title.toLowerCase()}`;
+
+      if (seenDedupKeys.has(dedupKey)) {
+        // Hapus duplikat berdasarkan URL ternormalisasi + judul
+        return;
       }
+      seenDedupKeys.add(dedupKey);
 
       const is_google_internal = isGoogleDomain(domain);
+      const is_unresolved = Boolean(
+        refIsUnresolved || (!is_google_internal && !domain)
+      );
+
+      if (domain && !is_google_internal && !is_unresolved) {
+        sourcesResolvedCount++;
+      }
 
       sources.push({
         position: typeof ref.index === "number" ? ref.index : idx,
-        title: typeof ref.title === "string" ? ref.title.trim() : "",
+        title,
         url: resolvedUrl,
         domain,
         snippet: typeof ref.snippet === "string" ? ref.snippet.trim() : undefined,
         sourceName: typeof ref.source === "string" ? ref.source.trim() : undefined,
         is_google_internal,
+        url_is_origin_only: Boolean(isOriginOnly),
+        is_unresolved,
       });
     });
+  }
+
+  let parser_warning: "low_resolution" | null = null;
+  if (
+    sourcesTotalCount >= 5 &&
+    sourcesResolvedCount / sourcesTotalCount < 0.8
+  ) {
+    console.warn(
+      `Peringatan: Tingkat resolusi domain di bawah 80% (${sourcesResolvedCount}/${sourcesTotalCount} sumber non-Google teresolusi).`
+    );
+    parser_warning = "low_resolution";
   }
 
   // Jika hanya ada page_token tanpa text_blocks dan tanpa references, konten AI Overview belum dimuat
@@ -479,6 +539,9 @@ export function parseSerpApiResponse(raw: unknown): ParsedAiOverview {
     sources,
     pageToken,
     uniqueSourcesCount: sources.length,
+    sources_total: sourcesTotalCount,
+    sources_resolved: sourcesResolvedCount,
+    parser_warning,
   };
 }
 
@@ -519,8 +582,12 @@ function simulateDryRunKeyword(keyword: string): SerpApiCheckResult {
       dry_run: true,
       serpapi_calls_count: 1,
     });
+    const parsed = parseSerpApiResponse(firstRaw);
+    firstRaw.sources_total = parsed.sources_total;
+    firstRaw.sources_resolved = parsed.sources_resolved;
+    if (parsed.parser_warning) firstRaw.parser_warning = parsed.parser_warning;
     return {
-      parsed: parseSerpApiResponse(firstRaw),
+      parsed,
       raw: firstRaw,
       firstRaw,
       secondRaw: null,
@@ -535,8 +602,12 @@ function simulateDryRunKeyword(keyword: string): SerpApiCheckResult {
       dry_run: true,
       serpapi_calls_count: 1,
     });
+    const parsed = parseSerpApiResponse(firstRaw);
+    firstRaw.sources_total = parsed.sources_total;
+    firstRaw.sources_resolved = parsed.sources_resolved;
+    if (parsed.parser_warning) firstRaw.parser_warning = parsed.parser_warning;
     return {
-      parsed: parseSerpApiResponse(firstRaw),
+      parsed,
       raw: firstRaw,
       firstRaw,
       secondRaw: null,
@@ -564,9 +635,13 @@ function simulateDryRunKeyword(keyword: string): SerpApiCheckResult {
     dry_run: true,
     serpapi_calls_count: 2,
   });
+  const parsed = parseSerpApiResponse(mergedRaw);
+  mergedRaw.sources_total = parsed.sources_total;
+  mergedRaw.sources_resolved = parsed.sources_resolved;
+  if (parsed.parser_warning) mergedRaw.parser_warning = parsed.parser_warning;
 
   return {
-    parsed: parseSerpApiResponse(mergedRaw),
+    parsed,
     raw: mergedRaw,
     firstRaw,
     secondRaw,
@@ -628,6 +703,11 @@ export async function fetchKeywordAiOverview(
   });
 
   const firstParsed = parseSerpApiResponse(firstRaw);
+  firstRaw.sources_total = firstParsed.sources_total;
+  firstRaw.sources_resolved = firstParsed.sources_resolved;
+  if (firstParsed.parser_warning) {
+    firstRaw.parser_warning = firstParsed.parser_warning;
+  }
 
   // Jika AI Overview sudah berisi teks/referensi, atau tidak ada page_token, selesai
   if (firstParsed.hasAiOverview || !firstParsed.pageToken) {
@@ -689,6 +769,11 @@ export async function fetchKeywordAiOverview(
   });
 
   const secondParsed = parseSerpApiResponse(mergedRaw);
+  mergedRaw.sources_total = secondParsed.sources_total;
+  mergedRaw.sources_resolved = secondParsed.sources_resolved;
+  if (secondParsed.parser_warning) {
+    mergedRaw.parser_warning = secondParsed.parser_warning;
+  }
 
   return {
     parsed: secondParsed,
