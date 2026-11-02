@@ -4,9 +4,12 @@ import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import {
   AlertCircle,
+  Calendar as CalendarIcon,
   CheckCircle2,
   Download,
   FileSpreadsheet,
+  FolderTree,
+  Key,
   Plus,
   Trash2,
   Power,
@@ -19,7 +22,12 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import type { HeatmapCellState, KeywordWeeklyRow } from "@/lib/analytics";
-import type { KeywordBatchRecord } from "@/lib/keyword-batches";
+import type {
+  BatchWithKeywordsCount,
+  BatchScheduleSlotWithBatch,
+  BatchScheduleSettingsRecord,
+  BatchAuditLogRecord,
+} from "@/lib/keyword-batches";
 import {
   CSV_TEMPLATE_CONTENT,
   MAX_CSV_IMPORT_ROWS,
@@ -55,6 +63,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BatchScheduleCalendar } from "@/components/batch-schedule-calendar";
 
 const STATUS_LABELS: Record<HeatmapCellState, string> = {
   0: "No AI Overview",
@@ -77,11 +87,19 @@ const columnHelper = createColumnHelper<KeywordWeeklyRow>();
 export function KeywordManagerClient({
   rows,
   groups,
-  batches,
+  batches = [],
+  slots = [],
+  scheduleSettings,
+  monthlyRunCount = 0,
+  auditLogs = [],
 }: {
   rows: KeywordWeeklyRow[];
   groups: Array<{ id: string; name: string }>;
-  batches?: KeywordBatchRecord[];
+  batches?: BatchWithKeywordsCount[];
+  slots?: BatchScheduleSlotWithBatch[];
+  scheduleSettings?: BatchScheduleSettingsRecord;
+  monthlyRunCount?: number;
+  auditLogs?: BatchAuditLogRecord[];
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("");
@@ -338,8 +356,36 @@ export function KeywordManagerClient({
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+      <Tabs defaultValue="keywords" className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--line)] pb-3">
+          <div>
+            <h1 className="text-[20px] font-semibold tracking-[-0.01em] text-[var(--ink)]">
+              Keyword &amp; Batch Hub
+            </h1>
+            <p className="mt-0.5 text-[13px] text-[var(--muted)]">
+              Search term management, 4-week monthly rotation calendar, and product groups.
+            </p>
+          </div>
+
+          <TabsList className="bg-[var(--surface)] border border-[var(--line)] p-1">
+            <TabsTrigger value="keywords" className="gap-1.5 text-xs font-semibold">
+              <Key className="h-3.5 w-3.5 text-[var(--cite)]" />
+              Keywords ({rows.length})
+            </TabsTrigger>
+            <TabsTrigger value="schedule" className="gap-1.5 text-xs font-semibold">
+              <CalendarIcon className="h-3.5 w-3.5 text-[var(--cite)]" />
+              Batches &amp; 4-Week Schedule ({batches.length})
+            </TabsTrigger>
+            <TabsTrigger value="groups" className="gap-1.5 text-xs font-semibold">
+              <FolderTree className="h-3.5 w-3.5 text-[var(--cite)]" />
+              Groups ({groups.length})
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        {/* Tab 1: Keywords Management */}
+        <TabsContent value="keywords" className="space-y-4 pt-1">
+          <Card>
           <CardHeader>
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
@@ -599,71 +645,7 @@ export function KeywordManagerClient({
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Manage keyword groups</CardTitle>
-            <CardDescription>
-              Organize keywords by topic.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <form
-              action={(formData) => {
-                startTransition(async () => {
-                  const res = await addKeywordGroupAction(formData);
-                  setFeedback({
-                    type: res.ok ? "success" : "error",
-                    text: res.message,
-                  });
-                });
-              }}
-              className="flex gap-2"
-            >
-              <Input
-                name="name"
-                placeholder="New group name"
-                required
-                disabled={isPending}
-              />
-              <Button type="submit" variant="outline" disabled={isPending}>
-                Save group
-              </Button>
-            </form>
-
-            {groups.length === 0 ? (
-              <p className="text-xs text-[var(--muted)]">
-                No groups created yet.
-              </p>
-            ) : (
-              <div className="flex flex-wrap gap-1.5">
-                {groups.map((grp) => (
-                  <span
-                    key={grp.id}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--none)] px-2.5 py-1 text-xs font-medium"
-                  >
-                    {grp.name}
-                    <button
-                      type="button"
-                      disabled={isPending}
-                      onClick={() => {
-                        startTransition(async () => {
-                          await deleteKeywordGroupAction(grp.id);
-                        });
-                      }}
-                      className="ml-0.5 text-[#C0392B] hover:underline cursor-pointer"
-                      aria-label={`Delete group ${grp.name}`}
-                    >
-                      Delete
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardContent>
+          <CardContent className="pt-4">
           <div className="mb-3 flex flex-wrap gap-2">
             <Input
               type="search"
@@ -760,6 +742,108 @@ export function KeywordManagerClient({
           </Table>
         </CardContent>
       </Card>
-    </div>
-  );
+    </TabsContent>
+
+    {/* Tab 2: Batches & 4-Week Schedule Calendar */}
+    <TabsContent value="schedule" className="space-y-4 pt-1">
+      <BatchScheduleCalendar
+        initialBatches={batches}
+        initialSlots={slots}
+        initialSettings={
+          scheduleSettings ?? {
+            id: 1,
+            mode: "auto",
+            max_runs_per_month: 4,
+            override_until: null,
+            updated_at: "",
+          }
+        }
+        monthlyRunCount={monthlyRunCount}
+        initialAuditLogs={auditLogs}
+      />
+    </TabsContent>
+
+    {/* Tab 3: Keyword Product Groups */}
+    <TabsContent value="groups" className="space-y-4 pt-1">
+      <Card>
+        <CardHeader>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <CardTitle className="text-base font-bold text-[var(--ink)]">
+                Keyword Product Groups ({groups.length})
+              </CardTitle>
+              <CardDescription className="text-xs text-[var(--muted)]">
+                Organize search keywords by LinovHR products or business departments.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <form
+            action={(formData) => {
+              startTransition(async () => {
+                const res = await addKeywordGroupAction(formData);
+                setFeedback({
+                  type: res.ok ? "success" : "error",
+                  text: res.message,
+                });
+              });
+            }}
+            className="flex max-w-md gap-2"
+          >
+            <Input
+              name="name"
+              placeholder="New group name (e.g. Payroll System)"
+              required
+              disabled={isPending}
+            />
+            <Button type="submit" variant="primary" disabled={isPending}>
+              <Plus className="h-4 w-4 mr-1" />
+              Save group
+            </Button>
+          </form>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2">
+            {groups.length === 0 ? (
+              <p className="text-xs text-[var(--muted)] col-span-full">
+                No groups created yet. Use the form above to add a group.
+              </p>
+            ) : (
+              groups.map((grp) => {
+                const countInGroup = rows.filter((r) => r.groupName === grp.name).length;
+                return (
+                  <div
+                    key={grp.id}
+                    className="flex items-center justify-between p-3 rounded-lg border border-[var(--line)] bg-[var(--surface)] shadow-xs"
+                  >
+                    <div>
+                      <div className="font-semibold text-sm text-[var(--ink)]">{grp.name}</div>
+                      <div className="text-xs text-[var(--muted)] font-mono">{countInGroup} keywords</div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      disabled={isPending}
+                      onClick={() => {
+                        startTransition(async () => {
+                          await deleteKeywordGroupAction(grp.id);
+                        });
+                      }}
+                      className="h-8 w-8 p-0 text-[var(--muted)] hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 cursor-pointer"
+                      title="Delete group"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </TabsContent>
+  </Tabs>
+</div>
+);
 }

@@ -25,14 +25,15 @@ import {
 } from "@/lib/demo-data";
 import { isDryRun } from "@/lib/dry-run";
 import {
-  listKeywordBatches,
   listKeywordBatchesWithCounts,
   getBatchScheduleSettings,
+  getBatchScheduleSlots,
+  getMonthlyRunCount,
   listBatchAuditLogs,
   type BatchWithKeywordsCount,
   type BatchScheduleSettingsRecord,
+  type BatchScheduleSlotWithBatch,
   type BatchAuditLogRecord,
-  type KeywordBatchRecord,
 } from "@/lib/keyword-batches";
 
 export interface SearchSettingsConfig {
@@ -54,7 +55,11 @@ export const DEFAULT_SEARCH_SETTINGS: SearchSettingsConfig = {
 export async function getDashboardOverviewData(): Promise<{
   analytics: DashboardSummaryAnalytics;
   groups: Array<{ id: string; name: string }>;
-  batches: Array<KeywordBatchRecord>;
+  batches: Array<BatchWithKeywordsCount>;
+  slots: Array<BatchScheduleSlotWithBatch>;
+  scheduleSettings: BatchScheduleSettingsRecord;
+  monthlyRunCount: number;
+  auditLogs: Array<BatchAuditLogRecord>;
 }> {
   const supabase = createSupabaseAdminClient();
 
@@ -68,6 +73,10 @@ export async function getDashboardOverviewData(): Promise<{
     { data: checksData, error: checksErr },
     { data: runsData },
     batchesData,
+    slotsData,
+    scheduleSettingsData,
+    monthlyRunCountData,
+    auditLogsData,
   ] = await Promise.all([
     supabase.from("keyword_groups").select("id, name").order("name"),
     supabase
@@ -86,7 +95,17 @@ export async function getDashboardOverviewData(): Promise<{
       .from("check_runs")
       .select("id, started_at, status, total, done")
       .gte("started_at", eightWeeksAgoIso),
-    listKeywordBatches(supabase).catch(() => [] as KeywordBatchRecord[]),
+    listKeywordBatchesWithCounts(supabase).catch(() => [] as BatchWithKeywordsCount[]),
+    getBatchScheduleSlots(supabase).catch(() => [] as BatchScheduleSlotWithBatch[]),
+    getBatchScheduleSettings(supabase).catch(() => ({
+      id: 1,
+      mode: "auto" as const,
+      max_runs_per_month: 4,
+      override_until: null,
+      updated_at: "",
+    })),
+    getMonthlyRunCount(supabase).catch(() => 0),
+    listBatchAuditLogs(supabase, 20).catch(() => [] as BatchAuditLogRecord[]),
   ]);
 
   if (groupsErr) {
@@ -173,7 +192,11 @@ export async function getDashboardOverviewData(): Promise<{
   return {
     analytics,
     groups: (groupsData ?? []) as Array<{ id: string; name: string }>,
-    batches: (batchesData ?? []) as KeywordBatchRecord[],
+    batches: (batchesData ?? []) as BatchWithKeywordsCount[],
+    slots: (slotsData ?? []) as BatchScheduleSlotWithBatch[],
+    scheduleSettings: scheduleSettingsData as BatchScheduleSettingsRecord,
+    monthlyRunCount: monthlyRunCountData ?? 0,
+    auditLogs: (auditLogsData ?? []) as BatchAuditLogRecord[],
   };
 }
 
@@ -480,6 +503,7 @@ export async function getSettingsPageData(): Promise<{
     getBatchScheduleSettings(supabase).catch(() => ({
       id: 1,
       mode: "auto" as const,
+      max_runs_per_month: 4,
       override_until: null,
       updated_at: "",
     })),

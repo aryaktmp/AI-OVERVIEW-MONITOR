@@ -5,7 +5,15 @@ import { KeywordManagerClient } from "./keyword-manager-client";
 export const dynamic = "force-dynamic";
 
 export default async function KeywordPage() {
-  const { analytics, groups, batches } = await getDashboardOverviewData();
+  const {
+    analytics,
+    groups,
+    batches,
+    slots,
+    scheduleSettings,
+    monthlyRunCount,
+    auditLogs,
+  } = await getDashboardOverviewData();
 
   return (
     <div>
@@ -14,6 +22,10 @@ export default async function KeywordPage() {
         rows={analytics.keywordRows}
         groups={groups}
         batches={batches}
+        slots={slots}
+        scheduleSettings={scheduleSettings}
+        monthlyRunCount={monthlyRunCount}
+        auditLogs={auditLogs}
       />
     </div>
   );

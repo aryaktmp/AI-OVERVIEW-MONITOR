@@ -232,6 +232,23 @@ Menerapkan logika penjadwalan rotasi bulanan berbasis 4 slot mingguan (`lib/keyw
    - Jika telah mencapai batas kuota (`max_runs_per_month`, bawaan: 4) dan flag `force` tidak diaktifkan, rotasi mengembalikan status `skipped_monthly_limit`.
    - Endpoint `/api/cron/start-run` secara otomatis mengenali status `skipped_monthly_limit` dan membatalkan inisiasi run baru untuk mencegah pembengkakan kuota SerpApi pada bulan yang memiliki 5 hari Senin.
 
+## 16. Fase UI: Hub Terpadu 3-Tab & Kalender Visual Monitoring Rotasi (3 November 2026)
+
+Menerapkan antarmuka pengguna optimal untuk manajemen batch dan pemantauan kalender:
+1. **Navigasi Hub Terpadu 3-Tab (`app/(dashboard)/keyword/keyword-manager-client.tsx`)**:
+   - Menyederhanakan UX dengan menggabungkan Keyword, Penjadwalan Slot Batch, dan Grup Produk ke dalam satu halaman hub menggunakan `Tabs` (`components/ui/tabs.tsx`).
+   - Tab 1 (**Keywords**): Tabel data kata kunci lengkap dengan filter status, grup, batch, tombol impor/ekspor CSV, dan formulir penambahan kata kunci terintegrasi pemilihan batch.
+   - Tab 2 (**Batches & 4-Week Schedule**): Kalender monitoring rotasi, kartu 4 slot mingguan, metrik kuota eksekusi bulanan, manajemen batch, dan riwayat audit trail.
+   - Tab 3 (**Groups**): Manajemen kelompok produk LinovHR dengan metrik jumlah keyword per grup dan aksi penambahan/penghapusan.
+2. **Komponen Kalender Monitoring Visual (`components/batch-schedule-calendar.tsx`)**:
+   - **Kalender Bulanan**: Grid kalender interaktif yang memetakan seluruh hari dalam bulan kalender berjalan (Senin s/d Minggu) dengan penanda warna sesuai batch yang ditugaskan pada minggu tersebut, lencana khusus `Run Day` pada setiap hari Senin, dan cincin sorot untuk hari ini (`Today`).
+   - **Kartu Slot 4 Minggu**: 4 kartu interaktif (Week 1 s/d Week 4) dengan dropdown pemilihan batch langsung (`assignBatchToSlotAction`), lencana `Active Now`, dan indikator `Custom Override`.
+   - **Pelacak Kuota Eksekusi Bulanan**: Kartu progres kuota eksekusi bulanan (misal `1 / 4 Runs`) untuk transparansi penggunaan kuota SerpApi.
+   - **Tabel Seluruh Batch**: Daftar batch dengan toggle aktivasi rotasi otomatis (`toggleBatchEnabledAction`) dan tombol aktivasi instan (`Activate Now`).
+3. **Pembaruan Navigasi Global (`components/dashboard-nav.tsx`)**:
+   - Memperbarui label menu navigasi utama menjadi `Keywords & Batches` untuk kejelasan navigasi modul.
+
+
 
 
 

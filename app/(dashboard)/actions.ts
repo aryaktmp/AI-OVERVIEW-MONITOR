@@ -20,6 +20,10 @@ import {
   assignKeywordsToBatch,
   updateKeywordBatch,
   createKeywordBatch,
+  deleteKeywordBatch,
+  assignBatchToSlot,
+  resetSlotsToDefault,
+  rotateActiveBatchBySlot,
   type BatchScheduleMode,
 } from "@/lib/keyword-batches";
 
@@ -761,5 +765,58 @@ export async function createBatchAction(
 
   revalidateAllDashboardRoutes();
   return { ok: true, batch: result };
+}
+
+export async function assignBatchToSlotAction(
+  weekNumber: number,
+  batchId: string | null,
+  isOverride: boolean = true
+) {
+  const user = await requireAllowedAdminUser();
+  const supabase = createSupabaseAdminClient();
+
+  const result = await assignBatchToSlot(
+    supabase,
+    weekNumber,
+    batchId,
+    isOverride,
+    user.email ?? "admin"
+  );
+
+  revalidateAllDashboardRoutes();
+  return result;
+}
+
+export async function resetSlotsToDefaultAction() {
+  const user = await requireAllowedAdminUser();
+  const supabase = createSupabaseAdminClient();
+
+  const result = await resetSlotsToDefault(supabase, user.email ?? "admin");
+
+  revalidateAllDashboardRoutes();
+  return result;
+}
+
+export async function rotateBatchBySlotAction(force: boolean = false) {
+  const user = await requireAllowedAdminUser();
+  const supabase = createSupabaseAdminClient();
+
+  const result = await rotateActiveBatchBySlot(supabase, {
+    actorId: user.email ?? "admin",
+    force,
+  });
+
+  revalidateAllDashboardRoutes();
+  return result;
+}
+
+export async function deleteBatchAction(batchId: string) {
+  await requireAllowedAdminUser();
+  const supabase = createSupabaseAdminClient();
+
+  await deleteKeywordBatch(supabase, batchId);
+
+  revalidateAllDashboardRoutes();
+  return { ok: true };
 }
 

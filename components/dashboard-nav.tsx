@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 const navItems = [
   { href: "/ringkasan", label: "Overview" },
-  { href: "/keyword", label: "Keywords" },
+  { href: "/keyword", label: "Keywords & Batches" },
   { href: "/kompetitor", label: "Competitors" },
   { href: "/pengaturan", label: "Settings" },
 ];
