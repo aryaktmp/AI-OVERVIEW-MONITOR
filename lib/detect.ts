@@ -1,4 +1,8 @@
-import type { ParsedAiOverview, ParsedAiOverviewSource } from "./serpapi.ts";
+import {
+  type ParsedAiOverview,
+  type ParsedAiOverviewSource,
+  isGoogleDomain,
+} from "./serpapi";
 
 export type CheckStatus = "no_ai_overview" | "not_detected" | "detected";
 
@@ -72,12 +76,20 @@ export function isMatchingDomain(
 
 /**
  * Deteksi Tingkat 1: Memeriksa apakah domain merek (atau subdomainnya) ada di daftar sumber AI Overview.
+ * Referensi internal Google secara otomatis dikecualikan.
  */
 export function detectDomainCitation(
-  sources: Array<Pick<ParsedAiOverviewSource, "url" | "domain">>,
+  sources: Array<Pick<ParsedAiOverviewSource, "url" | "domain"> & { is_google_internal?: boolean }>,
   brandDomain: string = process.env.BRAND_DOMAIN ?? "linovhr.com"
 ): boolean {
   for (const source of sources) {
+    if (
+      source.is_google_internal ||
+      isGoogleDomain(source.domain) ||
+      isGoogleDomain(source.url)
+    ) {
+      continue;
+    }
     if (source.url && isMatchingDomain(source.url, brandDomain)) {
       return true;
     }
@@ -202,10 +214,17 @@ export function evaluateAiOverviewDetection(
 
   const annotatedSources: AnnotatedCheckSource[] = parsed.sources.map(
     (source) => {
+      const is_google_internal = Boolean(
+        source.is_google_internal ||
+          isGoogleDomain(source.domain) ||
+          isGoogleDomain(source.url)
+      );
       const is_own =
-        isMatchingDomain(source.url, brandDomain) ||
-        isMatchingDomain(source.domain, brandDomain);
+        !is_google_internal &&
+        (isMatchingDomain(source.url, brandDomain) ||
+          isMatchingDomain(source.domain, brandDomain));
       const is_competitor =
+        !is_google_internal &&
         !is_own &&
         competitorDomains.some(
           (compDomain) =>
@@ -214,10 +233,13 @@ export function evaluateAiOverviewDetection(
         );
       const mentions_brand = is_own
         ? true
-        : Boolean(thirdPartyMap[source.url]);
+        : is_google_internal
+          ? false
+          : Boolean(thirdPartyMap[source.url]);
 
       return {
         ...source,
+        is_google_internal,
         is_own,
         is_competitor,
         mentions_brand,

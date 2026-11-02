@@ -20,6 +20,7 @@ export interface ParsedAiOverviewSource {
   domain: string;
   snippet?: string;
   sourceName?: string;
+  is_google_internal?: boolean;
 }
 
 export interface ParsedAiOverview {
@@ -27,6 +28,7 @@ export interface ParsedAiOverview {
   answerText: string;
   sources: ParsedAiOverviewSource[];
   pageToken: string | null;
+  uniqueSourcesCount?: number;
 }
 
 export interface SerpApiTextBlock {
@@ -114,6 +116,160 @@ export function extractDomainFromUrl(rawUrl: string): string {
   } catch {
     return "";
   }
+}
+
+/**
+ * Memeriksa apakah domain atau URL merupakan domain milik Google
+ * (misal google.co.id, www.google.com, support.google.com, maps.google.com).
+ * Layanan pihak ketiga/terpisah seperti youtube.com tidak dianggap sebagai domain internal Google.
+ */
+export function isGoogleDomain(hostnameOrUrl: string): boolean {
+  if (!hostnameOrUrl || typeof hostnameOrUrl !== "string") return false;
+  let hostname = extractDomainFromUrl(
+    hostnameOrUrl.includes("://") ? hostnameOrUrl : `https://${hostnameOrUrl}`
+  );
+  if (!hostname) {
+    hostname = hostnameOrUrl.toLowerCase().trim().replace(/^www\./, "");
+  }
+  if (!hostname) return false;
+
+  const parts = hostname.toLowerCase().split(".");
+  const googleIdx = parts.lastIndexOf("google");
+  if (googleIdx === -1) return false;
+
+  // Bagian setelah kata 'google' hanya boleh berupa ccTLD/gTLD (misal: ['com'], ['co', 'id'], ['de'])
+  const afterGoogle = parts.slice(googleIdx + 1);
+  if (afterGoogle.length === 0 || afterGoogle.length > 2) return false;
+
+  if (afterGoogle.length === 2) {
+    const [sub, cc] = afterGoogle;
+    if (cc.length !== 2) return false;
+    if (!["co", "com", "org", "net", "edu", "gov", "gen", "ac"].includes(sub)) {
+      return false;
+    }
+  } else if (afterGoogle.length === 1) {
+    const [tld] = afterGoogle;
+    if (tld.length < 2) return false;
+  }
+  return true;
+}
+
+/**
+ * Mengurai tautan perantara Google (Google redirect / intermediary link)
+ * seperti google.co.id/url?q=... atau google.com/url?url=...
+ * untuk mengekstrak URL tujuan akhir yang sebenarnya.
+ */
+export function unwrapGoogleUrl(rawUrl: string, maxDepth: number = 3): string {
+  if (!rawUrl || typeof rawUrl !== "string" || maxDepth <= 0) return rawUrl || "";
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return "";
+
+  try {
+    // Gunakan base https://www.google.co.id jika URL berupa path relatif seperti /url?q=...
+    const parsed = new URL(trimmed, "https://www.google.co.id");
+    const isGoogle = isGoogleDomain(parsed.hostname);
+    const isUrlPath = parsed.pathname === "/url" || parsed.pathname === "/url/";
+
+    if (isGoogle || isUrlPath) {
+      const candidateParam =
+        parsed.searchParams.get("q") ||
+        parsed.searchParams.get("url") ||
+        parsed.searchParams.get("dest");
+
+      if (candidateParam) {
+        let decoded = candidateParam.trim();
+        if (/^https?%3A/i.test(decoded)) {
+          try {
+            decoded = decodeURIComponent(decoded);
+          } catch {
+            // Abaikan jika gagal mendecode
+          }
+        }
+        if (decoded.startsWith("http://") || decoded.startsWith("https://")) {
+          return unwrapGoogleUrl(decoded, maxDepth - 1);
+        }
+      }
+    }
+    return trimmed;
+  } catch {
+    return trimmed;
+  }
+}
+
+/**
+ * Menormalkan URL untuk perbandingan dan deduplikasi:
+ * - Huruf kecil pada protokol dan hostname
+ * - Menghapus trailing slash pada path
+ * - Mengurutkan parameter query secara konsisten
+ * - Mengabaikan fragment (#anchor)
+ */
+export function normalizeUrl(rawUrl: string): string {
+  if (!rawUrl || typeof rawUrl !== "string") return "";
+  const trimmed = rawUrl.trim();
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return "";
+    }
+    const protocol = parsed.protocol.toLowerCase();
+    const hostname = parsed.hostname.toLowerCase();
+    let pathname = parsed.pathname;
+
+    if (pathname.length > 1 && pathname.endsWith("/")) {
+      pathname = pathname.slice(0, -1);
+    } else if (pathname === "/") {
+      pathname = "";
+    }
+
+    parsed.searchParams.sort();
+    const search = parsed.searchParams.toString();
+    const query = search ? `?${search}` : "";
+
+    return `${protocol}//${hostname}${pathname}${query}`;
+  } catch {
+    return trimmed.toLowerCase();
+  }
+}
+
+/**
+ * Memilih URL terbaik dari field referensi SerpApi.
+ * Kandidat yang dievaluasi: ref.link, ref.url, ref.destination_url, ref.target_url.
+ * Alasan pemilihan: Jika ditemukan URL yang setelah di-unwrap mengarah ke domain tujuan eksternal
+ * (bukan internal Google), field tersebut langsung diutamakan. Jika seluruh field tetap mengarah ke Google
+ * atau hanya ada satu field terisi, URL unwrapped dari kandidat pertama (ref.link) tetap dipakai.
+ */
+export function resolveReferenceUrl(ref: SerpApiReference): {
+  url: string;
+  chosenField: string;
+} {
+  const record = ref as Record<string, unknown>;
+  const candidates: Array<{ field: string; val?: unknown }> = [
+    { field: "link", val: ref.link },
+    { field: "url", val: record.url },
+    { field: "destination_url", val: record.destination_url },
+    { field: "target_url", val: record.target_url },
+  ];
+
+  let fallbackUrl = "";
+  let fallbackField = "link";
+
+  for (const cand of candidates) {
+    if (typeof cand.val === "string" && cand.val.trim()) {
+      const unwrapped = unwrapGoogleUrl(cand.val.trim());
+      const domain = extractDomainFromUrl(unwrapped);
+      if (domain) {
+        if (!isGoogleDomain(domain)) {
+          return { url: unwrapped, chosenField: cand.field };
+        }
+        if (!fallbackUrl) {
+          fallbackUrl = unwrapped;
+          fallbackField = cand.field;
+        }
+      }
+    }
+  }
+
+  return { url: fallbackUrl, chosenField: fallbackField };
 }
 
 function collectTextFromListItems(items: SerpApiListItem[], out: string[]): void {
@@ -211,21 +367,36 @@ export function parseSerpApiResponse(raw: unknown): ParsedAiOverview {
   const answerText = textSegments.join("\n");
 
   const sources: ParsedAiOverviewSource[] = [];
+  const seenNormalizedUrls = new Set<string>();
+
   if (Array.isArray(aiOverview.references)) {
     aiOverview.references.forEach((ref, idx) => {
       if (!ref || typeof ref !== "object") return;
-      const link = typeof ref.link === "string" ? ref.link.trim() : "";
-      if (!link) return;
-      const domain = extractDomainFromUrl(link);
+      const { url: resolvedUrl } = resolveReferenceUrl(ref);
+      if (!resolvedUrl) return;
+
+      const domain = extractDomainFromUrl(resolvedUrl);
       if (!domain) return;
+
+      const normUrl = normalizeUrl(resolvedUrl);
+      if (normUrl) {
+        if (seenNormalizedUrls.has(normUrl)) {
+          // Hapus duplikat berdasarkan URL ternormalisasi
+          return;
+        }
+        seenNormalizedUrls.add(normUrl);
+      }
+
+      const is_google_internal = isGoogleDomain(domain);
 
       sources.push({
         position: typeof ref.index === "number" ? ref.index : idx,
         title: typeof ref.title === "string" ? ref.title.trim() : "",
-        url: link,
+        url: resolvedUrl,
         domain,
         snippet: typeof ref.snippet === "string" ? ref.snippet.trim() : undefined,
         sourceName: typeof ref.source === "string" ? ref.source.trim() : undefined,
+        is_google_internal,
       });
     });
   }
@@ -238,6 +409,7 @@ export function parseSerpApiResponse(raw: unknown): ParsedAiOverview {
     answerText,
     sources,
     pageToken,
+    uniqueSourcesCount: sources.length,
   };
 }
 

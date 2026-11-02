@@ -171,6 +171,30 @@ describe("Fungsi Agregasi Dasbor (lib/analytics.ts)", () => {
     });
   });
 
+  it("mengecualikan domain internal Google dari peringkat kompetitor", () => {
+    const citations = [
+      { keyword_id: "kw-1", domain: "www.google.co.id" },
+      { keyword_id: "kw-2", domain: "google.co.id" },
+      { keyword_id: "kw-3", domain: "support.google.com" },
+      { keyword_id: "kw-1", domain: "talenta.co" },
+      { keyword_id: "kw-2", domain: "talenta.co" },
+      { keyword_id: "kw-1", domain: "linovhr.com" },
+    ];
+
+    const ranking = computeCompetitorDomainRanking(
+      citations,
+      "linovhr.com",
+      ["talenta.co"]
+    );
+
+    // Pastikan tidak ada satupun domain google di hasil ranking
+    const domains = ranking.map((r) => r.domain);
+    expect(domains).not.toContain("google.co.id");
+    expect(domains).not.toContain("www.google.co.id");
+    expect(domains).not.toContain("support.google.com");
+    expect(domains).toEqual(["talenta.co", "linovhr.com"]);
+  });
+
   it("menandai istilah merek di dalam teks AI Overview", () => {
     const text =
       "Aplikasi HRIS seperti LinovHR dari PT Linov Roket Prestasi membantu HR.";

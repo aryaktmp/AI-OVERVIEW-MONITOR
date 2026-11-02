@@ -5,6 +5,7 @@ import {
   type BrandTermConfig,
   type CheckStatus,
 } from "./detect.ts";
+import { isGoogleDomain } from "./serpapi";
 
 export type HeatmapCellState = 0 | 1 | 2; // 0 = no_ai_overview, 1 = not_detected, 2 = detected
 
@@ -276,6 +277,7 @@ export interface SourceCitationInput {
   keyword_id: string;
   domain: string;
   url?: string;
+  is_google_internal?: boolean;
 }
 
 export interface CompetitorRankingRow {
@@ -289,6 +291,7 @@ export interface CompetitorRankingRow {
 /**
  * Menghitung peringkat domain yang paling sering dikutip untuk keyword yang dipantau.
  * Menghitung jumlah keyword unik yang mengutip tiap domain pada cek terbaru.
+ * Domain internal Google (misal google.co.id) otomatis dikecualikan.
  */
 export function computeCompetitorDomainRanking(
   citations: SourceCitationInput[],
@@ -307,6 +310,13 @@ export function computeCompetitorDomainRanking(
   }
 
   for (const item of citations) {
+    if (
+      item.is_google_internal ||
+      isGoogleDomain(item.domain) ||
+      (item.url ? isGoogleDomain(item.url) : false)
+    ) {
+      continue;
+    }
     const rawDomain = item.domain.toLowerCase().replace(/^www\./, "").trim();
     if (!rawDomain) continue;
 

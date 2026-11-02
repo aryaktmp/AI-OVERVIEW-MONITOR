@@ -10,13 +10,13 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check:env": "node scripts/check-env.ts",
-    "verify:db": "node scripts/verify-db.ts",
-    "try:keyword": "node scripts/try-keyword.ts",
-    "try:fetch": "node scripts/try-fetch.ts",
-    "try:dry-run": "node scripts/run-local-dry-run.ts",
-    "seed:demo": "node scripts/seed-demo.ts",
-    "seed:clear": "node scripts/seed-clear.ts"
+    "check:env": "tsx scripts/check-env.ts",
+    "verify:db": "tsx scripts/verify-db.ts",
+    "try:keyword": "tsx scripts/try-keyword.ts",
+    "try:fetch": "tsx scripts/try-fetch.ts",
+    "try:dry-run": "tsx scripts/run-local-dry-run.ts",
+    "seed:demo": "tsx scripts/seed-demo.ts",
+    "seed:clear": "tsx scripts/seed-clear.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.6",
@@ -55,6 +55,7 @@
     "pg": "^8.23.1",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.0.12",
+    "tsx": "^4.23.15",
     "typescript": "^5.8.2",
     "vitest": "^3.0.8"
   }

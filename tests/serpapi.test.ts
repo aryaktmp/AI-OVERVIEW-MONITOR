@@ -4,8 +4,11 @@ import { describe, it, expect, vi } from "vitest";
 import {
   extractDomainFromUrl,
   fetchKeywordAiOverview,
+  isGoogleDomain,
+  normalizeUrl,
   parseSerpApiResponse,
   sanitizeSerpApiRaw,
+  unwrapGoogleUrl,
 } from "@/lib/serpapi";
 import { evaluateAiOverviewDetection } from "@/lib/detect";
 
@@ -173,5 +176,201 @@ describe("Fase 2: Parser & Klien SerpApi dengan Fixture Asli", () => {
     expect(extractDomainFromUrl("https://linovhr.com")).toBe("linovhr.com");
     expect(extractDomainFromUrl("javascript:alert(1)")).toBe("");
     expect(extractDomainFromUrl("bukan-url")).toBe("");
+  });
+
+  it("mengurai tautan perantara Google (parameter q=, url=, encoded, dan path relatif)", () => {
+    // Parameter q pada www.google.co.id
+    expect(
+      unwrapGoogleUrl(
+        "https://www.google.co.id/url?q=https://linovhr.com/fitur-payroll&sa=U&ved=2ahUKEwj"
+      )
+    ).toBe("https://linovhr.com/fitur-payroll");
+
+    // Parameter q yang di-URL encode
+    expect(
+      unwrapGoogleUrl(
+        "https://www.google.com/url?q=https%3A%2F%2Ftalenta.co%2Fdemo&sa=U"
+      )
+    ).toBe("https://talenta.co/demo");
+
+    // Parameter url pada google.com
+    expect(
+      unwrapGoogleUrl(
+        "https://www.google.com/url?url=https://www.gadjian.com/fitur"
+      )
+    ).toBe("https://www.gadjian.com/fitur");
+
+    // Path relatif /url?q=...
+    expect(
+      unwrapGoogleUrl("/url?q=https%3A%2F%2Fdataon.com%2Fhris")
+    ).toBe("https://dataon.com/hris");
+
+    // URL langsung non-Google tidak diubah
+    expect(unwrapGoogleUrl("https://linovhr.com/blog")).toBe(
+      "https://linovhr.com/blog"
+    );
+
+    // URL internal Google tanpa redirect tidak diubah
+    expect(unwrapGoogleUrl("https://www.google.co.id/search?q=test")).toBe(
+      "https://www.google.co.id/search?q=test"
+    );
+  });
+
+  it("mengidentifikasi domain Google internal dengan isGoogleDomain dan tidak menganggap youtube sebagai Google internal", () => {
+    expect(isGoogleDomain("www.google.co.id")).toBe(true);
+    expect(isGoogleDomain("google.co.id")).toBe(true);
+    expect(isGoogleDomain("www.google.com")).toBe(true);
+    expect(isGoogleDomain("google.com")).toBe(true);
+    expect(isGoogleDomain("support.google.com")).toBe(true);
+    expect(isGoogleDomain("maps.google.co.id")).toBe(true);
+    expect(isGoogleDomain("google.co.uk")).toBe(true);
+
+    // Non-Google domains
+    expect(isGoogleDomain("youtube.com")).toBe(false);
+    expect(isGoogleDomain("www.youtube.com")).toBe(false);
+    expect(isGoogleDomain("linovhr.com")).toBe(false);
+    expect(isGoogleDomain("notlinovhr.com")).toBe(false);
+    expect(isGoogleDomain("google.evilcorp.com")).toBe(false);
+  });
+
+  it("menormalkan URL untuk deduplikasi via normalizeUrl", () => {
+    expect(normalizeUrl("https://linovhr.com/")).toBe("https://linovhr.com");
+    expect(normalizeUrl("HTTPS://WWW.LINOVHR.COM/fitur/")).toBe(
+      "https://www.linovhr.com/fitur"
+    );
+    expect(normalizeUrl("https://example.com/page?b=2&a=1")).toBe(
+      "https://example.com/page?a=1&b=2"
+    );
+    expect(normalizeUrl("https://example.com/page#section")).toBe(
+      "https://example.com/page"
+    );
+  });
+
+  it("mengurai respons SerpApi dengan tautan perantara, menghapus duplikat, dan menandai is_google_internal", () => {
+    const mockRawResponse = {
+      ai_overview: {
+        text_blocks: [
+          {
+            type: "paragraph",
+            snippet: "Software HR Indonesia membantu administrasi karyawan.",
+          },
+        ],
+        references: [
+          // Tautan perantara Google yang mengarah ke linovhr.com
+          {
+            index: 0,
+            title: "Fitur LinovHR",
+            link: "https://www.google.co.id/url?q=https://linovhr.com/fitur&sa=U",
+          },
+          // Duplikat tautan yang sama setelah unwrap dan normalisasi (dengan parameter sa berbeda)
+          {
+            index: 1,
+            title: "Fitur LinovHR Duplicate",
+            link: "https://www.google.co.id/url?q=https://linovhr.com/fitur/&sa=OTHER",
+          },
+          // Tautan perantara Google mengarah ke kompetitor talenta.co
+          {
+            index: 2,
+            title: "Talenta Demo",
+            link: "https://www.google.com/url?url=https%3A%2F%2Ftalenta.co%2Fdemo",
+          },
+          // Tautan internal Google yang tetap Google setelah normalisasi
+          {
+            index: 3,
+            title: "Pencarian Google HR",
+            link: "https://www.google.co.id/search?q=hr+software",
+          },
+          // Tautan domain mirip yang bukan milik sendiri
+          {
+            index: 4,
+            title: "Not LinovHR",
+            link: "https://notlinovhr.com/hris",
+          },
+        ],
+      },
+    };
+
+    const parsed = parseSerpApiResponse(mockRawResponse);
+
+    expect(parsed.hasAiOverview).toBe(true);
+    // 5 referensi, 1 duplikat terhapus -> tersisa 4 sumber unik
+    expect(parsed.sources).toHaveLength(4);
+    expect(parsed.uniqueSourcesCount).toBe(4);
+
+    // Sumber 0: linovhr.com (tautan perantara terurai)
+    expect(parsed.sources[0]).toMatchObject({
+      url: "https://linovhr.com/fitur",
+      domain: "linovhr.com",
+      is_google_internal: false,
+    });
+
+    // Sumber 1: talenta.co (tautan perantara terurai)
+    expect(parsed.sources[1]).toMatchObject({
+      url: "https://talenta.co/demo",
+      domain: "talenta.co",
+      is_google_internal: false,
+    });
+
+    // Sumber 2: Google internal tetap disimpan tetapi ditandai is_google_internal
+    expect(parsed.sources[2]).toMatchObject({
+      url: "https://www.google.co.id/search?q=hr+software",
+      domain: "www.google.co.id",
+      is_google_internal: true,
+    });
+
+    // Sumber 3: notlinovhr.com
+    expect(parsed.sources[3]).toMatchObject({
+      url: "https://notlinovhr.com/hris",
+      domain: "notlinovhr.com",
+      is_google_internal: false,
+    });
+
+    // Evaluasi deteksi: linovhr.com terdeteksi, Google internal dikecualikan, notlinovhr.com ditolak
+    const evaluation = evaluateAiOverviewDetection(parsed, {
+      brandDomain: "linovhr.com",
+      competitorDomains: ["talenta.co"],
+    });
+
+    expect(evaluation.status).toBe("detected");
+    expect(evaluation.detected_domain).toBe(true); // karena ada linovhr.com
+    expect(evaluation.sources[0]?.is_own).toBe(true);
+    expect(evaluation.sources[1]?.is_competitor).toBe(true);
+
+    // Google internal tidak dianggap is_own maupun is_competitor
+    expect(evaluation.sources[2]?.is_google_internal).toBe(true);
+    expect(evaluation.sources[2]?.is_own).toBe(false);
+    expect(evaluation.sources[2]?.is_competitor).toBe(false);
+
+    // notlinovhr.com bukan is_own
+    expect(evaluation.sources[3]?.is_own).toBe(false);
+  });
+
+  it("memastikan deteksi domain menolak notlinovhr.com jika linovhr.com tidak ada", () => {
+    const parsedWithOnlyNotLinov = parseSerpApiResponse({
+      ai_overview: {
+        text_blocks: [{ snippet: "Uji coba tanpa linov" }],
+        references: [
+          {
+            index: 0,
+            title: "Bukan Linov",
+            link: "https://notlinovhr.com/payroll",
+          },
+          {
+            index: 1,
+            title: "Google Search",
+            link: "https://www.google.co.id/search?q=payroll",
+          },
+        ],
+      },
+    });
+
+    const evalResult = evaluateAiOverviewDetection(parsedWithOnlyNotLinov, {
+      brandDomain: "linovhr.com",
+    });
+
+    expect(evalResult.detected_domain).toBe(false);
+    expect(evalResult.sources[0]?.is_own).toBe(false);
+    expect(evalResult.sources[1]?.is_google_internal).toBe(true);
+    expect(evalResult.sources[1]?.is_own).toBe(false);
   });
 });

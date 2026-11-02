@@ -1,10 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
+import { isDryRun } from "../lib/dry-run";
 import {
   fetchKeywordAiOverview,
   sanitizeSerpApiRaw,
-} from "../lib/serpapi.ts";
-import { evaluateAiOverviewDetection } from "../lib/detect.ts";
+} from "../lib/serpapi";
+import {
+  buildBrandTermRegex,
+  evaluateAiOverviewDetection,
+} from "../lib/detect";
 
 function loadEnvLocal(): void {
   const envPath = path.join(process.cwd(), ".env.local");
@@ -32,13 +36,19 @@ function loadEnvLocal(): void {
 function parseArgs(argv: string[]): {
   keyword: string;
   saveFixtureName: string | null;
+  dryRun: boolean | null;
 } {
   let saveFixtureName: string | null = null;
+  let dryRun: boolean | null = null;
   const positional: string[] = [];
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i] ?? "";
-    if (arg === "--save-fixture") {
+    if (arg === "--dry-run") {
+      dryRun = true;
+    } else if (arg === "--live") {
+      dryRun = false;
+    } else if (arg === "--save-fixture") {
       const next = argv[i + 1];
       if (!next || next.startsWith("--")) {
         throw new Error("Option --save-fixture requires a <name> argument.");
@@ -58,43 +68,98 @@ function parseArgs(argv: string[]): {
   const keyword = positional.join(" ").trim();
   if (!keyword) {
     throw new Error(
-      'Usage: npm run try:keyword -- "<keyword>" [--save-fixture <name>]'
+      'Usage: tsx scripts/try-keyword.ts "<keyword>" [--dry-run|--live] [--save-fixture <name>]'
     );
   }
 
-  return { keyword, saveFixtureName };
+  return { keyword, saveFixtureName, dryRun };
 }
 
 async function main() {
   loadEnvLocal();
-  const { keyword, saveFixtureName } = parseArgs(process.argv.slice(2));
+  const { keyword, saveFixtureName, dryRun: cliDryRun } = parseArgs(
+    process.argv.slice(2)
+  );
 
-  const result = await fetchKeywordAiOverview(keyword, { dryRun: false });
+  const effectiveDryRun = cliDryRun !== null ? cliDryRun : isDryRun();
+
+  // Baris pertama wajib menampilkan status mode
+  if (effectiveDryRun) {
+    console.log("MODE: DRY RUN (fixture, no network)");
+  } else {
+    console.log("MODE: LIVE (SerpApi call)");
+  }
+
+  const result = await fetchKeywordAiOverview(keyword, {
+    dryRun: effectiveDryRun,
+  });
   const evaluation = evaluateAiOverviewDetection(result.parsed, {
     brandDomain: process.env.BRAND_DOMAIN ?? "linovhr.com",
   });
 
-  const sourceDomains = result.parsed.sources.map((s) => s.domain);
-  const answerPreview = result.parsed.answerText
-    ? result.parsed.answerText.replace(/\s+/g, " ").trim().slice(0, 200)
-    : "(empty)";
-
-  console.log("=== SerpApi Keyword Test Results ===");
-  console.log(`Keyword                        : ${keyword}`);
+  // Jumlah panggilan SerpApi dan penggunaan page_token
+  console.log(`Jumlah panggilan SerpApi       : ${result.apiCallsCount}`);
   console.log(
-    `Follow-up call (page_token)    : ${result.usedFollowUpPageToken ? "Yes" : "No"}`
+    `Penggunaan page_token          : ${result.usedFollowUpPageToken ? "Ya" : "Tidak"}`
   );
-  console.log(`SerpApi calls count            : ${result.apiCallsCount}`);
   console.log(`hasAiOverview                  : ${result.parsed.hasAiOverview}`);
-  console.log(`Sources count                  : ${result.parsed.sources.length}`);
-  console.log(
-    `Source domains list            : ${sourceDomains.length > 0 ? sourceDomains.join(", ") : "-"}`
+  console.log(`Jumlah total sumber            : ${result.parsed.sources.length}`);
+
+  // Daftar domain unik beserta jumlah kemunculan (bukan daftar mentah)
+  const domainCounts = new Map<string, number>();
+  for (const s of result.parsed.sources) {
+    const d = s.domain;
+    domainCounts.set(d, (domainCounts.get(d) ?? 0) + 1);
+  }
+  const uniqueDomainList = Array.from(domainCounts.entries()).sort(
+    (a, b) => b[1] - a[1] || a[0].localeCompare(b[0])
   );
+
+  console.log(
+    `Daftar domain unik (${uniqueDomainList.length} domain unik, ${result.parsed.sources.length} total sumber):`
+  );
+  if (uniqueDomainList.length === 0) {
+    console.log("  (tidak ada sumber)");
+  } else {
+    for (const [domain, count] of uniqueDomainList) {
+      console.log(`  - ${domain} (${count} kemunculan)`);
+    }
+  }
+
   console.log(`Final status                   : ${evaluation.status}`);
   console.log(
     `Detection flags                : detected_domain=${evaluation.detected_domain}, detected_text=${evaluation.detected_text}, detected_third_party=${evaluation.detected_third_party}`
   );
-  console.log(`First 200 chars of answer      : ${answerPreview}`);
+
+  // Untuk detected_text: istilah merek yang cocok dan 80 karakter konteks di sekitarnya tanpa seluruh teks
+  console.log("Deteksi teks merek (detected_text):");
+  if (!evaluation.detected_text || evaluation.matched_terms.length === 0) {
+    console.log("  false (tidak ada istilah merek yang cocok)");
+  } else {
+    console.log(
+      `  true (istilah cocok: ${evaluation.matched_terms.join(", ")})`
+    );
+    for (const term of evaluation.matched_terms) {
+      const regex = buildBrandTermRegex(term);
+      const match = regex.exec(result.parsed.answerText);
+      if (match) {
+        // Sekitar 40 karakter sebelum dan 40 karakter sesudah istilah (total ~80 karakter konteks di sekitar istilah)
+        const start = Math.max(0, match.index - 40);
+        const end = Math.min(
+          result.parsed.answerText.length,
+          match.index + match[0].length + 40
+        );
+        const rawContext = result.parsed.answerText
+          .slice(start, end)
+          .replace(/\s+/g, " ")
+          .trim();
+        const prefix = start > 0 ? "..." : "";
+        const suffix = end < result.parsed.answerText.length ? "..." : "";
+        console.log(`  - Istilah cocok : "${term}"`);
+        console.log(`    Konteks (~80 char): "${prefix}${rawContext}${suffix}"`);
+      }
+    }
+  }
 
   if (saveFixtureName) {
     const fixturesDir = path.join(process.cwd(), "tests", "fixtures");

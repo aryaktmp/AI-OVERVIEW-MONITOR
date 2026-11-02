@@ -8,6 +8,7 @@ import type { Readable } from "node:stream";
 import zlib from "node:zlib";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isDryRun } from "./dry-run.ts";
+import { isGoogleDomain } from "./serpapi";
 import {
   DEFAULT_BRAND_TERMS,
   detectBrandMentionInText,
@@ -1266,7 +1267,13 @@ export async function evaluateThirdPartySourcesForCheck(
 
   const thirdPartyIndices: number[] = [];
   for (let i = 0; i < updatedSources.length; i++) {
-    if (!updatedSources[i]!.is_own) {
+    const s = updatedSources[i]!;
+    if (
+      !s.is_own &&
+      !s.is_google_internal &&
+      !isGoogleDomain(s.domain) &&
+      !isGoogleDomain(s.url)
+    ) {
       thirdPartyIndices.push(i);
       if (thirdPartyIndices.length >= MAX_SOURCES_PER_KEYWORD) {
         break;
