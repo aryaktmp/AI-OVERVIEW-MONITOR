@@ -12,6 +12,7 @@ import {
   generateFixSuggestionsSql,
   generateStandaloneVerifySql,
   parseSqlEditorResultsFile,
+  toStringArray,
   VERIFY_DB_READONLY_QUERIES,
   type CategoryCode,
   type DbIntrospectionSnapshot,
@@ -83,33 +84,22 @@ async function introspectViaPostgres(
       : { rejectUnauthorized: false },
   });
 
-  await client.connect();
+  let connected = false;
   try {
+    await client.connect();
+    connected = true;
     await client.query(VERIFY_DB_READONLY_QUERIES.beginReadOnly);
 
-    const [
-      extRes,
-      evtRes,
-      tblRes,
-      colRes,
-      conRes,
-      idxRes,
-      polRes,
-      privRes,
-      viewRes,
-      fnRes,
-    ] = await Promise.all([
-      client.query(VERIFY_DB_READONLY_QUERIES.extensions),
-      client.query(VERIFY_DB_READONLY_QUERIES.eventTriggers),
-      client.query(VERIFY_DB_READONLY_QUERIES.tables),
-      client.query(VERIFY_DB_READONLY_QUERIES.columns),
-      client.query(VERIFY_DB_READONLY_QUERIES.constraints),
-      client.query(VERIFY_DB_READONLY_QUERIES.indexes),
-      client.query(VERIFY_DB_READONLY_QUERIES.policies),
-      client.query(VERIFY_DB_READONLY_QUERIES.tablePrivileges),
-      client.query(VERIFY_DB_READONLY_QUERIES.views),
-      client.query(VERIFY_DB_READONLY_QUERIES.functions),
-    ]);
+    const extRes = await client.query(VERIFY_DB_READONLY_QUERIES.extensions);
+    const evtRes = await client.query(VERIFY_DB_READONLY_QUERIES.eventTriggers);
+    const tblRes = await client.query(VERIFY_DB_READONLY_QUERIES.tables);
+    const colRes = await client.query(VERIFY_DB_READONLY_QUERIES.columns);
+    const conRes = await client.query(VERIFY_DB_READONLY_QUERIES.constraints);
+    const idxRes = await client.query(VERIFY_DB_READONLY_QUERIES.indexes);
+    const polRes = await client.query(VERIFY_DB_READONLY_QUERIES.policies);
+    const privRes = await client.query(VERIFY_DB_READONLY_QUERIES.tablePrivileges);
+    const viewRes = await client.query(VERIFY_DB_READONLY_QUERIES.views);
+    const fnRes = await client.query(VERIFY_DB_READONLY_QUERIES.functions);
 
     const tableNamesSet = new Set(
       tblRes.rows.map((r: { name: string }) => r.name)
@@ -207,9 +197,9 @@ async function introspectViaPostgres(
           table_name: string;
           constraint_name: string;
           constraint_type: string;
-          columns: string[];
+          columns: unknown;
           references_table: string | null;
-          references_columns: string[] | null;
+          references_columns: unknown;
           on_delete_action: string | null;
           check_expression: string | null;
         }) => {
@@ -226,9 +216,9 @@ async function introspectViaPostgres(
             table: r.table_name,
             name: r.constraint_name,
             type: typeMap[r.constraint_type] ?? "CHECK",
-            columns: r.columns ?? [],
+            columns: toStringArray(r.columns),
             referencesTable: r.references_table ?? undefined,
-            referencesColumn: r.references_columns?.[0] ?? undefined,
+            referencesColumn: toStringArray(r.references_columns)[0] ?? undefined,
             onDelete:
               r.constraint_type === "f"
                 ? decodeFkOnDeleteCode(r.on_delete_action)
@@ -255,14 +245,14 @@ async function introspectViaPostgres(
           policy_name: string;
           table_name: string;
           command_type: string;
-          roles: string[];
+          roles: unknown;
           using_expr: string;
           with_check_expr: string | null;
         }) => ({
           name: r.policy_name,
           table: r.table_name,
           command: decodePolicyCmdCode(r.command_type),
-          roles: r.roles ?? [],
+          roles: toStringArray(r.roles),
           usingExpr: r.using_expr ?? "true",
           withCheckExpr: r.with_check_expr,
         })
@@ -346,12 +336,18 @@ async function introspectViaPostgres(
       authUsers,
     };
   } finally {
-    try {
-      await client.query(VERIFY_DB_READONLY_QUERIES.rollback);
-    } catch {
-      // Abaikan jika rollback gagal
+    if (connected) {
+      try {
+        await client.query(VERIFY_DB_READONLY_QUERIES.rollback);
+      } catch {
+        // Abaikan jika rollback gagal
+      }
     }
-    await client.end();
+    try {
+      await client.end();
+    } catch {
+      // Abaikan jika client.end gagal
+    }
   }
 }
 

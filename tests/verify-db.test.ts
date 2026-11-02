@@ -13,6 +13,7 @@ import {
   generateStandaloneVerifySql,
   loadSupabaseManagedConfig,
   parseSqlEditorResultsFile,
+  toStringArray,
   VERIFY_DB_READONLY_QUERIES,
   type DbIntrospectionSnapshot,
 } from "../lib/verify-db-core";
@@ -732,4 +733,141 @@ describe("Pemeriksa Konsistensi Migrasi & Database (verify:db)", () => {
       expect(typeof r.detail).toBe("string");
     }
   }, 30000);
+
+  describe("toStringArray (normalisasi array PostgreSQL)", () => {
+    it("menangani array string Postgres '{a,b}'", () => {
+      expect(toStringArray("{a,b}")).toEqual(["a", "b"]);
+    });
+
+    it("menangani array kosong '{}'", () => {
+      expect(toStringArray("{}")).toEqual([]);
+    });
+
+    it("menangani elemen berkutip dan spasi '{\"a b\",c}'", () => {
+      expect(toStringArray('{"a b",c}')).toEqual(["a b", "c"]);
+    });
+
+    it("menangani null dan undefined", () => {
+      expect(toStringArray(null)).toEqual([]);
+      expect(toStringArray(undefined)).toEqual([]);
+    });
+
+    it("menangani array JavaScript biasa", () => {
+      expect(toStringArray(["a", "b"])).toEqual(["a", "b"]);
+      expect(toStringArray([])).toEqual([]);
+      expect(toStringArray(["a b", "c"])).toEqual(["a b", "c"]);
+    });
+
+    it("menangani string dengan tanda koma di dalam tanda kutip dan tanda kutip yang di-escape", () => {
+      expect(toStringArray('{"a,b","c d"}')).toEqual(["a,b", "c d"]);
+      expect(toStringArray('{"a\\"b",c}')).toEqual(['a"b', "c"]);
+      expect(toStringArray('{"a""b",c}')).toEqual(['a"b', "c"]);
+    });
+
+    it("menangani nilai kosong atau string tanpa tanda kurung kurawal", () => {
+      expect(toStringArray("")).toEqual([]);
+      expect(toStringArray("{   }")).toEqual([]);
+      expect(toStringArray("single_item")).toEqual(["single_item"]);
+    });
+  });
+
+  it("meniru driver pg asli yang mengembalikan nilai string seperti '{a,b}' pada constraints.columns dan policies.roles tanpa melempar galat c.columns.join is not a function", () => {
+    const manifest = buildManifestFromDirectory(migrationsDir);
+
+    // Snapshot meniru hasil kueri pg mentah di mana pg_catalog.pg_attribute.attname menghasilkan name[]
+    // yang oleh driver pg diubah menjadi string "{id}" alih-alih array JavaScript
+    const mockPgSnapshot: DbIntrospectionSnapshot = {
+      source: "pg",
+      extensions: "{\"pgcrypto\"}" as unknown as string[],
+      eventTriggers: "{\"ensure_rls\"}" as unknown as string[],
+      tables: Object.keys(manifest.finalState.tables).map((name) => ({
+        name,
+        rlsEnabled: true,
+      })),
+      columns: Object.entries(manifest.finalState.tables).flatMap(([tName, tSpec]) =>
+        tSpec.columns.map((c) => ({
+          table: tName,
+          name: c.name,
+          dataType: c.normalizedType,
+          nullable: c.nullable,
+          defaultExpr: c.defaultExpr,
+        }))
+      ),
+      // Di sini columns dan referencesColumn bertipe string mentah "{...}" ala driver pg
+      constraints: Object.entries(manifest.finalState.tables).flatMap(([tName, tSpec]) =>
+        tSpec.constraints.map((c, idx) => ({
+          table: tName,
+          name: `${tName}_con_${idx}`,
+          type: c.type,
+          columns: `{${c.columns.join(",")}}` as unknown as string[],
+          referencesTable: c.referencesTable,
+          referencesColumn: c.referencesColumn,
+          onDelete: c.onDelete,
+          checkExpression: c.checkExpression,
+        }))
+      ),
+      indexes: manifest.finalState.indexes.map((idx) => ({
+        name: idx.name,
+        table: idx.table,
+        unique: idx.unique,
+        indexDef: "",
+      })),
+      policies: manifest.finalState.policies.map((pol) => ({
+        name: pol.name,
+        table: pol.table,
+        command: pol.command,
+        roles: `{${pol.roles.join(",")}}` as unknown as string[],
+        usingExpr: pol.usingExpr,
+        withCheckExpr: pol.withCheckExpr,
+      })),
+      tablePrivilegesSummary: null,
+      views: Object.keys(manifest.finalState.views).map((name) => ({
+        name,
+        exists: true,
+        securityInvoker: true,
+        definitionSql: "view def",
+      })),
+      functions: Object.entries(manifest.finalState.functions).map(([name, fSpec]) => ({
+        name,
+        argsSignature: fSpec.argsSignature,
+        returnType: fSpec.returnType,
+        language: fSpec.language,
+        securityDefiner: fSpec.securityDefiner,
+        searchPath: "public, pg_temp",
+        publicCanExecute: false,
+        anonCanExecute: false,
+        authenticatedCanExecute: false,
+        serviceRoleCanExecute: true,
+      })),
+      seeds: {
+        brandTerms: [
+          { term: "LinovHR", enabled: true },
+          { term: "Linov HR", enabled: true },
+          { term: "linovhr.com", enabled: true },
+          { term: "Linov", enabled: false },
+        ],
+        settings: {
+          search_config: { enable_third_party_check: false },
+        },
+      },
+      demoCounts: { check_runs: 0, keywords: 0, keyword_groups: 0, competitors: 0 },
+      schemaMigrations: [{ version: "20261029000000" }],
+      authUsers: { totalUsers: 1, emailsLower: ["admin@linovhr.com"] },
+    };
+
+    // Pastikan tidak melempar error "c.columns.join is not a function"
+    expect(() => {
+      const evaluation = evaluateDatabaseAgainstManifest(
+        manifest,
+        mockPgSnapshot,
+        ["admin@linovhr.com"]
+      );
+
+      // Pastikan seluruh constraint dari manifest terverifikasi sebagai PASS
+      const constraintItems = evaluation.items.filter((i) => i.category === "c");
+      expect(constraintItems.length).toBeGreaterThan(0);
+      const failedConstraints = constraintItems.filter((i) => i.status === "FAIL");
+      expect(failedConstraints).toEqual([]);
+    }).not.toThrow();
+  });
 });

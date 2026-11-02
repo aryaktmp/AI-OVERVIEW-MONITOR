@@ -189,6 +189,74 @@ export function maskEmailAddress(email: string): string {
   return `${local[0]}***@${domain}`;
 }
 
+export function toStringArray(value: unknown): string[] {
+  if (value === null || value === undefined) {
+    return [];
+  }
+  if (Array.isArray(value)) {
+    return value.map((v) => (v === null || v === undefined ? "" : String(v)));
+  }
+  if (typeof value !== "string") {
+    return [];
+  }
+  const trimmed = value.trim();
+  if (trimmed === "" || trimmed === "{}") {
+    return [];
+  }
+  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) {
+    return [trimmed];
+  }
+
+  const inner = trimmed.slice(1, -1).trim();
+  if (!inner) {
+    return [];
+  }
+
+  const result: string[] = [];
+  let current = "";
+  let inQuotes = false;
+  let escapeNext = false;
+  let hasQuotes = false;
+
+  for (let i = 0; i < inner.length; i++) {
+    const ch = inner[i];
+
+    if (escapeNext) {
+      current += ch;
+      escapeNext = false;
+      continue;
+    }
+
+    if (ch === "\\") {
+      escapeNext = true;
+      continue;
+    }
+
+    if (ch === '"') {
+      if (inQuotes && inner[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+        hasQuotes = true;
+      }
+      continue;
+    }
+
+    if (ch === "," && !inQuotes) {
+      result.push(hasQuotes ? current : current.trim());
+      current = "";
+      hasQuotes = false;
+      continue;
+    }
+
+    current += ch;
+  }
+
+  result.push(hasQuotes ? current : current.trim());
+  return result;
+}
+
 export const VERIFY_DB_READONLY_QUERIES = {
   beginReadOnly: "BEGIN READ ONLY;",
   rollback: "ROLLBACK;",
@@ -240,20 +308,20 @@ export const VERIFY_DB_READONLY_QUERIES = {
       con.conname AS constraint_name,
       con.contype::text AS constraint_type,
       ARRAY(
-        SELECT a.attname
+        SELECT a.attname::text
         FROM pg_catalog.pg_attribute a
         WHERE a.attrelid = con.conrelid
           AND a.attnum = ANY(con.conkey)
         ORDER BY array_position(con.conkey, a.attnum)
-      ) AS columns,
+      )::text[] AS columns,
       ref_c.relname AS references_table,
       ARRAY(
-        SELECT a.attname
+        SELECT a.attname::text
         FROM pg_catalog.pg_attribute a
         WHERE a.attrelid = con.confrelid
           AND a.attnum = ANY(con.confkey)
         ORDER BY array_position(con.confkey, a.attnum)
-      ) AS references_columns,
+      )::text[] AS references_columns,
       con.confdeltype::text AS on_delete_action,
       pg_catalog.pg_get_expr(con.conbin, con.conrelid) AS check_expression
     FROM pg_catalog.pg_constraint con
@@ -286,10 +354,10 @@ export const VERIFY_DB_READONLY_QUERIES = {
       c.relname AS table_name,
       pol.polcmd::text AS command_type,
       ARRAY(
-        SELECT r.rolname
+        SELECT r.rolname::text
         FROM pg_catalog.pg_roles r
         WHERE r.oid = ANY(pol.polroles)
-      ) AS roles,
+      )::text[] AS roles,
       pg_catalog.pg_get_expr(pol.polqual, pol.polrelid) AS using_expr,
       pg_catalog.pg_get_expr(pol.polwithcheck, pol.polrelid) AS with_check_expr
     FROM pg_catalog.pg_policy pol
@@ -1045,12 +1113,16 @@ export function evaluateDatabaseAgainstManifest(
   // =========================================================================
   for (const [tableName, tableSpec] of Object.entries(manifest.finalState.tables)) {
     for (const con of tableSpec.constraints) {
+      const conCols = toStringArray(con.columns);
+      const conColsJoined = conCols.join(",");
+      const conColsDisplay = conCols.join(", ");
+
       if (!isDb) {
         // Mode API: hanya PK & target FK yang dapat diuji keberadaannya; ON DELETE & CHECK tidak terbaca lewat OpenAPI
         if (con.type === "PRIMARY KEY") {
           items.push({
             category: "c",
-            objectName: `PK ${tableName}(${con.columns.join(", ")})`,
+            objectName: `PK ${tableName}(${conColsDisplay})`,
             status: "PASS",
             method: "API",
             detail: `Primary Key terverifikasi lewat OpenAPI schema`,
@@ -1058,12 +1130,12 @@ export function evaluateDatabaseAgainstManifest(
           });
         } else if (con.type === "FOREIGN KEY") {
           const dbFkExists = snapshot.constraints.some(
-            (c) => c.table === tableName && c.columns.join(",") === con.columns.join(",")
+            (c) => c.table === tableName && toStringArray(c.columns).join(",") === conColsJoined
           );
           if (dbFkExists) {
             items.push({
               category: "c",
-              objectName: `FK ${tableName}.${con.columns.join(", ")} -> ${con.referencesTable}`,
+              objectName: `FK ${tableName}.${conColsDisplay} -> ${con.referencesTable}`,
               status: "PASS",
               method: "API",
               detail: `Relasi relasional terdaftar di OpenAPI`,
@@ -1071,7 +1143,7 @@ export function evaluateDatabaseAgainstManifest(
             });
             items.push({
               category: "c",
-              objectName: `Aturan ON DELETE ${tableName}.${con.columns.join(", ")} (${con.onDelete ?? "NO ACTION"})`,
+              objectName: `Aturan ON DELETE ${tableName}.${conColsDisplay} (${con.onDelete ?? "NO ACTION"})`,
               status: "UNVERIFIED",
               method: "API",
               detail: `Katalog pg_constraint (confdeltype) tidak diekspos oleh OpenAPI; jalankan verify.sql di SQL Editor atau gunakan DATABASE_URL`,
@@ -1081,7 +1153,7 @@ export function evaluateDatabaseAgainstManifest(
         } else if (con.type === "CHECK") {
           items.push({
             category: "c",
-            objectName: `CHECK constraint ${tableName}(${con.columns.join(", ")})`,
+            objectName: `CHECK constraint ${tableName}(${conColsDisplay})`,
             status: "UNVERIFIED",
             method: "API",
             detail: `Katalog pg_constraint (conbin check expression) tidak diekspos oleh OpenAPI; jalankan verify.sql di SQL Editor atau gunakan DATABASE_URL`,
@@ -1093,7 +1165,7 @@ export function evaluateDatabaseAgainstManifest(
         const dbCon = snapshot.constraints.find(
           (c) =>
             c.table === tableName &&
-            c.columns.join(",") === con.columns.join(",") &&
+            toStringArray(c.columns).join(",") === conColsJoined &&
             c.type === con.type
         );
         recordMigrationObject(
@@ -1105,11 +1177,11 @@ export function evaluateDatabaseAgainstManifest(
         if (!dbCon) {
           items.push({
             category: "c",
-            objectName: `Constraint ${con.type} ${tableName}(${con.columns.join(", ")})`,
+            objectName: `Constraint ${con.type} ${tableName}(${conColsDisplay})`,
             status: "FAIL",
             method: "DB",
-            detail: `Constraint ${con.type} pada ${tableName}(${con.columns.join(", ")}) tidak ditemukan`,
-            expected: `${con.type} pada ${tableName}(${con.columns.join(", ")})`,
+            detail: `Constraint ${con.type} pada ${tableName}(${conColsDisplay}) tidak ditemukan`,
+            expected: `${con.type} pada ${tableName}(${conColsDisplay})`,
             found: "Tidak ditemukan",
             sourceMigration: con.sourceMigration,
             fixMigration: `supabase/migrations/${con.sourceMigration}`,
@@ -1117,7 +1189,7 @@ export function evaluateDatabaseAgainstManifest(
         } else {
           items.push({
             category: "c",
-            objectName: `Constraint ${con.type} ${tableName}(${con.columns.join(", ")})`,
+            objectName: `Constraint ${con.type} ${tableName}(${conColsDisplay})`,
             status: "PASS",
             method: "DB",
             detail: `${con.type} terverifikasi di pg_constraint`,
@@ -1259,7 +1331,7 @@ export function evaluateDatabaseAgainstManifest(
 
   // Event trigger ensure_rls (dikelola Supabase)
   if (isDb) {
-    const hasEnsureRls = snapshot.eventTriggers.includes("ensure_rls");
+    const hasEnsureRls = toStringArray(snapshot.eventTriggers).includes("ensure_rls");
     items.push({
       category: "d",
       objectName: "Event Trigger ensure_rls",
@@ -1637,7 +1709,7 @@ export function evaluateDatabaseAgainstManifest(
       sourceMigration: "20261029000000_init_schema.sql",
     });
   } else {
-    const hasPgcrypto = snapshot.extensions.includes("pgcrypto");
+    const hasPgcrypto = toStringArray(snapshot.extensions).includes("pgcrypto");
     recordMigrationObject("20261029000000_init_schema.sql", "ekstensi pgcrypto", hasPgcrypto);
     if (hasPgcrypto) {
       items.push({
