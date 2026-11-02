@@ -13,6 +13,15 @@ import {
 import { clearAllDemoData } from "@/lib/demo-data";
 import { MAX_CSV_IMPORT_ROWS, parseKeywordCsvPreview } from "@/lib/csv-import";
 import { isDryRun } from "@/lib/dry-run";
+import {
+  rotateActiveKeywordBatch,
+  overrideActiveKeywordBatch,
+  setBatchScheduleMode,
+  assignKeywordsToBatch,
+  updateKeywordBatch,
+  createKeywordBatch,
+  type BatchScheduleMode,
+} from "@/lib/keyword-batches";
 
 async function requireAllowedAdminUser() {
   const supabase = await createSupabaseServerClient();
@@ -42,6 +51,7 @@ const addKeywordSchema = z.object({
     .max(200, "Keyword must be at most 200 characters"),
   groupId: z.string().trim().optional(),
   newGroupName: z.string().trim().max(80).optional(),
+  batchId: z.string().trim().optional(),
 });
 
 export async function addKeywordAction(formData: FormData) {
@@ -51,6 +61,7 @@ export async function addKeywordAction(formData: FormData) {
     text: String(formData.get("text") ?? ""),
     groupId: String(formData.get("groupId") ?? ""),
     newGroupName: String(formData.get("newGroupName") ?? ""),
+    batchId: String(formData.get("batchId") ?? ""),
   });
 
   if (!parsed.success) {
@@ -82,6 +93,7 @@ export async function addKeywordAction(formData: FormData) {
   const { error } = await supabase.from("keywords").insert({
     text: parsed.data.text,
     group_id: targetGroupId,
+    batch_id: parsed.data.batchId || null,
     active: true,
   });
 
@@ -663,3 +675,91 @@ export async function clearDemoDataAction() {
       "All demo data in check_runs, keywords, keyword_groups, and competitors has been permanently cleared.",
   };
 }
+
+export async function rotateBatchNowAction() {
+  const user = await requireAllowedAdminUser();
+  const supabase = createSupabaseAdminClient();
+
+  const result = await rotateActiveKeywordBatch(supabase, {
+    actorId: user.email ?? "admin",
+    force: true,
+  });
+
+  revalidateAllDashboardRoutes();
+  return result;
+}
+
+export async function overrideActiveBatchAction(
+  targetBatchId: string,
+  freezeMode: boolean = false
+) {
+  const user = await requireAllowedAdminUser();
+  const supabase = createSupabaseAdminClient();
+
+  const result = await overrideActiveKeywordBatch(supabase, targetBatchId, {
+    actorId: user.email ?? "admin",
+    freezeMode,
+  });
+
+  revalidateAllDashboardRoutes();
+  return result;
+}
+
+export async function updateBatchScheduleModeAction(
+  mode: BatchScheduleMode
+) {
+  const user = await requireAllowedAdminUser();
+  const supabase = createSupabaseAdminClient();
+
+  const result = await setBatchScheduleMode(
+    supabase,
+    mode,
+    user.email ?? "admin"
+  );
+
+  revalidateAllDashboardRoutes();
+  return { ok: true, settings: result };
+}
+
+export async function updateKeywordBatchAction(
+  keywordId: string,
+  batchId: string | null
+) {
+  await requireAllowedAdminUser();
+  const supabase = createSupabaseAdminClient();
+
+  await assignKeywordsToBatch(supabase, [keywordId], batchId);
+
+  revalidateAllDashboardRoutes();
+  return { ok: true };
+}
+
+export async function toggleBatchEnabledAction(
+  batchId: string,
+  isEnabled: boolean
+) {
+  await requireAllowedAdminUser();
+  const supabase = createSupabaseAdminClient();
+
+  const result = await updateKeywordBatch(supabase, batchId, { isEnabled });
+
+  revalidateAllDashboardRoutes();
+  return { ok: true, batch: result };
+}
+
+export async function createBatchAction(
+  name: string,
+  description?: string
+) {
+  await requireAllowedAdminUser();
+  const supabase = createSupabaseAdminClient();
+
+  const result = await createKeywordBatch(supabase, {
+    name,
+    description,
+  });
+
+  revalidateAllDashboardRoutes();
+  return { ok: true, batch: result };
+}
+

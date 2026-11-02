@@ -181,4 +181,22 @@ Menerapkan aturan bisnis dan orkestrasi pemrosesan batch keyword:
    - `app/api/cron/start-run/route.ts`: secara otomatis memicu rotasi batch sebelum memulai pemindaian mingguan hari Senin (`?rotate=false` untuk melewatinya).
    - Menambahkan rute terdedikasi `app/api/cron/rotate-batch/route.ts` untuk pemanggilan rotasi independen via webhook/cron.
 
+## 13. Implementasi Fase UI: Antarmuka Penjadwalan Batch & Manajemen Keyword (2 November 2026)
+
+Menerapkan komponen antarmuka pengguna untuk manajemen batch dan pemantauan rotasi:
+1. **Kartu Penjadwal Batch pada Halaman Pengaturan (`components/batch-scheduler-card.tsx`)**:
+   - Menampilkan status batch yang sedang aktif beserta jumlah keyword aktifnya.
+   - Menyediakan sakelar mode penjadwalan (*Automatic Rotation* vs *Manual Frozen*).
+   - Dialog override manual untuk memindahkan batch aktif sewaktu-waktu dengan opsi pembekuan mode.
+   - Tombol pengujian rotasi seketika (*Rotate Next Now*) dengan umpan balik pesan alert.
+   - Tabel konfigurasi batch dengan tombol penonaktifan keikutsertaan rotasi (*is_enabled*) dan modal penambahan batch baru.
+   - Tabel riwayat audit trail (*Batch Rotation & Override Audit Trail*) dengan zona waktu Asia/Jakarta (WIB).
+2. **Integrasi Kolom & Filter Batch pada Halaman Keyword (`app/(dashboard)/keyword/`)**:
+   - Kolom tabel baru *Batch* dengan lencana (*badge*) status aktif.
+   - Dropdown filter multi-pilihan berdasarkan batch (*All batches*, opsi per batch, dan *Unassigned*).
+   - Opsi penetapan batch pada formulir penambahan keyword baru.
+3. **Server Actions Terpadu (`app/(dashboard)/actions.ts`)**:
+   - `rotateBatchNowAction`, `overrideActiveBatchAction`, `updateBatchScheduleModeAction`, `updateKeywordBatchAction`, `toggleBatchEnabledAction`, dan `createBatchAction` yang secara otomatis memicu `revalidateAllDashboardRoutes()`.
+
+
 

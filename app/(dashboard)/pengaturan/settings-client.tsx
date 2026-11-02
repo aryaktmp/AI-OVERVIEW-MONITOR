@@ -55,6 +55,12 @@ import type {
   RunHistoryRow,
   SearchSettingsConfig,
 } from "@/lib/dashboard-data";
+import { BatchSchedulerCard } from "@/components/batch-scheduler-card";
+import type {
+  BatchWithKeywordsCount,
+  BatchScheduleSettingsRecord,
+  BatchAuditLogRecord,
+} from "@/lib/keyword-batches";
 
 interface LiveRunProgressState {
   runId: string;
@@ -81,6 +87,9 @@ interface SettingsClientProps {
   brandDomain: string;
   databaseStorage: DatabaseStorageStats;
   initialRunningRun: RunHistoryRow | null;
+  batches?: BatchWithKeywordsCount[];
+  scheduleSettings?: BatchScheduleSettingsRecord;
+  batchAuditLogs?: BatchAuditLogRecord[];
 }
 
 export function SettingsClient({
@@ -97,6 +106,9 @@ export function SettingsClient({
   brandDomain,
   databaseStorage,
   initialRunningRun,
+  batches,
+  scheduleSettings,
+  batchAuditLogs,
 }: SettingsClientProps) {
   const [isPending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<{
@@ -523,6 +535,15 @@ export function SettingsClient({
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Keyword Batch Scheduler & Weekly Rotation */}
+      {batches && scheduleSettings && (
+        <BatchSchedulerCard
+          initialBatches={batches}
+          initialSettings={scheduleSettings}
+          initialAuditLogs={batchAuditLogs ?? []}
+        />
       )}
 
       {/* Manual Execution & Quota Card */}

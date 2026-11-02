@@ -24,6 +24,16 @@ import {
   isKnownDemoKeywordText,
 } from "@/lib/demo-data";
 import { isDryRun } from "@/lib/dry-run";
+import {
+  listKeywordBatches,
+  listKeywordBatchesWithCounts,
+  getBatchScheduleSettings,
+  listBatchAuditLogs,
+  type BatchWithKeywordsCount,
+  type BatchScheduleSettingsRecord,
+  type BatchAuditLogRecord,
+  type KeywordBatchRecord,
+} from "@/lib/keyword-batches";
 
 export interface SearchSettingsConfig {
   location: string;
@@ -44,6 +54,7 @@ export const DEFAULT_SEARCH_SETTINGS: SearchSettingsConfig = {
 export async function getDashboardOverviewData(): Promise<{
   analytics: DashboardSummaryAnalytics;
   groups: Array<{ id: string; name: string }>;
+  batches: Array<KeywordBatchRecord>;
 }> {
   const supabase = createSupabaseAdminClient();
 
@@ -56,11 +67,12 @@ export async function getDashboardOverviewData(): Promise<{
     { data: keywordsData, error: kwErr },
     { data: checksData, error: checksErr },
     { data: runsData },
+    batchesData,
   ] = await Promise.all([
     supabase.from("keyword_groups").select("id, name").order("name"),
     supabase
       .from("keywords")
-      .select("id, text, active, group_id, keyword_groups(name)")
+      .select("id, text, active, group_id, batch_id, keyword_groups(name), keyword_batches(name)")
       .order("created_at", { ascending: true }),
     // Hanya ambil kolom agregasi dari 8 minggu terakhir (tanpa menarik answer_text atau raw penuh ke memori/browser)
     supabase
@@ -74,6 +86,7 @@ export async function getDashboardOverviewData(): Promise<{
       .from("check_runs")
       .select("id, started_at, status, total, done")
       .gte("started_at", eightWeeksAgoIso),
+    listKeywordBatches(supabase).catch(() => [] as KeywordBatchRecord[]),
   ]);
 
   if (groupsErr) {
@@ -102,16 +115,23 @@ export async function getDashboardOverviewData(): Promise<{
       id: string;
       text: string;
       active: boolean;
+      batch_id?: string | null;
       keyword_groups?: { name: string } | Array<{ name: string }> | null;
+      keyword_batches?: { name: string } | Array<{ name: string }> | null;
     };
     const grpObj = Array.isArray(r.keyword_groups)
       ? r.keyword_groups[0]
       : r.keyword_groups;
+    const batchObj = Array.isArray(r.keyword_batches)
+      ? r.keyword_batches[0]
+      : r.keyword_batches;
     return {
       id: r.id,
       text: r.text,
       active: r.active,
       groupName: grpObj?.name ?? "No Group",
+      batchId: r.batch_id ?? null,
+      batchName: batchObj?.name ?? null,
     };
   });
 
@@ -153,6 +173,7 @@ export async function getDashboardOverviewData(): Promise<{
   return {
     analytics,
     groups: (groupsData ?? []) as Array<{ id: string; name: string }>,
+    batches: (batchesData ?? []) as KeywordBatchRecord[],
   };
 }
 
@@ -409,6 +430,9 @@ export async function getSettingsPageData(): Promise<{
   hasDemoData: boolean;
   databaseStorage: DatabaseStorageStats;
   runningRun: RunHistoryRow | null;
+  batches: BatchWithKeywordsCount[];
+  scheduleSettings: BatchScheduleSettingsRecord;
+  batchAuditLogs: BatchAuditLogRecord[];
 }> {
   const supabase = createSupabaseAdminClient();
   const store = createSupabaseQueueStore(supabase);
@@ -426,6 +450,9 @@ export async function getSettingsPageData(): Promise<{
     { count: totalSourcesCount },
     hourlyCallsUsed,
     dbSizeRpc,
+    batchesData,
+    scheduleSettingsData,
+    auditLogsData,
   ] = await Promise.all([
     supabase
       .from("brand_terms")
@@ -449,6 +476,14 @@ export async function getSettingsPageData(): Promise<{
     supabase.from("check_sources").select("id", { count: "exact" }).limit(0),
     store.getHourlySerpApiCalls(oneHourAgoIso),
     supabase.rpc("get_database_size_bytes"),
+    listKeywordBatchesWithCounts(supabase).catch(() => [] as BatchWithKeywordsCount[]),
+    getBatchScheduleSettings(supabase).catch(() => ({
+      id: 1,
+      mode: "auto" as const,
+      override_until: null,
+      updated_at: "",
+    })),
+    listBatchAuditLogs(supabase, 20).catch(() => [] as BatchAuditLogRecord[]),
   ]);
 
   // Baca tabel settings (dengan fallback jika tabel settings belum dimigrasi)
@@ -606,5 +641,8 @@ export async function getSettingsPageData(): Promise<{
       percentUsed,
     },
     runningRun,
+    batches: (batchesData ?? []) as BatchWithKeywordsCount[],
+    scheduleSettings: scheduleSettingsData as BatchScheduleSettingsRecord,
+    batchAuditLogs: (auditLogsData ?? []) as BatchAuditLogRecord[],
   };
 }

@@ -13,6 +13,8 @@ export interface AnalyticsKeywordInput {
   id: string;
   text: string;
   groupName: string;
+  batchId?: string | null;
+  batchName?: string | null;
   active: boolean;
 }
 
@@ -42,6 +44,8 @@ export interface KeywordWeeklyRow {
   id: string;
   keyword: string;
   groupName: string;
+  batchId?: string | null;
+  batchName?: string | null;
   active: boolean;
   weeklyStates: HeatmapCellState[];
   currentState: HeatmapCellState;
@@ -216,6 +220,8 @@ export function computeDashboardAnalytics(
       id: kw.id,
       keyword: kw.text,
       groupName: kw.groupName || "Tanpa Grup",
+      batchId: kw.batchId ?? null,
+      batchName: kw.batchName ?? null,
       active: kw.active,
       weeklyStates,
       currentState,

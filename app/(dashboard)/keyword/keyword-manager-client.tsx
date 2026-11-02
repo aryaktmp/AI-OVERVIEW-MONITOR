@@ -19,6 +19,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import type { HeatmapCellState, KeywordWeeklyRow } from "@/lib/analytics";
+import type { KeywordBatchRecord } from "@/lib/keyword-batches";
 import {
   CSV_TEMPLATE_CONTENT,
   MAX_CSV_IMPORT_ROWS,
@@ -76,13 +77,16 @@ const columnHelper = createColumnHelper<KeywordWeeklyRow>();
 export function KeywordManagerClient({
   rows,
   groups,
+  batches,
 }: {
   rows: KeywordWeeklyRow[];
   groups: Array<{ id: string; name: string }>;
+  batches?: KeywordBatchRecord[];
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedBatch, setSelectedBatch] = useState("");
   const [showCsvPanel, setShowCsvPanel] = useState(false);
   const [csvText, setCsvText] = useState("");
   const [csvFileName, setCsvFileName] = useState("");
@@ -166,9 +170,16 @@ export function KeywordManagerClient({
       ) {
         return false;
       }
+      if (selectedBatch) {
+        if (selectedBatch === "unassigned") {
+          if (r.batchId) return false;
+        } else if (r.batchId !== selectedBatch) {
+          return false;
+        }
+      }
       return true;
     });
-  }, [rows, searchQuery, selectedGroup, selectedStatus]);
+  }, [rows, searchQuery, selectedGroup, selectedStatus, selectedBatch]);
 
   const columns = useMemo(
     () => [
@@ -192,6 +203,32 @@ export function KeywordManagerClient({
       columnHelper.accessor("groupName", {
         header: "Group",
         cell: (info) => info.getValue() || "No group",
+      }),
+      columnHelper.accessor("batchName", {
+        header: "Batch",
+        cell: (info) => {
+          const row = info.row.original;
+          const batch = batches?.find((b) => b.id === row.batchId);
+          return (
+            <div className="flex items-center gap-1.5">
+              {batch ? (
+                <Badge
+                  variant="outline"
+                  className={
+                    batch.is_active
+                      ? "border-emerald-400 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-medium"
+                      : "border-[var(--line)] bg-[var(--none)] text-[var(--muted)]"
+                  }
+                >
+                  {batch.name}
+                  {batch.is_active && " (Active)"}
+                </Badge>
+              ) : (
+                <span className="text-[12px] text-[var(--muted)]">Unassigned</span>
+              )}
+            </div>
+          );
+        },
       }),
       columnHelper.accessor("currentState", {
         header: "This week",
@@ -271,7 +308,7 @@ export function KeywordManagerClient({
         },
       }),
     ],
-    [isPending]
+    [isPending, batches]
   );
 
   const table = useReactTable({
@@ -370,6 +407,24 @@ export function KeywordManagerClient({
                   {groups.map((grp) => (
                     <option key={grp.id} value={grp.id}>
                       {grp.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="min-w-[150px] space-y-1.5">
+                <Label htmlFor="kw-batch">Select batch</Label>
+                <select
+                  id="kw-batch"
+                  name="batchId"
+                  disabled={isPending}
+                  defaultValue={batches?.find((b) => b.is_active)?.id ?? ""}
+                  className="flex h-9 w-full rounded-md border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-sm text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--cite)] cursor-pointer"
+                >
+                  <option value="">No batch</option>
+                  {batches?.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name} {b.is_active ? "(Active)" : ""}
                     </option>
                   ))}
                 </select>
@@ -641,6 +696,20 @@ export function KeywordManagerClient({
               <option value="2">Detected</option>
               <option value="1">Not detected</option>
               <option value="0">No AI Overview</option>
+            </select>
+            <select
+              value={selectedBatch}
+              onChange={(e) => setSelectedBatch(e.target.value)}
+              aria-label="Filter by batch"
+              className="h-9 rounded-md border border-[var(--line)] bg-[var(--surface)] px-2.5 text-sm text-[var(--ink)]"
+            >
+              <option value="">All batches</option>
+              {batches?.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name} {b.is_active ? "(Active)" : ""}
+                </option>
+              ))}
+              <option value="unassigned">Unassigned</option>
             </select>
           </div>
 
