@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { verifyCronSecret } from "@/lib/cron-auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { rotateActiveKeywordBatch } from "@/lib/keyword-batches";
+import { rotateActiveBatchBySlot } from "@/lib/keyword-batches";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +18,7 @@ async function handleRotateBatch(request: Request) {
     const url = new URL(request.url);
     const force = url.searchParams.get("force") === "true";
 
-    const result = await rotateActiveKeywordBatch(supabase, {
+    const result = await rotateActiveBatchBySlot(supabase, {
       actorId: "system:cron",
       force,
     });

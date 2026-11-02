@@ -72,6 +72,7 @@ export interface RotateBatchOptions {
   force?: boolean;
   notes?: string;
   now?: Date;
+  useSlotSchedule?: boolean;
 }
 
 export type RotateBatchStatus =
@@ -79,6 +80,7 @@ export type RotateBatchStatus =
   | "skipped_manual_frozen"
   | "skipped_override_active"
   | "skipped_running_run"
+  | "skipped_monthly_limit"
   | "no_candidates";
 
 export interface RotateBatchResult {
@@ -445,6 +447,10 @@ export async function rotateActiveKeywordBatch(
   supabase: SupabaseClient,
   options: RotateBatchOptions = {}
 ): Promise<RotateBatchResult> {
+  if (options.useSlotSchedule) {
+    return rotateActiveBatchBySlot(supabase, options);
+  }
+
   const now = options.now ?? new Date();
   const nowIso = now.toISOString();
   const actorId = options.actorId ?? "system:cron";
@@ -687,5 +693,419 @@ export async function overrideActiveKeywordBatch(
     newBatch: { ...targetBatch, is_active: true },
     mode: nextMode,
     message: `Batch aktif berhasil diubah secara manual ke ${targetBatch.name}.`,
+  };
+}
+
+/**
+ * Menghitung minggu aktif dalam bulan (1 s/d 4) berdasarkan tanggal kalender.
+ * Hari 1-7: Week 1, Hari 8-14: Week 2, Hari 15-21: Week 3, Hari 22-31: Week 4.
+ */
+export function getActiveWeekOfMonth(date: Date = new Date()): number {
+  const day = date.getDate();
+  if (day <= 7) return 1;
+  if (day <= 14) return 2;
+  if (day <= 21) return 3;
+  return 4; // Hari 22 s/d 31 masuk ke slot Week 4
+}
+
+/**
+ * Menghitung jumlah pemindaian non-demo yang telah dieksekusi dalam bulan kalender berjalan.
+ */
+export async function getMonthlyRunCount(
+  supabase: SupabaseClient,
+  date: Date = new Date()
+): Promise<number> {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const startOfMonth = new Date(Date.UTC(year, month, 1, 0, 0, 0)).toISOString();
+  const endOfMonth = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999)).toISOString();
+
+  const { data, error } = await supabase
+    .from("check_runs")
+    .select("id")
+    .eq("is_demo", false)
+    .gte("started_at", startOfMonth)
+    .lte("started_at", endOfMonth);
+
+  if (error || !data) {
+    return 0;
+  }
+
+  return data.length;
+}
+
+/**
+ * Mengambil daftar 4 slot jadwal bulanan (Week 1 s/d Week 4) beserta data entitas batch terkait.
+ */
+export async function getBatchScheduleSlots(
+  supabase: SupabaseClient
+): Promise<BatchScheduleSlotWithBatch[]> {
+  const { data, error } = await supabase
+    .from("batch_schedule_slots")
+    .select("id, week_number, batch_id, is_override, created_at, updated_at")
+    .order("week_number", { ascending: true });
+
+  if (error) {
+    throw new Error(`Gagal membaca slot jadwal batch: ${error.message}`);
+  }
+
+  const rawSlots = (data as BatchScheduleSlotRecord[]) ?? [];
+  if (rawSlots.length < 4) {
+    // Jika belum lengkap 4 slot, jalankan sinkronisasi slot default
+    await syncDefaultScheduleSlots(supabase);
+    const { data: syncedData } = await supabase
+      .from("batch_schedule_slots")
+      .select("id, week_number, batch_id, is_override, created_at, updated_at")
+      .order("week_number", { ascending: true });
+    return joinSlotsWithBatches(supabase, (syncedData as BatchScheduleSlotRecord[]) ?? []);
+  }
+
+  return joinSlotsWithBatches(supabase, rawSlots);
+}
+
+async function joinSlotsWithBatches(
+  supabase: SupabaseClient,
+  slots: BatchScheduleSlotRecord[]
+): Promise<BatchScheduleSlotWithBatch[]> {
+  const batches = await listKeywordBatches(supabase);
+  const batchMap = new Map(batches.map((b) => [b.id, b]));
+
+  return slots.map((s) => ({
+    ...s,
+    batch: s.batch_id ? batchMap.get(s.batch_id) ?? null : null,
+  }));
+}
+
+/**
+ * Menyinkronkan 4 slot jadwal sesuai aturan rotasi otomatis:
+ * - Jika jumlah batch < 4: ulangi dari batch pertama setelah habis (round-robin / modulo).
+ * - Jika jumlah batch >= 4: gunakan 4 batch pertama secara berurutan.
+ * - Slot dengan is_override = true tidak akan diubah kecuali batch terkait sudah dihapus.
+ */
+export async function syncDefaultScheduleSlots(
+  supabase: SupabaseClient
+): Promise<BatchScheduleSlotRecord[]> {
+  const batches = await listKeywordBatches(supabase);
+  const enabledBatches = batches
+    .filter((b) => b.is_enabled)
+    .sort((a, b) => a.order_index - b.order_index);
+
+  const { data: existingSlots } = await supabase
+    .from("batch_schedule_slots")
+    .select("id, week_number, batch_id, is_override")
+    .order("week_number", { ascending: true });
+
+  const existingMap = new Map<number, { id: string; week_number: number; batch_id: string | null; is_override: boolean }>();
+  for (const s of (existingSlots ?? []) as Array<{ id: string; week_number: number; batch_id: string | null; is_override: boolean }>) {
+    existingMap.set(s.week_number, s);
+  }
+
+  const N = enabledBatches.length;
+  const nowIso = new Date().toISOString();
+  const updatedSlots: BatchScheduleSlotRecord[] = [];
+
+  for (let w = 1; w <= 4; w++) {
+    const existing = existingMap.get(w);
+
+    // Jika slot memiliki override manual dan batch-nya masih valid di database, pertahankan override tersebut
+    if (existing && existing.is_override && existing.batch_id) {
+      const stillExists = batches.some((b) => b.id === existing.batch_id);
+      if (stillExists) {
+        continue;
+      }
+    }
+
+    // Aturan rotasi: (w - 1) % N
+    const targetBatchId = N === 0 ? null : enabledBatches[(w - 1) % N]!.id;
+
+    if (existing) {
+      const { data: updated } = await supabase
+        .from("batch_schedule_slots")
+        .update({
+          batch_id: targetBatchId,
+          is_override: false,
+          updated_at: nowIso,
+        })
+        .eq("week_number", w)
+        .select()
+        .single();
+      if (updated) updatedSlots.push(updated as BatchScheduleSlotRecord);
+    } else {
+      const { data: inserted } = await supabase
+        .from("batch_schedule_slots")
+        .insert({
+          week_number: w,
+          batch_id: targetBatchId,
+          is_override: false,
+          updated_at: nowIso,
+        })
+        .select()
+        .single();
+      if (inserted) updatedSlots.push(inserted as BatchScheduleSlotRecord);
+    }
+  }
+
+  return updatedSlots;
+}
+
+/**
+ * Menugaskan batch tertentu ke slot minggu tertentu (Week 1 s/d 4).
+ * Opsi isOverride menandai slot ini sebagai override kustom manual.
+ */
+export async function assignBatchToSlot(
+  supabase: SupabaseClient,
+  weekNumber: number,
+  batchId: string | null,
+  isOverride = true,
+  actorId = "admin"
+): Promise<{ ok: boolean; message: string }> {
+  if (weekNumber < 1 || weekNumber > 4) {
+    throw new Error(`Nomor minggu slot harus antara 1 dan 4 (diterima: ${weekNumber})`);
+  }
+
+  const now = new Date();
+  const nowIso = now.toISOString();
+  let targetBatch: KeywordBatchRecord | null = null;
+
+  if (batchId) {
+    const { data, error } = await supabase
+      .from("keyword_batches")
+      .select("*")
+      .eq("id", batchId)
+      .single();
+
+    if (error || !data) {
+      throw new Error(`Batch dengan id ${batchId} tidak ditemukan.`);
+    }
+    targetBatch = data as KeywordBatchRecord;
+  }
+
+  const { error: slotError } = await supabase
+    .from("batch_schedule_slots")
+    .update({
+      batch_id: batchId,
+      is_override: isOverride,
+      updated_at: nowIso,
+    })
+    .eq("week_number", weekNumber);
+
+  if (slotError) {
+    throw new Error(`Gagal memperbarui slot minggu ke-${weekNumber}: ${slotError.message}`);
+  }
+
+  // Catat riwayat audit
+  await supabase.from("batch_audit_logs").insert({
+    previous_batch_id: null,
+    new_batch_id: batchId,
+    trigger_type: "slot_assignment",
+    actor_id: actorId,
+    notes: `Slot Week ${weekNumber} ditugaskan ke ${targetBatch ? targetBatch.name : "Unassigned"} (override: ${isOverride})`,
+    created_at: nowIso,
+  });
+
+  // Jika minggu ini sedang berjalan dan mode jadwal 'auto', langsung sinkronkan batch aktif
+  const currentWeek = getActiveWeekOfMonth(now);
+  const settings = await getBatchScheduleSettings(supabase).catch(() => null);
+  if (currentWeek === weekNumber && targetBatch && settings?.mode !== "manual_frozen") {
+    await overrideActiveKeywordBatch(supabase, targetBatch.id, {
+      actorId,
+      freezeMode: false,
+      notes: `Otomatis mengaktifkan ${targetBatch.name} sesuai penugasan slot Week ${weekNumber}`,
+      now,
+    });
+  }
+
+  invalidateActiveKeywordBatchCache();
+  return {
+    ok: true,
+    message: `Slot Week ${weekNumber} berhasil ditugaskan ke ${targetBatch ? targetBatch.name : "Unassigned"}.`,
+  };
+}
+
+/**
+ * Mereset seluruh 4 slot rotasi bulanan ke pola bawaan (menghapus tanda override).
+ */
+export async function resetSlotsToDefault(
+  supabase: SupabaseClient,
+  actorId = "admin"
+): Promise<{ ok: boolean; message: string }> {
+  const nowIso = new Date().toISOString();
+
+  const { error } = await supabase
+    .from("batch_schedule_slots")
+    .update({ is_override: false, updated_at: nowIso })
+    .gte("week_number", 1)
+    .lte("week_number", 4);
+
+  if (error) {
+    throw new Error(`Gagal mereset slot jadwal: ${error.message}`);
+  }
+
+  await syncDefaultScheduleSlots(supabase);
+
+  await supabase.from("batch_audit_logs").insert({
+    previous_batch_id: null,
+    new_batch_id: null,
+    trigger_type: "slots_reset",
+    actor_id: actorId,
+    notes: "Mereset seluruh 4 slot rotasi bulanan ke pola bawaan",
+    created_at: nowIso,
+  });
+
+  return {
+    ok: true,
+    message: "Seluruh 4 slot rotasi bulanan berhasil direset ke pola bawaan.",
+  };
+}
+
+/**
+ * Rotasi Batch Berbasis Slot Mingguan (Weekly Slot Rotation):
+ * - Memastikan batas maksimal eksekusi cron per bulan kalender (max_runs_per_month, default 4).
+ * - Menentukan minggu aktif dalam bulan (Week 1 s/d 4) via getActiveWeekOfMonth.
+ * - Mengambil batch yang ditugaskan pada slot minggu tersebut.
+ * - Mengaktifkan batch tersebut secara atomik dan mencatat audit trail.
+ */
+export async function rotateActiveBatchBySlot(
+  supabase: SupabaseClient,
+  options: RotateBatchOptions = {}
+): Promise<RotateBatchResult> {
+  const now = options.now ?? new Date();
+  const nowIso = now.toISOString();
+  const actorId = options.actorId ?? "system:cron";
+
+  // 1. Periksa pengaturan penjadwalan
+  const settings = await getBatchScheduleSettings(supabase);
+
+  if (settings.mode === "manual_frozen" && !options.force) {
+    return {
+      status: "skipped_manual_frozen",
+      message: "Rotasi slot dilewati karena mode jadwal saat ini berstatus 'manual_frozen'.",
+    };
+  }
+
+  if (settings.override_until && !options.force) {
+    const overrideUntilDate = new Date(settings.override_until);
+    if (now < overrideUntilDate) {
+      return {
+        status: "skipped_override_active",
+        message: `Rotasi slot dilewati karena override manual masih aktif hingga ${settings.override_until}.`,
+      };
+    } else {
+      await supabase
+        .from("batch_schedule_settings")
+        .update({ override_until: null, mode: "auto", updated_at: nowIso })
+        .eq("id", 1);
+    }
+  }
+
+  // 2. Periksa Overlap Jadwal: pastikan tidak ada run yang masih 'running'
+  const { data: runningRuns, error: runError } = await supabase
+    .from("check_runs")
+    .select("id, started_at")
+    .eq("status", "running")
+    .limit(1);
+
+  if (!runError && runningRuns && runningRuns.length > 0) {
+    return {
+      status: "skipped_running_run",
+      message: `Rotasi slot ditunda karena pemindaian sebelumnya masih berjalan (run_id: ${runningRuns[0].id}).`,
+    };
+  }
+
+  // 3. Batas Maksimal Eksekusi per Bulan Kalender (Cron Max 4 Eksekusi/Bulan)
+  const maxRuns = settings.max_runs_per_month ?? 4;
+  const monthlyRuns = await getMonthlyRunCount(supabase, now);
+
+  if (monthlyRuns >= maxRuns && !options.force) {
+    return {
+      status: "skipped_monthly_limit",
+      message: `Batas maksimal rotasi/eksekusi per bulan (${monthlyRuns}/${maxRuns} run) telah tercapai untuk bulan ini.`,
+    };
+  }
+
+  // 4. Cari slot untuk minggu kalender saat ini
+  const currentWeek = getActiveWeekOfMonth(now);
+  let slots = await getBatchScheduleSlots(supabase);
+  let currentSlot = slots.find((s) => s.week_number === currentWeek);
+
+  // Jika slot belum memiliki batch atau batch-nya dinonaktifkan, lakukan sinkronisasi default
+  if (!currentSlot?.batch || !currentSlot.batch.is_enabled) {
+    await syncDefaultScheduleSlots(supabase);
+    slots = await getBatchScheduleSlots(supabase);
+    currentSlot = slots.find((s) => s.week_number === currentWeek);
+  }
+
+  const targetBatch = currentSlot?.batch ?? null;
+  if (!targetBatch || !targetBatch.is_enabled) {
+    await supabase.from("batch_audit_logs").insert({
+      previous_batch_id: null,
+      new_batch_id: null,
+      trigger_type: "warning",
+      actor_id: actorId,
+      notes: `Peringatan: Tidak ada batch yang valid untuk jadwal slot Week ${currentWeek}.`,
+      created_at: nowIso,
+    });
+
+    return {
+      status: "no_candidates",
+      message: `Tidak ada batch yang valid untuk jadwal slot Week ${currentWeek}.`,
+    };
+  }
+
+  const currentActiveBatch = await getActiveKeywordBatch(supabase);
+
+  // Jika batch yang ditargetkan sudah aktif
+  if (currentActiveBatch && currentActiveBatch.id === targetBatch.id) {
+    return {
+      status: "rotated",
+      previousBatch: currentActiveBatch,
+      newBatch: targetBatch,
+      message: `Batch aktif saat ini (${targetBatch.name}) sudah sesuai dengan slot jadwal Week ${currentWeek}.`,
+    };
+  }
+
+  // Nonaktifkan batch aktif lama
+  if (currentActiveBatch) {
+    await supabase
+      .from("keyword_batches")
+      .update({ is_active: false, updated_at: nowIso })
+      .eq("id", currentActiveBatch.id);
+  }
+
+  // Aktifkan batch slot target
+  const { error: activateError } = await supabase
+    .from("keyword_batches")
+    .update({ is_active: true, updated_at: nowIso })
+    .eq("id", targetBatch.id);
+
+  if (activateError) {
+    if (currentActiveBatch) {
+      await supabase
+        .from("keyword_batches")
+        .update({ is_active: true, updated_at: nowIso })
+        .eq("id", currentActiveBatch.id);
+    }
+    throw new Error(`Gagal mengaktifkan batch slot: ${activateError.message}`);
+  }
+
+  // Catat log audit
+  await supabase.from("batch_audit_logs").insert({
+    previous_batch_id: currentActiveBatch?.id ?? null,
+    new_batch_id: targetBatch.id,
+    trigger_type: "weekly_slot_rotation",
+    actor_id: actorId,
+    notes:
+      options.notes ??
+      `Rotasi slot mingguan (Week ${currentWeek}): Berpindah ke ${targetBatch.name} (order ${targetBatch.order_index})`,
+    created_at: nowIso,
+  });
+
+  invalidateActiveKeywordBatchCache();
+
+  return {
+    status: "rotated",
+    previousBatch: currentActiveBatch,
+    newBatch: targetBatch,
+    message: `Sukses merotasi batch aktif ke ${targetBatch.name} sesuai slot Week ${currentWeek}.`,
   };
 }

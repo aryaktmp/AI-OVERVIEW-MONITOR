@@ -213,6 +213,26 @@ Menerapkan skema relasi dan tabel slot penjadwalan 4 minggu bulanan (`supabase/m
    - Mengisi 4 slot mingguan awal (Slot 1..3 mengarah ke Batch 1..3, dan Slot 4 mengarah kembali ke Batch 1 sebagai pemenuhan aturan looping jika jumlah batch $N < 4$).
    - Mencatat log inisialisasi pada `batch_audit_logs` dengan `trigger_type = 'slots_initial_setup'`.
 
+## 15. Fase Logika: Penjadwalan Rotasi Slot 4 Minggu & Batas Eksekusi Bulanan (2 November 2026)
+
+Menerapkan logika penjadwalan rotasi bulanan berbasis 4 slot mingguan (`lib/keyword-batches.ts`):
+1. **Penentuan Minggu Kalender (`getActiveWeekOfMonth`)**:
+   - Memetakan hari tanggal kalender: Hari 1–7 (Week 1), 8–14 (Week 2), 15–21 (Week 3), dan 22–28 (Week 4).
+   - Hari ke 29–31 dialokasikan ke Week 4 sebagai periode penyelesaian/penyangga, menjamin nilai minggu berada dalam rentang valid 1 s/d 4.
+2. **Sinkronisasi Pola Rotasi Bawaan (`syncDefaultScheduleSlots`)**:
+   - Jika jumlah batch $N < 4$: menggunakan rumus modulo `(w - 1) % N` sehingga berulang dari batch pertama setelah batch habis (misal $N=3 \rightarrow$ Week 1: B1, Week 2: B2, Week 3: B3, Week 4: B1).
+   - Jika jumlah batch $N \ge 4$: menggunakan 4 batch pertama secara berurutan sesuai `order_index`.
+   - Menghormati slot yang ditandai override kustom (`is_override = true`) agar tidak ditimpa rotasi bawaan.
+3. **Penugasan Kustom & Reset Slot (`assignBatchToSlot` & `resetSlotsToDefault`)**:
+   - Admin dapat menugaskan sembarang batch ke slot minggu manapun dengan audit trail `slot_assignment`.
+   - Jika slot minggu yang diubah adalah minggu kalender yang sedang berjalan, sistem langsung menyinkronkan status batch aktif secara seketika.
+   - Opsi `resetSlotsToDefault` membersihkan flag override dan mengembalikan susunan slot ke aturan pola bawaan.
+4. **Perlindungan Batas Bulanan (`rotateActiveBatchBySlot` & `getMonthlyRunCount`)**:
+   - Menghitung jumlah run non-demo yang berjalan di bulan kalender aktif.
+   - Jika telah mencapai batas kuota (`max_runs_per_month`, bawaan: 4) dan flag `force` tidak diaktifkan, rotasi mengembalikan status `skipped_monthly_limit`.
+   - Endpoint `/api/cron/start-run` secara otomatis mengenali status `skipped_monthly_limit` dan membatalkan inisiasi run baru untuk mencegah pembengkakan kuota SerpApi pada bulan yang memiliki 5 hari Senin.
+
+
 
 
 

@@ -6,7 +6,7 @@ import {
   createSupabaseQueueStore,
   startCheckRun,
 } from "@/lib/queue";
-import { rotateActiveKeywordBatch } from "@/lib/keyword-batches";
+import { rotateActiveBatchBySlot } from "@/lib/keyword-batches";
 
 export const dynamic = "force-dynamic";
 
@@ -23,14 +23,29 @@ async function handleStartRun(request: Request) {
     const store = createSupabaseQueueStore(supabase);
 
     const url = new URL(request.url);
-    // Jadwal mingguan otomatis (Senin) secara bawaan merotasi batch kecuali diberikan parameter ?rotate=false
+    // Jadwal mingguan otomatis (Senin) secara bawaan merotasi slot batch kecuali parameter ?rotate=false
     const shouldRotate = url.searchParams.get("rotate") !== "false";
+    const force = url.searchParams.get("force") === "true";
     let batchRotation = null;
 
     if (shouldRotate) {
-      batchRotation = await rotateActiveKeywordBatch(supabase, {
+      batchRotation = await rotateActiveBatchBySlot(supabase, {
         actorId: "system:cron",
+        force,
       });
+
+      // Jika kuota eksekusi bulanan (maks 4 run/bulan) telah tercapai, hentikan proses tanpa membuat run baru
+      if (batchRotation.status === "skipped_monthly_limit") {
+        return NextResponse.json(
+          {
+            runId: null,
+            status: "skipped_monthly_limit",
+            message: batchRotation.message,
+            batchRotation,
+          },
+          { status: 200, headers: { "Cache-Control": "no-store, max-age=0" } }
+        );
+      }
     }
 
     const [result, cleanedRawCount] = await Promise.all([
