@@ -157,7 +157,80 @@ describe("Fase Data: Sistem Batch Keyword dan Penjadwalan Mingguan", () => {
     );
 
     expect(logs.rows.length).toBeGreaterThanOrEqual(1);
-    expect(logs.rows[0].trigger_type).toBe("initial_setup");
-    expect(logs.rows[0].actor_id).toBe("system");
+    const initialLog = logs.rows.find((l) => l.trigger_type === "initial_setup");
+    expect(initialLog).toBeDefined();
+    expect(initialLog?.actor_id).toBe("system");
+  });
+
+  it("membuat tabel batch_schedule_slots dengan 4 slot bulanan dan relasi ke keyword_batches", async () => {
+    const slots = await db.query<{
+      id: string;
+      week_number: number;
+      batch_id: string | null;
+      is_override: boolean;
+      batch_name: string | null;
+    }>(`
+      SELECT s.id, s.week_number, s.batch_id, s.is_override, b.name as batch_name
+      FROM public.batch_schedule_slots s
+      LEFT JOIN public.keyword_batches b ON b.id = s.batch_id
+      ORDER BY s.week_number ASC;
+    `);
+
+    expect(slots.rows.length).toBe(4);
+    expect(slots.rows.map((r) => r.week_number)).toEqual([1, 2, 3, 4]);
+
+    // Week 1 -> Batch 1
+    expect(slots.rows[0].week_number).toBe(1);
+    expect(slots.rows[0].batch_name).toBe("Batch 1");
+    expect(slots.rows[0].is_override).toBe(false);
+
+    // Week 2 -> Batch 2
+    expect(slots.rows[1].week_number).toBe(2);
+    expect(slots.rows[1].batch_name).toBe("Batch 2");
+
+    // Week 3 -> Batch 3
+    expect(slots.rows[2].week_number).toBe(3);
+    expect(slots.rows[2].batch_name).toBe("Batch 3");
+
+    // Week 4 -> Batch 1 (looping kembali ke batch awal karena jumlah batch = 3 < 4)
+    expect(slots.rows[3].week_number).toBe(4);
+    expect(slots.rows[3].batch_name).toBe("Batch 1");
+  });
+
+  it("menegakkan batasan check week_number antara 1 dan 4 pada batch_schedule_slots", async () => {
+    // Memasukkan week_number = 5 harus gagal karena check constraint (week_number between 1 and 4)
+    await expect(
+      db.query(`
+        INSERT INTO public.batch_schedule_slots (week_number, is_override)
+        VALUES (5, false);
+      `)
+    ).rejects.toThrow();
+
+    // Memasukkan week_number = 0 juga harus gagal
+    await expect(
+      db.query(`
+        INSERT INTO public.batch_schedule_slots (week_number, is_override)
+        VALUES (0, false);
+      `)
+    ).rejects.toThrow();
+  });
+
+  it("memastikan kolom color pada keyword_batches dan max_runs_per_month pada batch_schedule_settings tersedia", async () => {
+    const batchCol = await db.query<{ column_name: string }>(`
+      SELECT column_name FROM information_schema.columns
+      WHERE table_name = 'keyword_batches' AND column_name = 'color';
+    `);
+    expect(batchCol.rows.length).toBe(1);
+
+    const settingsCol = await db.query<{ column_name: string }>(`
+      SELECT column_name FROM information_schema.columns
+      WHERE table_name = 'batch_schedule_settings' AND column_name = 'max_runs_per_month';
+    `);
+    expect(settingsCol.rows.length).toBe(1);
+
+    const settingsData = await db.query<{ max_runs_per_month: number }>(`
+      SELECT max_runs_per_month FROM public.batch_schedule_settings WHERE id = 1;
+    `);
+    expect(settingsData.rows[0].max_runs_per_month).toBe(4);
   });
 });

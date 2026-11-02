@@ -198,5 +198,21 @@ Menerapkan komponen antarmuka pengguna untuk manajemen batch dan pemantauan rota
 3. **Server Actions Terpadu (`app/(dashboard)/actions.ts`)**:
    - `rotateBatchNowAction`, `overrideActiveBatchAction`, `updateBatchScheduleModeAction`, `updateKeywordBatchAction`, `toggleBatchEnabledAction`, dan `createBatchAction` yang secara otomatis memicu `revalidateAllDashboardRoutes()`.
 
+## 14. Fase Data: Sistem Slot Penjadwalan Bulanan (4 Slot Minggu) (2 November 2026)
+
+Menerapkan skema relasi dan tabel slot penjadwalan 4 minggu bulanan (`supabase/migrations/20261102020000_batch_schedule_slots.sql`):
+1. **Tabel `batch_schedule_slots`**:
+   - Menyediakan 4 slot mingguan (`week_number` 1 s/d 4) dengan batasan `CHECK (week_number BETWEEN 1 AND 4)` dan `UNIQUE (week_number)`.
+   - Menghubungkan setiap slot ke `keyword_batches(id)` dengan relasi `ON DELETE SET NULL`.
+   - Menyediakan kolom `is_override boolean default false` untuk menandai apakah slot tersebut di-override secara manual atau mengikuti rotasi otomatis.
+   - Dilengkapi indeks `batch_schedule_slots_week_number_idx` dan `batch_schedule_slots_batch_id_idx`.
+2. **Pengayaan Konfigurasi & Visual**:
+   - Menambahkan kolom `max_runs_per_month integer default 4` pada `batch_schedule_settings` guna membatasi eksekusi cron maksimal 4 kali per bulan kalender.
+   - Menambahkan kolom `color text default '#6366f1'` pada `keyword_batches` untuk pembedaan visual pada kartu kalender/slot antarmuka.
+3. **Inisialisasi Slot & Audit Trail**:
+   - Mengisi 4 slot mingguan awal (Slot 1..3 mengarah ke Batch 1..3, dan Slot 4 mengarah kembali ke Batch 1 sebagai pemenuhan aturan looping jika jumlah batch $N < 4$).
+   - Mencatat log inisialisasi pada `batch_audit_logs` dengan `trigger_type = 'slots_initial_setup'`.
+
+
 
 

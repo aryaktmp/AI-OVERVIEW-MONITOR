@@ -73,7 +73,7 @@
 
 WITH
 expected_tables(name) AS (
-  VALUES ('keyword_groups'), ('keywords'), ('brand_terms'), ('competitors'), ('check_runs'), ('run_items'), ('checks'), ('check_sources'), ('page_cache'), ('settings'), ('keyword_batches'), ('batch_schedule_settings'), ('batch_audit_logs')
+  VALUES ('keyword_groups'), ('keywords'), ('brand_terms'), ('competitors'), ('check_runs'), ('run_items'), ('checks'), ('check_sources'), ('page_cache'), ('settings'), ('keyword_batches'), ('batch_schedule_settings'), ('batch_audit_logs'), ('batch_schedule_slots')
 ),
 expected_views(name) AS (
   VALUES ('latest_keyword_checks'), ('latest_domain_citation_counts')
@@ -136,7 +136,7 @@ SELECT * FROM (
     'DRIFT' AS status,
     'Tabel ada di schema public tetapi tidak terdaftar di manifest' AS detail
   FROM db_tables dt
-  WHERE dt.name NOT IN ('keyword_groups', 'keywords', 'brand_terms', 'competitors', 'check_runs', 'run_items', 'checks', 'check_sources', 'page_cache', 'settings', 'keyword_batches', 'batch_schedule_settings', 'batch_audit_logs')
+  WHERE dt.name NOT IN ('keyword_groups', 'keywords', 'brand_terms', 'competitors', 'check_runs', 'run_items', 'checks', 'check_sources', 'page_cache', 'settings', 'keyword_batches', 'batch_schedule_settings', 'batch_audit_logs', 'batch_schedule_slots')
 
   UNION ALL
 
@@ -152,7 +152,7 @@ SELECT * FROM (
   JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
   LEFT JOIN pg_catalog.pg_attrdef ad ON ad.adrelid = a.attrelid AND ad.adnum = a.attnum
   WHERE n.nspname = 'public' AND c.relkind::text = 'r' AND a.attnum > 0 AND NOT a.attisdropped
-    AND c.relname IN ('keyword_groups', 'keywords', 'brand_terms', 'competitors', 'check_runs', 'run_items', 'checks', 'check_sources', 'page_cache', 'settings', 'keyword_batches', 'batch_schedule_settings', 'batch_audit_logs')
+    AND c.relname IN ('keyword_groups', 'keywords', 'brand_terms', 'competitors', 'check_runs', 'run_items', 'checks', 'check_sources', 'page_cache', 'settings', 'keyword_batches', 'batch_schedule_settings', 'batch_audit_logs', 'batch_schedule_slots')
 
   UNION ALL
 

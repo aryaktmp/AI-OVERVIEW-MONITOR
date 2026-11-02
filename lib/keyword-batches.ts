@@ -6,6 +6,7 @@ export interface KeywordBatchRecord {
   id: string;
   name: string;
   description: string | null;
+  color?: string | null;
   order_index: number;
   is_active: boolean;
   is_enabled: boolean;
@@ -17,8 +18,22 @@ export interface KeywordBatchRecord {
 export interface BatchScheduleSettingsRecord {
   id: number;
   mode: BatchScheduleMode;
+  max_runs_per_month?: number;
   override_until: string | null;
   updated_at: string;
+}
+
+export interface BatchScheduleSlotRecord {
+  id: string;
+  week_number: number; // 1 to 4
+  batch_id: string | null;
+  is_override: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BatchScheduleSlotWithBatch extends BatchScheduleSlotRecord {
+  batch: KeywordBatchRecord | null;
 }
 
 export interface BatchAuditLogRecord {

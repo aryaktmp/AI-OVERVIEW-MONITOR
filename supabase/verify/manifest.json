@@ -10,7 +10,8 @@
     "20261029060000_predeploy_hardening.sql",
     "20261029070000_function_search_path.sql",
     "20261102000000_single_running_run.sql",
-    "20261102010000_keyword_batches.sql"
+    "20261102010000_keyword_batches.sql",
+    "20261102020000_batch_schedule_slots.sql"
   ],
   "perFileSummary": [
     {
@@ -648,6 +649,42 @@
         {
           "name": "Pengguna login dapat membaca batch_audit_logs",
           "table": "batch_audit_logs"
+        }
+      ],
+      "viewsCreatedOrReplaced": [],
+      "functionsCreatedOrReplaced": [],
+      "permissionOps": [],
+      "seedUpdates": []
+    },
+    {
+      "fileName": "20261102020000_batch_schedule_slots.sql",
+      "extensionsCreated": [],
+      "tablesCreated": [
+        "batch_schedule_slots"
+      ],
+      "columnsAdded": [
+        {
+          "table": "keyword_batches",
+          "column": "color",
+          "dataType": "text"
+        },
+        {
+          "table": "batch_schedule_settings",
+          "column": "max_runs_per_month",
+          "dataType": "integer"
+        }
+      ],
+      "indexesCreated": [
+        "batch_schedule_slots_week_number_idx",
+        "batch_schedule_slots_batch_id_idx"
+      ],
+      "rlsEnabledTables": [
+        "batch_schedule_slots"
+      ],
+      "policiesCreated": [
+        {
+          "name": "Pengguna login dapat membaca batch_schedule_slots",
+          "table": "batch_schedule_slots"
         }
       ],
       "viewsCreatedOrReplaced": [],
@@ -1563,7 +1600,8 @@
         "name": "keyword_batches",
         "sourceMigration": "20261102010000_keyword_batches.sql",
         "modifiedByMigrations": [
-          "20261102010000_keyword_batches.sql"
+          "20261102010000_keyword_batches.sql",
+          "20261102020000_batch_schedule_slots.sql"
         ],
         "rlsEnabled": true,
         "rlsSourceMigration": "20261102010000_keyword_batches.sql",
@@ -1657,6 +1695,16 @@
             "isPrimaryKey": false,
             "isUnique": false,
             "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "name": "color",
+            "dataType": "text",
+            "normalizedType": "text",
+            "nullable": true,
+            "defaultExpr": "'#6366f1'",
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102020000_batch_schedule_slots.sql"
           }
         ],
         "constraints": [
@@ -1680,7 +1728,8 @@
         "name": "batch_schedule_settings",
         "sourceMigration": "20261102010000_keyword_batches.sql",
         "modifiedByMigrations": [
-          "20261102010000_keyword_batches.sql"
+          "20261102010000_keyword_batches.sql",
+          "20261102020000_batch_schedule_slots.sql"
         ],
         "rlsEnabled": true,
         "rlsSourceMigration": "20261102010000_keyword_batches.sql",
@@ -1724,6 +1773,16 @@
             "isPrimaryKey": false,
             "isUnique": false,
             "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "name": "max_runs_per_month",
+            "dataType": "int",
+            "normalizedType": "integer",
+            "nullable": false,
+            "defaultExpr": "4",
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102020000_batch_schedule_slots.sql"
           }
         ],
         "constraints": [
@@ -1843,6 +1902,111 @@
             "referencesColumn": "id",
             "onDelete": "SET NULL",
             "sourceMigration": "20261102010000_keyword_batches.sql"
+          }
+        ]
+      },
+      "batch_schedule_slots": {
+        "name": "batch_schedule_slots",
+        "sourceMigration": "20261102020000_batch_schedule_slots.sql",
+        "modifiedByMigrations": [
+          "20261102020000_batch_schedule_slots.sql"
+        ],
+        "rlsEnabled": true,
+        "rlsSourceMigration": "20261102020000_batch_schedule_slots.sql",
+        "columns": [
+          {
+            "name": "id",
+            "dataType": "uuid",
+            "normalizedType": "uuid",
+            "nullable": false,
+            "defaultExpr": "gen_random_uuid()",
+            "isPrimaryKey": true,
+            "isUnique": false,
+            "sourceMigration": "20261102020000_batch_schedule_slots.sql"
+          },
+          {
+            "name": "week_number",
+            "dataType": "int",
+            "normalizedType": "integer",
+            "nullable": false,
+            "defaultExpr": null,
+            "isPrimaryKey": false,
+            "isUnique": true,
+            "sourceMigration": "20261102020000_batch_schedule_slots.sql"
+          },
+          {
+            "name": "batch_id",
+            "dataType": "uuid",
+            "normalizedType": "uuid",
+            "nullable": true,
+            "defaultExpr": null,
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102020000_batch_schedule_slots.sql"
+          },
+          {
+            "name": "is_override",
+            "dataType": "boolean",
+            "normalizedType": "boolean",
+            "nullable": false,
+            "defaultExpr": "false",
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102020000_batch_schedule_slots.sql"
+          },
+          {
+            "name": "created_at",
+            "dataType": "timestamptz",
+            "normalizedType": "timestamp with time zone",
+            "nullable": false,
+            "defaultExpr": "now()",
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102020000_batch_schedule_slots.sql"
+          },
+          {
+            "name": "updated_at",
+            "dataType": "timestamptz",
+            "normalizedType": "timestamp with time zone",
+            "nullable": false,
+            "defaultExpr": "now()",
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102020000_batch_schedule_slots.sql"
+          }
+        ],
+        "constraints": [
+          {
+            "type": "PRIMARY KEY",
+            "columns": [
+              "id"
+            ],
+            "sourceMigration": "20261102020000_batch_schedule_slots.sql"
+          },
+          {
+            "type": "UNIQUE",
+            "columns": [
+              "week_number"
+            ],
+            "sourceMigration": "20261102020000_batch_schedule_slots.sql"
+          },
+          {
+            "type": "CHECK",
+            "columns": [
+              "week_number"
+            ],
+            "checkExpression": "week_number between 1 and 4",
+            "sourceMigration": "20261102020000_batch_schedule_slots.sql"
+          },
+          {
+            "type": "FOREIGN KEY",
+            "columns": [
+              "batch_id"
+            ],
+            "referencesTable": "keyword_batches",
+            "referencesColumn": "id",
+            "onDelete": "SET NULL",
+            "sourceMigration": "20261102020000_batch_schedule_slots.sql"
           }
         ]
       }
@@ -1965,6 +2129,32 @@
         ],
         "unique": false,
         "sourceMigration": "20261102010000_keyword_batches.sql"
+      },
+      {
+        "name": "batch_schedule_slots_week_number_idx",
+        "table": "batch_schedule_slots",
+        "columnsExpr": "week_number",
+        "columns": [
+          {
+            "name": "week_number",
+            "order": "ASC"
+          }
+        ],
+        "unique": false,
+        "sourceMigration": "20261102020000_batch_schedule_slots.sql"
+      },
+      {
+        "name": "batch_schedule_slots_batch_id_idx",
+        "table": "batch_schedule_slots",
+        "columnsExpr": "batch_id",
+        "columns": [
+          {
+            "name": "batch_id",
+            "order": "ASC"
+          }
+        ],
+        "unique": false,
+        "sourceMigration": "20261102020000_batch_schedule_slots.sql"
       }
     ],
     "policies": [
@@ -2110,6 +2300,17 @@
         "usingExpr": "true",
         "withCheckExpr": null,
         "sourceMigration": "20261102010000_keyword_batches.sql"
+      },
+      {
+        "name": "Pengguna login dapat membaca batch_schedule_slots",
+        "table": "batch_schedule_slots",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ],
+        "usingExpr": "true",
+        "withCheckExpr": null,
+        "sourceMigration": "20261102020000_batch_schedule_slots.sql"
       }
     ],
     "views": {
