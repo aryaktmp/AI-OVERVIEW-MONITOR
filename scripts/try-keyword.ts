@@ -168,11 +168,15 @@ async function main() {
     const safeBaseName = path.basename(saveFixtureName);
     const primaryPath = path.join(fixturesDir, `${safeBaseName}.json`);
     const sanitizedFirst = sanitizeSerpApiRaw(result.firstRaw);
-    fs.writeFileSync(
-      primaryPath,
-      JSON.stringify(sanitizedFirst, null, 2),
-      "utf-8"
-    );
+    let rawJsonStr = JSON.stringify(sanitizedFirst, null, 2);
+    const keyToRedact = process.env.SERPAPI_KEY;
+    if (keyToRedact && keyToRedact.length >= 8) {
+      rawJsonStr = rawJsonStr.split(keyToRedact).join("[REDACTED]");
+    }
+    if (keyToRedact && rawJsonStr.includes(keyToRedact)) {
+      throw new Error("Security check failed: api_key still present in fixture!");
+    }
+    fs.writeFileSync(primaryPath, rawJsonStr, "utf-8");
     console.log(
       `1st call fixture saved: tests/fixtures/${safeBaseName}.json`
     );
@@ -181,11 +185,14 @@ async function main() {
       const followUpName = `${safeBaseName}-followup.json`;
       const followUpPath = path.join(fixturesDir, followUpName);
       const sanitizedSecond = sanitizeSerpApiRaw(result.secondRaw);
-      fs.writeFileSync(
-        followUpPath,
-        JSON.stringify(sanitizedSecond, null, 2),
-        "utf-8"
-      );
+      let secondJsonStr = JSON.stringify(sanitizedSecond, null, 2);
+      if (keyToRedact && keyToRedact.length >= 8) {
+        secondJsonStr = secondJsonStr.split(keyToRedact).join("[REDACTED]");
+      }
+      if (keyToRedact && secondJsonStr.includes(keyToRedact)) {
+        throw new Error("Security check failed: api_key still present in follow-up fixture!");
+      }
+      fs.writeFileSync(followUpPath, secondJsonStr, "utf-8");
       console.log(
         `2nd call fixture saved: tests/fixtures/${followUpName}`
       );

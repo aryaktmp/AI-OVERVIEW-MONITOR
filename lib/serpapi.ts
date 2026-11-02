@@ -53,6 +53,8 @@ export interface SerpApiReference {
   link?: string;
   snippet?: string;
   source?: string;
+  source_icon?: string;
+  thumbnail?: string;
 }
 
 export interface SerpApiAiOverviewRaw {
@@ -77,29 +79,39 @@ export interface SerpApiRawResponse {
 
 /**
  * Menghapus properti api_key dan parameter query api_key=... secara rekursif
- * dari objek respons mentah SerpApi.
+ * dari objek respons mentah SerpApi, serta menyamarkan string nilai api_key jika muncul di teks.
  */
 export function sanitizeSerpApiRaw<T>(input: T): T {
-  if (typeof input === "string") {
-    return input.replace(
-      /([?&])api_key=[^&\s"']+/gi,
-      "$1api_key=[REDACTED]"
-    ) as unknown as T;
-  }
-  if (Array.isArray(input)) {
-    return input.map((item) => sanitizeSerpApiRaw(item)) as unknown as T;
-  }
-  if (input && typeof input === "object") {
-    const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(input as Record<string, unknown>)) {
-      if (k.toLowerCase() === "api_key" || k.toLowerCase() === "apikey") {
-        continue;
+  const secretKey = typeof process !== "undefined" ? process.env?.SERPAPI_KEY : undefined;
+
+  function clean(val: unknown): unknown {
+    if (typeof val === "string") {
+      let str = val.replace(
+        /([?&])api_key=[^&\s"']+/gi,
+        "$1api_key=[REDACTED]"
+      );
+      if (secretKey && secretKey.length >= 8) {
+        str = str.split(secretKey).join("[REDACTED]");
       }
-      out[k] = sanitizeSerpApiRaw(v);
+      return str;
     }
-    return out as T;
+    if (Array.isArray(val)) {
+      return val.map(clean);
+    }
+    if (val && typeof val === "object") {
+      const out: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(val as Record<string, unknown>)) {
+        if (k.toLowerCase() === "api_key" || k.toLowerCase() === "apikey") {
+          continue;
+        }
+        out[k] = clean(v);
+      }
+      return out;
+    }
+    return val;
   }
-  return input;
+
+  return clean(input) as T;
 }
 
 /**
@@ -231,18 +243,36 @@ export function normalizeUrl(rawUrl: string): string {
   }
 }
 
+const KNOWN_SOURCE_PLATFORMS: Record<string, string> = {
+  youtube: "https://www.youtube.com",
+  instagram: "https://www.instagram.com",
+  facebook: "https://www.facebook.com",
+  tiktok: "https://www.tiktok.com",
+  linkedin: "https://www.linkedin.com",
+  twitter: "https://twitter.com",
+  x: "https://x.com",
+};
+
 /**
  * Memilih URL terbaik dari field referensi SerpApi.
- * Kandidat yang dievaluasi: ref.link, ref.url, ref.destination_url, ref.target_url.
- * Alasan pemilihan: Jika ditemukan URL yang setelah di-unwrap mengarah ke domain tujuan eksternal
- * (bukan internal Google), field tersebut langsung diutamakan. Jika seluruh field tetap mengarah ke Google
- * atau hanya ada satu field terisi, URL unwrapped dari kandidat pertama (ref.link) tetap dipakai.
+ *
+ * Jalur yang dievaluasi berurutan:
+ * 1. Direct link candidates (ref.link, ref.url, ref.destination_url, ref.target_url) setelah di-unwrap
+ *    dari perantara Google (pengaman defensif untuk format /url?q=...). Jika non-Google, langsung dipakai.
+ * 2. Parameter `url` pada `ref.source_icon`: Pada Google SERP desktop terbaru, tautan AI Overview
+ *    dibungkus token goto (/goto?url=CAES...), namun URL tujuan sebenarnya tersedia di parameter `url`
+ *    pada favicon proxy Google (https://encrypted-tbn*.gstatic.com/faviconV2?url=https://...).
+ * 3. Nama platform atau domain pada `ref.source`: Jika source merupakan platform media (YouTube, Instagram, Facebook)
+ *    atau berformat domain (misal "humanis.id").
+ * 4. Fallback ke ref.link (tetap disimpan dan ditandai is_google_internal jika tetap domain Google).
  */
 export function resolveReferenceUrl(ref: SerpApiReference): {
   url: string;
   chosenField: string;
 } {
   const record = ref as Record<string, unknown>;
+
+  // 1. Cek direct link (dan unwrap jika tautan perantara Google /url?q=...)
   const candidates: Array<{ field: string; val?: unknown }> = [
     { field: "link", val: ref.link },
     { field: "url", val: record.url },
@@ -250,26 +280,65 @@ export function resolveReferenceUrl(ref: SerpApiReference): {
     { field: "target_url", val: record.target_url },
   ];
 
-  let fallbackUrl = "";
-  let fallbackField = "link";
-
   for (const cand of candidates) {
     if (typeof cand.val === "string" && cand.val.trim()) {
       const unwrapped = unwrapGoogleUrl(cand.val.trim());
       const domain = extractDomainFromUrl(unwrapped);
-      if (domain) {
-        if (!isGoogleDomain(domain)) {
-          return { url: unwrapped, chosenField: cand.field };
-        }
-        if (!fallbackUrl) {
-          fallbackUrl = unwrapped;
-          fallbackField = cand.field;
-        }
+      if (domain && !isGoogleDomain(domain)) {
+        return { url: unwrapped, chosenField: cand.field };
       }
     }
   }
 
-  return { url: fallbackUrl, chosenField: fallbackField };
+  // 2. Cek source_icon (parameter url pada Google FaviconV2 proxy)
+  if (typeof ref.source_icon === "string" && ref.source_icon.trim()) {
+    try {
+      const iconUrl = new URL(ref.source_icon.trim());
+      const targetFromIcon =
+        iconUrl.searchParams.get("url") || iconUrl.searchParams.get("q");
+      if (
+        targetFromIcon &&
+        (targetFromIcon.startsWith("http://") ||
+          targetFromIcon.startsWith("https://"))
+      ) {
+        const domain = extractDomainFromUrl(targetFromIcon);
+        if (domain && !isGoogleDomain(domain)) {
+          return { url: targetFromIcon, chosenField: "source_icon.url" };
+        }
+      }
+    } catch {
+      // Abaikan jika bukan URL valid
+    }
+  }
+
+  // 3. Cek source jika merupakan domain atau platform populer
+  if (typeof ref.source === "string" && ref.source.trim()) {
+    const src = ref.source.trim();
+    const srcLower = src.toLowerCase();
+
+    if (KNOWN_SOURCE_PLATFORMS[srcLower]) {
+      return {
+        url: KNOWN_SOURCE_PLATFORMS[srcLower],
+        chosenField: "source.platform",
+      };
+    }
+
+    if (srcLower.includes(".") && !srcLower.includes(" ")) {
+      const targetDomain = `https://${srcLower}`;
+      const domain = extractDomainFromUrl(targetDomain);
+      if (domain && !isGoogleDomain(domain)) {
+        return { url: `https://${domain}`, chosenField: "source.domain" };
+      }
+    }
+  }
+
+  // 4. Fallback ke ref.link (atau url alternatif) yang ada
+  const fallbackVal =
+    (typeof ref.link === "string" && ref.link.trim()) ||
+    (typeof record.url === "string" && (record.url as string).trim()) ||
+    "";
+
+  return { url: fallbackVal, chosenField: "link.fallback" };
 }
 
 function collectTextFromListItems(items: SerpApiListItem[], out: string[]): void {

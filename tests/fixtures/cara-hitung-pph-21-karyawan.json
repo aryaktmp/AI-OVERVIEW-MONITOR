@@ -1,0 +1,748 @@
+{
+  "search_metadata": {
+    "id": "6ae87e09078106d1842415ef",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/-3yJnu49oUZFqlJ6CpHaGwGBfV_ha6GapqwferaeY4Y/6ae87e09078106d1842415ef.json",
+    "markdown_endpoint": "https://serpapi.com/searches/-3yJnu49oUZFqlJ6CpHaGwGBfV_ha6GapqwferaeY4Y/6ae87e09078106d1842415ef.md",
+    "pixel_position_endpoint": "https://serpapi.com/searches/-3yJnu49oUZFqlJ6CpHaGwGBfV_ha6GapqwferaeY4Y/6ae87e09078106d1842415ef.json_with_pixel_position",
+    "created_at": "2026-11-02 12:11:53 UTC",
+    "processed_at": "2026-11-02 12:11:53 UTC",
+    "google_url": "https://www.google.co.id/search?q=cara+hitung+pph+21+karyawan&oq=cara+hitung+pph+21+karyawan&uule=w+CAIQICIJSW5kb25lc2lh&hl=id&gl=id&sourceid=chrome&ie=UTF-8",
+    "raw_html_file": "https://serpapi.com/searches/-3yJnu49oUZFqlJ6CpHaGwGBfV_ha6GapqwferaeY4Y/6ae87e09078106d1842415ef.html",
+    "total_time_taken": 0.51
+  },
+  "search_parameters": {
+    "engine": "google",
+    "q": "cara hitung pph 21 karyawan",
+    "location_requested": "Indonesia",
+    "location_used": "Indonesia",
+    "google_domain": "google.co.id",
+    "hl": "id",
+    "gl": "id",
+    "device": "desktop"
+  },
+  "search_information": {
+    "query_displayed": "cara hitung pph 21 karyawan",
+    "total_results": 117,
+    "time_taken_displayed": 0.14,
+    "organic_results_state": "Results for exact spelling"
+  },
+  "inline_images": [
+    {
+      "source": "https://www.google.co.id/goto?url=CAESggEB6zswFV6dIyZ5iIWYx_6rxXRJ5j75Hcc5F2-SHYMrVv2i4sBT8GuVqX0LqSlithraYAvV-4YADGABDbWbcwQsBl5sDl3bsxbslbYmlmQXPv2vHjlk-_3SU6zTsCVKpdbJZ5J4zZB9r0sqydrgDRktMkVbabnQmgQq-oudZEdm0ZDi&gsessionid=kMLSheHdAYlOhWtuX56F2_pipv5znT8LEwBVY9bgPWFE4H5FtZhn7Q",
+      "thumbnail": "https://serpapi.com/searches/6ae87e09078106d1842415ef/images/S3q1jLSlnB7-4xGMSyxeSWFVbQxc1D_2G39_Df7GqT0.png",
+      "original": "https://www.gadjian.com/blog/wp-content/uploads/2023/01/contoh-perhitungan-PPh-21-karyawan-tetap.jpg",
+      "title": "Cara Perhitungan PPh 21 2023 - Blog Gadjian",
+      "source_name": "Gadjian"
+    },
+    {
+      "source": "https://www.google.co.id/goto?url=CAESfAHrOzAVRHZEYYsVAZSZnP1_2Apu5rR0gO7yE_nxK-WKOS1j5LLLEAzSEU7qhjo3XLPFIKV6ImzZduLeEJjak8YJ_d7a6CSw-SgVzI7tj3ZCe5rhtxzIVN0Sksi_xZaVOksSQfXkKieGTeYiz7dYqCSv8zwwXlJ8FQqutx0&gsessionid=kMLSheHdAYlOhWtuX56F2_pipv5znT8LEwBVY9bgPWFE4H5FtZhn7Q",
+      "thumbnail": "https://serpapi.com/searches/6ae87e09078106d1842415ef/images/4LQ6QGLPeXKyqabfiJ3iI9Q4lbvk-e2WuaDMwGzSFfk.jpeg",
+      "original": "https://ortax.org/storage/splash/2024/01/PPh-21-Pegawai-Tetap-Masa-Pajak-Desember-Normal-Sesuai-TER.png",
+      "title": "Cara Menghitung PPh Pasal 21 bagi Pegawai Tetap Berdasarkan ...",
+      "source_name": "Ortax"
+    },
+    {
+      "source": "https://www.google.co.id/goto?url=CAESgQEB6zswFZN0ko1XLicrESrkKtz5Z_lg4uWGRQgMT5nfXUkXlxG7WuZrjWjHXfy4JswPti7gzWclzcYuhR9On7ZyL8upJTwIXY7g0tkKGyKf4dGjEKdd9U_WGJEiXC0iC9avzgOKLLjmZX9Qekpsq3NJrj_mU0iJwje09TWWMpoynV8&gsessionid=kMLSheHdAYlOhWtuX56F2_pipv5znT8LEwBVY9bgPWFE4H5FtZhn7Q",
+      "thumbnail": "https://serpapi.com/searches/6ae87e09078106d1842415ef/images/suhWZ6bhCuVsxGJEHs0EDehai9AJ29TMfqLMBoIAASs.jpeg",
+      "original": "https://klikpajak.id/wp-content/uploads/2025/09/Mekari-Klikpajak_Infografis_Tarif-Pajak-Pekerja-Harian.webp",
+      "title": "Panduan Penghitungan PPh 21 Karyawan dan Contoh",
+      "source_name": "Mekari Klikpajak"
+    },
+    {
+      "source": "https://www.google.co.id/goto?url=CAESgwEB6zswFXUMfe9ECLb5tKS1-scEowN8zxrka-KZFHvR9MWp2HubMzwUQs7ZYBHhEoS88VU19P1SoH9H6qyBe6M2CRE7QuUiJY4a4dUhEMsqYTPdgBD_oXAHtlOc9ZZpKTBcj7Av9Fe88RJWT3s6NndcnYLWTewCChvTABphVqT9oLHgUA&gsessionid=kMLSheHdAYlOhWtuX56F2_pipv5znT8LEwBVY9bgPWFE4H5FtZhn7Q",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQH0K_AtvRHAzJbBtfyVgrstPGk4Tfp3FDBbtu1H_2fSjC1PkP1_v7qSoM&s",
+      "original": "https://www.gadjian.com/blog/wp-content/uploads/2024/01/Contoh-Perhitungan-Tarif-Efektif-PPh-21-2024-bulan-Desember-Akhir-Tahun-1-jpg.webp",
+      "title": "Cara Menghitung PPh 21 Karyawan 2025 - Blog Gadjian",
+      "source_name": "Gadjian"
+    },
+    {
+      "source": "https://www.google.co.id/goto?url=CAEShgEB6zswFeszXY5Q9j52j4ACA2EmNl2Yn8CpTzbQGvoCfuUuWTlanX1RuADBmkhi6sQqeha7AAqsNGU3Rj9ll8VkkYNK5-xQ48oFlt6reybopDUv9Kay_pItsUWK0Y1lsx5g93j5mx4GQk6g5uVoBTmR_Yqjr8lFgorO7qGwaNDDYQu2m92Beg&gsessionid=kMLSheHdAYlOhWtuX56F2_pipv5znT8LEwBVY9bgPWFE4H5FtZhn7Q",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnWHK5Xf62v4fiLtzatnWtoDGpoygj3h6g_MJ3JtFpkhRcTY9fefx5bpM&s",
+      "original": "https://www.talenta.co/wp-content/uploads/2024/02/Screenshot-2024-08-05-at-16.12.09-1024x546.png",
+      "title": "Perhitungan PPh 21 Terbaru dengan Tarif Efektif Rata-Rata (TER)",
+      "source_name": "Mekari Talenta"
+    },
+    {
+      "source": "https://www.google.co.id/goto?url=CAESlgEB6zswFc1LKLUU8nVirOVmWfEgbpLjlgFWcr_UbQ1aFz3oSopgFP7xbEqXey4KivMGn3UyHT7q4UjSdfYi8FhKjoq6r2wWSj3g2OumJ0_Fqt21YSyw2_YfwXBciiw0csRVdWFwTq0SQ2oMrkRuq81K0NkmifvonjLp7EZ8AZVO7qwmuqqXsl2JchYfjF1woj500GxApm8&gsessionid=kMLSheHdAYlOhWtuX56F2_pipv5znT8LEwBVY9bgPWFE4H5FtZhn7Q",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTRn58nzLiE8jXWgHj3H5rqC66Y83SBbWun1XHdUhTq3novyp481Z36uPI&s",
+      "original": "https://systemever.co.id/uploads/6/2022-01/f65eac8a7c466ee7e96b89d49373a070.png",
+      "title": "Panduan dan Tata Cara Menghitung PPH 21 Akhir Tahun ...",
+      "source_name": "SystemEver"
+    },
+    {
+      "source": "https://www.google.co.id/goto?url=CAESbgHrOzAV-CiLrUWuEVD1yZGg5v6hPetwahMxjAldMDs9FIsO98Q9sDJkp4lQTo73BSIAKgQwedUpuSLCFhUXAaJxZXVpMp8gEoDjIkwkXarDG2--gcjg17ZnzF0UeaKqkGSVw_ihXWBTVEnEjEXb&gsessionid=kMLSheHdAYlOhWtuX56F2_pipv5znT8LEwBVY9bgPWFE4H5FtZhn7Q",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqKchE299IB2sJzJuD1TAuOV7rIvBt0dz5lacucTch77xOvs9SaYbbYvWaEg&s",
+      "original": "https://ottopay.id/lkapps/wp-content/uploads/2023/12/ARTIKEL-COVER-JANUARI-30-1200x498.jpg",
+      "title": "Cara Hitung PPH 21 Karyawan, Simak di Sini!",
+      "source_name": "OttoPay"
+    },
+    {
+      "source": "https://www.google.co.id/goto?url=CAESlwEB6zswFWJ6D1T9b0svjSKaJ9WkLQaYiy35wADDiuHc-CkkiFzF7GZjXy8ojgfldBbqvpgDAjqsFsl_HjeRDXkHWJGEF5CExfqRANgf6OwN7KVYzr-2mqBOYCTVc4QBHuSOcmSc_7qRQQYJaYOz6nndFKHDjEQHVcHMStOJ1rgST2KXMUD5XZPRiZHzND4Vg-BTEJWBrcsK&gsessionid=kMLSheHdAYlOhWtuX56F2_pipv5znT8LEwBVY9bgPWFE4H5FtZhn7Q",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQyEP8jx1eIfcTG3rQLw-SYpMajWwGOFP7zifJCF0sERto1Q9jlLYn2Ucw&s",
+      "original": "https://www.talenta.co/wp-content/uploads/2022/08/Infografis-pph-21-mekari-talenta.png",
+      "title": "Contoh Cara Perhitungan PPh Pasal 21 Karyawan Terbarun 2026",
+      "source_name": "Mekari Talenta"
+    },
+    {
+      "source": "https://www.google.co.id/goto?url=CAESmQEB6zswFarSKgI0RrVV_4JwP19ToxgDSXaj99PKUe5LxwMh8rKmpoE3VaKhw51Xzn_BG5iT9nI-mAzsOPnR8uBA7bOvA3IRMDkggZJNMt5WA2nbEzYl6tL-hY2fLC6U4PEkONHMLBqqeNzRPsT3mC9dIteaV2lN-Vd88gPIqbfsJIpLN_kGfTxtdo_RQWltxguoGuhXpHYkoSg&gsessionid=kMLSheHdAYlOhWtuX56F2_pipv5znT8LEwBVY9bgPWFE4H5FtZhn7Q",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfAqBV7D9PkBMbcQUpaHih2zUBFEGpmUoEydpFsy7DliIOPCOxLZmiAMI&s",
+      "original": "https://klikpajak.id/wp-content/uploads/2019/01/Tips-Cara-Menghitung-PPh-Pasal-21-Karyawan-Pindah-Kerja.webp",
+      "title": "Cara Menghitung PPh Pasal 21 Karyawan Pindah Kerja",
+      "source_name": "Mekari Klikpajak"
+    }
+  ],
+  "related_questions": [
+    {
+      "question": "Berapa tarif PPh Pasal 17?",
+      "type": "ai_overview",
+      "page_token": "ZbGR_nicHdBdboIwAADg7DI-CuXHDROzBG01ODCrtEBfltIiYMvPFMH5trvsVDvNkn1H-L5_dN2q3ydWDUN_XRrGNE3zsutKXcxFN6-lwa9frTAE1zrnQi0XzwvwehIreJ38dTf57wTDTEudUWgWpN8xpT9zKpwQVYfcdK9EebZUOODnyE5qkByQHBkNTNaifdwgzlUI3htvf0g695AGPExLJ33QMaT-jW0RJpTe2UMOhcZpEcuAtlTx7TCKjZhCVA5HqE2R6ppuyT2zq5RRj2RAWgUEb-Ls7xMVuCzFkWzYLQcQZJQ4oYUXmX45IjPKIsur5Ibd4zbQcuebhPo9WwMtCULbOvCP0JlwLHehQjd5hlaE2CUkEZSpxvyMXQm6R0ERj0nVzk5iXNmz_7HVx6kZlv2lK_8Aecl5RA",
+      "serpapi_ai_overview_link": "https://serpapi.com/search.json?engine=google_ai_overview&page_token=ZbGR_nicHdBdboIwAADg7DI-CuXHDROzBG01ODCrtEBfltIiYMvPFMH5trvsVDvNkn1H-L5_dN2q3ydWDUN_XRrGNE3zsutKXcxFN6-lwa9frTAE1zrnQi0XzwvwehIreJ38dTf57wTDTEudUWgWpN8xpT9zKpwQVYfcdK9EebZUOODnyE5qkByQHBkNTNaifdwgzlUI3htvf0g695AGPExLJ33QMaT-jW0RJpTe2UMOhcZpEcuAtlTx7TCKjZhCVA5HqE2R6ppuyT2zq5RRj2RAWgUEb-Ls7xMVuCzFkWzYLQcQZJQ4oYUXmX45IjPKIsur5Ibd4zbQcuebhPo9WwMtCULbOvCP0JlwLHehQjd5hlaE2CUkEZSpxvyMXQm6R0ERj0nVzk5iXNmz_7HVx6kZlv2lK_8Aecl5RA",
+      "next_page_token": "eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJSRVJpVjJWaE1GRnFRbUZpWkdGbE9YUjNTRlIyVVRJM1dVcGtVRTlGV2twb2FuQjNTRFJ3YUVFelZISkJXVXB0Vm5OVWMyTTRiMTlmVGpOSk9EaDJSbkIzTW0wNVVsUjVNMWg0V214bFUwczBNVE5oVkZGdWIyY3pWbEZSYVdKcFp4SVhRMWczYjJGME5uRk9jbVYwY0hSUlVHbGtMV1YxUVVVYUlrRklUakJGTjBoM1FTMVdjMTlIVms1aVpVbEtUVWQwYzJWdmRIbGtUbWxsUzJjIiwiZmN2IjoiMyIsImVpIjoiQ1g3b2F0NnFOcmV0cHRRUGlkLWV1QUUiLCJxYyI6IkNodGpZWEpoSUdocGRIVnVaeUJ3Y0dnZ01qRWdhMkZ5ZVdGM1lXNFFKbjBLbzFRX29nRUNhV1EiLCJxdWVzdGlvbiI6IkJlcmFwYSB0YXJpZiBQUGggUGFzYWwgMTc/IiwibGsiOiJHZzUwWVhKcFppQndZWE5oYkNBeE53IiwiYnMiOiJjNDJQUHctQ01CVEU0X29HdzJLTWRYbURxM19vb0dNTnN3TmY0VkNrRldpYTBuNV9BUmxrTUhHOTM5MjlkM1Fna1pVZURoemd6WlB6WEhPT0RnMm5GeVVUc2Z6SWJwSkkwUzVEQmRQQ2d1X3c0TGEwbFRZaDJtb01GM2pBS3JrV3E1Rk94TG1KVUtUcjd3S0hGMnAyZzRET05MQWNiWWcxeHc0YTdMenBPNHlTcVRqLWtmek8wSTMyczUyaDlBVjhIRi1XNlhRbVFFZkw4aVRQU203Rlp1NGNKdlRPZ1NhTE53IiwiaWQiOiJmY19DWDdvYXQ2cU5yZXRwdFFQaWQtZXVBRV81In0=",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_related_questions&google_domain=google.com&next_page_token=eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJSRVJpVjJWaE1GRnFRbUZpWkdGbE9YUjNTRlIyVVRJM1dVcGtVRTlGV2twb2FuQjNTRFJ3YUVFelZISkJXVXB0Vm5OVWMyTTRiMTlmVGpOSk9EaDJSbkIzTW0wNVVsUjVNMWg0V214bFUwczBNVE5oVkZGdWIyY3pWbEZSYVdKcFp4SVhRMWczYjJGME5uRk9jbVYwY0hSUlVHbGtMV1YxUVVVYUlrRklUakJGTjBoM1FTMVdjMTlIVms1aVpVbEtUVWQwYzJWdmRIbGtUbWxsUzJjIiwiZmN2IjoiMyIsImVpIjoiQ1g3b2F0NnFOcmV0cHRRUGlkLWV1QUUiLCJxYyI6IkNodGpZWEpoSUdocGRIVnVaeUJ3Y0dnZ01qRWdhMkZ5ZVdGM1lXNFFKbjBLbzFRX29nRUNhV1EiLCJxdWVzdGlvbiI6IkJlcmFwYSB0YXJpZiBQUGggUGFzYWwgMTc%2FIiwibGsiOiJHZzUwWVhKcFppQndZWE5oYkNBeE53IiwiYnMiOiJjNDJQUHctQ01CVEU0X29HdzJLTWRYbURxM19vb0dNTnN3TmY0VkNrRldpYTBuNV9BUmxrTUhHOTM5MjlkM1Fna1pVZURoemd6WlB6WEhPT0RnMm5GeVVUc2Z6SWJwSkkwUzVEQmRQQ2d1X3c0TGEwbFRZaDJtb01GM2pBS3JrV3E1Rk94TG1KVUtUcjd3S0hGMnAyZzRET05MQWNiWWcxeHc0YTdMenBPNHlTcVRqLWtmek8wSTMyczUyaDlBVjhIRi1XNlhRbVFFZkw4aVRQU203Rlp1NGNKdlRPZ1NhTE53IiwiaWQiOiJmY19DWDdvYXQ2cU5yZXRwdFFQaWQtZXVBRV81In0%3D"
+    },
+    {
+      "question": "Bagaimana cara menghitung PPh badan?",
+      "type": "ai_overview",
+      "page_token": "__TGvXicHdBJbsIwFABQ9TIsIQOlKhKqZMigQFzhxJ_GmwrsQII_iQspDux6l56qp6nEBd7i_fxi3ei_J1F1nblMRyNr7fDQtgcsh7Id1mq0vdwaOZJbxN1W6unkZeK-7eUsuFgyby1ZcxYUqLDApC60WQmP2w-nv4rYBJmfLED33i549qnHzrnu-Q6hWjfGU36Y8g1zU97ty1h7Aom3wWQjIpqVUX9jUdEr3yyVC8sVVKFE2jCgtzTSFhAiGYZOxoFlrh7LhagFdyvqQ8fchxPvTnasckzfA5rCnXxtudPTDZ1zZGQF6q60zUKHFtR7rdRC9HmToIqJw4EYMXdR8TCM6oRkwdiyXMX5Eb9lCKQ4Xbo1igV1DZQaDcTAyyPLcgQy2MvrzB88xmaf-1M3Nef28A-T4Xnv",
+      "serpapi_ai_overview_link": "https://serpapi.com/search.json?engine=google_ai_overview&page_token=__TGvXicHdBJbsIwFABQ9TIsIQOlKhKqZMigQFzhxJ_GmwrsQII_iQspDux6l56qp6nEBd7i_fxi3ei_J1F1nblMRyNr7fDQtgcsh7Id1mq0vdwaOZJbxN1W6unkZeK-7eUsuFgyby1ZcxYUqLDApC60WQmP2w-nv4rYBJmfLED33i549qnHzrnu-Q6hWjfGU36Y8g1zU97ty1h7Aom3wWQjIpqVUX9jUdEr3yyVC8sVVKFE2jCgtzTSFhAiGYZOxoFlrh7LhagFdyvqQ8fchxPvTnasckzfA5rCnXxtudPTDZ1zZGQF6q60zUKHFtR7rdRC9HmToIqJw4EYMXdR8TCM6oRkwdiyXMX5Eb9lCKQ4Xbo1igV1DZQaDcTAyyPLcgQy2MvrzB88xmaf-1M3Nef28A-T4Xnv",
+      "next_page_token": "eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJSRVJpVjJWaE1GRnFRbUZpWkdGbE9YUjNTRlIyVVRJM1dVcGtVRTlGV2twb2FuQjNTRFJ3YUVFelZISkJXVXB0Vm5OVWMyTTRiMTlmVGpOSk9EaDJSbkIzTW0wNVVsUjVNMWg0V214bFUwczBNVE5oVkZGdWIyY3pWbEZSYVdKcFp4SVhRMWczYjJGME5uRk9jbVYwY0hSUlVHbGtMV1YxUVVVYUlrRklUakJGTjBoM1FTMVdjMTlIVms1aVpVbEtUVWQwYzJWdmRIbGtUbWxsUzJjIiwiZmN2IjoiMyIsImVpIjoiQ1g3b2F0NnFOcmV0cHRRUGlkLWV1QUUiLCJxYyI6IkNodGpZWEpoSUdocGRIVnVaeUJ3Y0dnZ01qRWdhMkZ5ZVdGM1lXNFFKbjBLbzFRX29nRUNhV1EiLCJxdWVzdGlvbiI6IkJhZ2FpbWFuYSBjYXJhIG1lbmdoaXR1bmcgUFBoIGJhZGFuPyIsImxrIjoiR2hWallYSmhJR2hwZEhWdVp5QndjR2dnWW1Ga1lXNCIsImJzIjoiYzQyUFB3LUNNQlRFNF9vR3cyS01kWG1EcTNfb29HTU5zd05mNFZDa0ZXaWEwbjVfQVJsa01IRzkzOTI5ZDNRZ2taVWVEaHpnelpQelhIT09EZzJuRnlVVHNmeklicEpJMFM1REJkUENndV93NExhMGxUWWgybW9NRjNqQUtya1dxNUZPeExtSlVLVHI3d0tIRjJwMmc0RE9OTEFjYllnMXh3NGE3THpwTzR5U3FUai1rZnpPMEkzMnM1Mmg5QVY4SEYtVzZYUW1RRWZMOGlUUFNtN0ZadTRjSnZUT2dTYUxOdyIsImlkIjoiZmNfQ1g3b2F0NnFOcmV0cHRRUGlkLWV1QUVfNSJ9",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_related_questions&google_domain=google.com&next_page_token=eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJSRVJpVjJWaE1GRnFRbUZpWkdGbE9YUjNTRlIyVVRJM1dVcGtVRTlGV2twb2FuQjNTRFJ3YUVFelZISkJXVXB0Vm5OVWMyTTRiMTlmVGpOSk9EaDJSbkIzTW0wNVVsUjVNMWg0V214bFUwczBNVE5oVkZGdWIyY3pWbEZSYVdKcFp4SVhRMWczYjJGME5uRk9jbVYwY0hSUlVHbGtMV1YxUVVVYUlrRklUakJGTjBoM1FTMVdjMTlIVms1aVpVbEtUVWQwYzJWdmRIbGtUbWxsUzJjIiwiZmN2IjoiMyIsImVpIjoiQ1g3b2F0NnFOcmV0cHRRUGlkLWV1QUUiLCJxYyI6IkNodGpZWEpoSUdocGRIVnVaeUJ3Y0dnZ01qRWdhMkZ5ZVdGM1lXNFFKbjBLbzFRX29nRUNhV1EiLCJxdWVzdGlvbiI6IkJhZ2FpbWFuYSBjYXJhIG1lbmdoaXR1bmcgUFBoIGJhZGFuPyIsImxrIjoiR2hWallYSmhJR2hwZEhWdVp5QndjR2dnWW1Ga1lXNCIsImJzIjoiYzQyUFB3LUNNQlRFNF9vR3cyS01kWG1EcTNfb29HTU5zd05mNFZDa0ZXaWEwbjVfQVJsa01IRzkzOTI5ZDNRZ2taVWVEaHpnelpQelhIT09EZzJuRnlVVHNmeklicEpJMFM1REJkUENndV93NExhMGxUWWgybW9NRjNqQUtya1dxNUZPeExtSlVLVHI3d0tIRjJwMmc0RE9OTEFjYllnMXh3NGE3THpwTzR5U3FUai1rZnpPMEkzMnM1Mmg5QVY4SEYtVzZYUW1RRWZMOGlUUFNtN0ZadTRjSnZUT2dTYUxOdyIsImlkIjoiZmNfQ1g3b2F0NnFOcmV0cHRRUGlkLWV1QUVfNSJ9"
+    },
+    {
+      "question": "Bagaimana cara menghitung pajak penghasilan untuk usaha pribadi?",
+      "type": "ai_overview",
+      "page_token": "sYFrD3icHdBfbtowHABg7TJ9hKQRmUBCkwwxHZ2NbPxzEr9MwYb8sU1SiEiat91hR9ipdppWPcD38v355-qr_f_tb9X33X01nw_DMCvbtnTnmW5ntZkX9_ernuvCuVOh7Sr-Hoc_LnqdPDTa3DRiwJPcGZd6l54mE_GoDRhIZlw5UT8CCWRBIzbCdp8raTgPl1TsSCTsslV-QbgNaZGEsWh4KBtKVPNz0uEyIG7Pia0SuCqQmA-ftgY_5jylR42RPQiEyVVPtOEJ88v-lKHmKMrJbM3rMegfZ4s7NslY7Pq3AtMoDzgQp_YEu-oM6lkFeASPbwdQb1Lqnshu4sItfmX8Lhq1Z3Z8zb3psoBu5ISYeDFUeXmROxMlldmmW_PIM_asYfGuMj4YjFmRsl5lEnHe1gyqA0kg4tJsCFa0gPvnAYpBlOEJIyzAtNJWNXkxCtjTRT_W0dPX9fr3xfer7taWH-1Pjjs",
+      "serpapi_ai_overview_link": "https://serpapi.com/search.json?engine=google_ai_overview&page_token=sYFrD3icHdBfbtowHABg7TJ9hKQRmUBCkwwxHZ2NbPxzEr9MwYb8sU1SiEiat91hR9ipdppWPcD38v355-qr_f_tb9X33X01nw_DMCvbtnTnmW5ntZkX9_ernuvCuVOh7Sr-Hoc_LnqdPDTa3DRiwJPcGZd6l54mE_GoDRhIZlw5UT8CCWRBIzbCdp8raTgPl1TsSCTsslV-QbgNaZGEsWh4KBtKVPNz0uEyIG7Pia0SuCqQmA-ftgY_5jylR42RPQiEyVVPtOEJ88v-lKHmKMrJbM3rMegfZ4s7NslY7Pq3AtMoDzgQp_YEu-oM6lkFeASPbwdQb1Lqnshu4sItfmX8Lhq1Z3Z8zb3psoBu5ISYeDFUeXmROxMlldmmW_PIM_asYfGuMj4YjFmRsl5lEnHe1gyqA0kg4tJsCFa0gPvnAYpBlOEJIyzAtNJWNXkxCtjTRT_W0dPX9fr3xfer7taWH-1Pjjs",
+      "next_page_token": "eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJSRVJpVjJWaE1GRnFRbUZpWkdGbE9YUjNTRlIyVVRJM1dVcGtVRTlGV2twb2FuQjNTRFJ3YUVFelZISkJXVXB0Vm5OVWMyTTRiMTlmVGpOSk9EaDJSbkIzTW0wNVVsUjVNMWg0V214bFUwczBNVE5oVkZGdWIyY3pWbEZSYVdKcFp4SVhRMWczYjJGME5uRk9jbVYwY0hSUlVHbGtMV1YxUVVVYUlrRklUakJGTjBoM1FTMVdjMTlIVms1aVpVbEtUVWQwYzJWdmRIbGtUbWxsUzJjIiwiZmN2IjoiMyIsImVpIjoiQ1g3b2F0NnFOcmV0cHRRUGlkLWV1QUUiLCJxYyI6IkNodGpZWEpoSUdocGRIVnVaeUJ3Y0dnZ01qRWdhMkZ5ZVdGM1lXNFFKbjBLbzFRX29nRUNhV1EiLCJxdWVzdGlvbiI6IkJhZ2FpbWFuYSBjYXJhIG1lbmdoaXR1bmcgcGFqYWsgcGVuZ2hhc2lsYW4gdW50dWsgdXNhaGEgcHJpYmFkaT8iLCJsayI6IkdpOWpZWEpoSUcxbGJtZG9hWFIxYm1jZ2NHRnFZV3NnY0dWdVoyaGhjMmxzWVc0Z2RYTmhhR0VnY0hKcFltRmthUSIsImJzIjoiYzQyUFB3LUNNQlRFNF9vR3cyS01kWG1EcTNfb29HTU5zd05mNFZDa0ZXaWEwbjVfQVJsa01IRzkzOTI5ZDNRZ2taVWVEaHpnelpQelhIT09EZzJuRnlVVHNmeklicEpJMFM1REJkUENndV93NExhMGxUWWgybW9NRjNqQUtya1dxNUZPeExtSlVLVHI3d0tIRjJwMmc0RE9OTEFjYllnMXh3NGE3THpwTzR5U3FUai1rZnpPMEkzMnM1Mmg5QVY4SEYtVzZYUW1RRWZMOGlUUFNtN0ZadTRjSnZUT2dTYUxOdyIsImlkIjoiZmNfQ1g3b2F0NnFOcmV0cHRRUGlkLWV1QUVfNSJ9",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_related_questions&google_domain=google.com&next_page_token=eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJSRVJpVjJWaE1GRnFRbUZpWkdGbE9YUjNTRlIyVVRJM1dVcGtVRTlGV2twb2FuQjNTRFJ3YUVFelZISkJXVXB0Vm5OVWMyTTRiMTlmVGpOSk9EaDJSbkIzTW0wNVVsUjVNMWg0V214bFUwczBNVE5oVkZGdWIyY3pWbEZSYVdKcFp4SVhRMWczYjJGME5uRk9jbVYwY0hSUlVHbGtMV1YxUVVVYUlrRklUakJGTjBoM1FTMVdjMTlIVms1aVpVbEtUVWQwYzJWdmRIbGtUbWxsUzJjIiwiZmN2IjoiMyIsImVpIjoiQ1g3b2F0NnFOcmV0cHRRUGlkLWV1QUUiLCJxYyI6IkNodGpZWEpoSUdocGRIVnVaeUJ3Y0dnZ01qRWdhMkZ5ZVdGM1lXNFFKbjBLbzFRX29nRUNhV1EiLCJxdWVzdGlvbiI6IkJhZ2FpbWFuYSBjYXJhIG1lbmdoaXR1bmcgcGFqYWsgcGVuZ2hhc2lsYW4gdW50dWsgdXNhaGEgcHJpYmFkaT8iLCJsayI6IkdpOWpZWEpoSUcxbGJtZG9hWFIxYm1jZ2NHRnFZV3NnY0dWdVoyaGhjMmxzWVc0Z2RYTmhhR0VnY0hKcFltRmthUSIsImJzIjoiYzQyUFB3LUNNQlRFNF9vR3cyS01kWG1EcTNfb29HTU5zd05mNFZDa0ZXaWEwbjVfQVJsa01IRzkzOTI5ZDNRZ2taVWVEaHpnelpQelhIT09EZzJuRnlVVHNmeklicEpJMFM1REJkUENndV93NExhMGxUWWgybW9NRjNqQUtya1dxNUZPeExtSlVLVHI3d0tIRjJwMmc0RE9OTEFjYllnMXh3NGE3THpwTzR5U3FUai1rZnpPMEkzMnM1Mmg5QVY4SEYtVzZYUW1RRWZMOGlUUFNtN0ZadTRjSnZUT2dTYUxOdyIsImlkIjoiZmNfQ1g3b2F0NnFOcmV0cHRRUGlkLWV1QUVfNSJ9"
+    },
+    {
+      "question": "Berapa tarif terbaru PPh 21 untuk tahun 2026?",
+      "type": "ai_overview",
+      "page_token": "BuEoInicHdBRboIwAADQ7DJ-SqHOTROzpAooSh2FltKfBVsVpAIZxDr-dpedaqeZ2Q1e3vePLuvq90kUfd92c8syxozPTXPWx7FsxqWy8u6rlpbMtT7ksppPX6b220ku3M6gZWNQRImbaaVTXcDoInZxZYyq-pJA1mNndg_ZDMpBVbHXuox6rhiCW8yKVA1kS_xZHsIW7BNWHyAiKiHPIW_DPS10eu1vR46jvTeLmNPHRz-yOdA14bJPfQyoT7KI3rfYLq4SYJtSOTCOsghgQh31Hl4E2KXZkIMIhiCDOd1MEkelIStYbgcJ9l5jD-DsYSzUStyTOtBqjQBlqBVLWyvqeX4ZoNidGJKozcNTS57ZYVpBxRSQa4E46BzBVcUSvRI2I6OTvC3g6H9s8XG69vP2szn_Afldd5k",
+      "serpapi_ai_overview_link": "https://serpapi.com/search.json?engine=google_ai_overview&page_token=BuEoInicHdBRboIwAADQ7DJ-SqHOTROzpAooSh2FltKfBVsVpAIZxDr-dpedaqeZ2Q1e3vePLuvq90kUfd92c8syxozPTXPWx7FsxqWy8u6rlpbMtT7ksppPX6b220ku3M6gZWNQRImbaaVTXcDoInZxZYyq-pJA1mNndg_ZDMpBVbHXuox6rhiCW8yKVA1kS_xZHsIW7BNWHyAiKiHPIW_DPS10eu1vR46jvTeLmNPHRz-yOdA14bJPfQyoT7KI3rfYLq4SYJtSOTCOsghgQh31Hl4E2KXZkIMIhiCDOd1MEkelIStYbgcJ9l5jD-DsYSzUStyTOtBqjQBlqBVLWyvqeX4ZoNidGJKozcNTS57ZYVpBxRSQa4E46BzBVcUSvRI2I6OTvC3g6H9s8XG69vP2szn_Afldd5k",
+      "next_page_token": "eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJSRVJpVjJWaE1GRnFRbUZpWkdGbE9YUjNTRlIyVVRJM1dVcGtVRTlGV2twb2FuQjNTRFJ3YUVFelZISkJXVXB0Vm5OVWMyTTRiMTlmVGpOSk9EaDJSbkIzTW0wNVVsUjVNMWg0V214bFUwczBNVE5oVkZGdWIyY3pWbEZSYVdKcFp4SVhRMWczYjJGME5uRk9jbVYwY0hSUlVHbGtMV1YxUVVVYUlrRklUakJGTjBoM1FTMVdjMTlIVms1aVpVbEtUVWQwYzJWdmRIbGtUbWxsUzJjIiwiZmN2IjoiMyIsImVpIjoiQ1g3b2F0NnFOcmV0cHRRUGlkLWV1QUUiLCJxYyI6IkNodGpZWEpoSUdocGRIVnVaeUJ3Y0dnZ01qRWdhMkZ5ZVdGM1lXNFFKbjBLbzFRX29nRUNhV1EiLCJxdWVzdGlvbiI6IkJlcmFwYSB0YXJpZiB0ZXJiYXJ1IFBQaCAyMSB1bnR1ayB0YWh1biAyMDI2PyIsImxrIjoiR2hsMFlYSnBaaUIwWlhKaVlYSjFJSEJ3YUNBeU1TQXlNREkyIiwiYnMiOiJjNDJQUHctQ01CVEU0X29HdzJLTWRYbURxM19vb0dNTnN3TmY0VkNrRldpYTBuNV9BUmxrTUhHOTM5MjlkM1Fna1pVZURoemd6WlB6WEhPT0RnMm5GeVVUc2Z6SWJwSkkwUzVEQmRQQ2d1X3c0TGEwbFRZaDJtb01GM2pBS3JrV3E1Rk94TG1KVUtUcjd3S0hGMnAyZzRET05MQWNiWWcxeHc0YTdMenBPNHlTcVRqLWtmek8wSTMyczUyaDlBVjhIRi1XNlhRbVFFZkw4aVRQU203Rlp1NGNKdlRPZ1NhTE53IiwiaWQiOiJmY19DWDdvYXQ2cU5yZXRwdFFQaWQtZXVBRV81In0=",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_related_questions&google_domain=google.com&next_page_token=eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJSRVJpVjJWaE1GRnFRbUZpWkdGbE9YUjNTRlIyVVRJM1dVcGtVRTlGV2twb2FuQjNTRFJ3YUVFelZISkJXVXB0Vm5OVWMyTTRiMTlmVGpOSk9EaDJSbkIzTW0wNVVsUjVNMWg0V214bFUwczBNVE5oVkZGdWIyY3pWbEZSYVdKcFp4SVhRMWczYjJGME5uRk9jbVYwY0hSUlVHbGtMV1YxUVVVYUlrRklUakJGTjBoM1FTMVdjMTlIVms1aVpVbEtUVWQwYzJWdmRIbGtUbWxsUzJjIiwiZmN2IjoiMyIsImVpIjoiQ1g3b2F0NnFOcmV0cHRRUGlkLWV1QUUiLCJxYyI6IkNodGpZWEpoSUdocGRIVnVaeUJ3Y0dnZ01qRWdhMkZ5ZVdGM1lXNFFKbjBLbzFRX29nRUNhV1EiLCJxdWVzdGlvbiI6IkJlcmFwYSB0YXJpZiB0ZXJiYXJ1IFBQaCAyMSB1bnR1ayB0YWh1biAyMDI2PyIsImxrIjoiR2hsMFlYSnBaaUIwWlhKaVlYSjFJSEJ3YUNBeU1TQXlNREkyIiwiYnMiOiJjNDJQUHctQ01CVEU0X29HdzJLTWRYbURxM19vb0dNTnN3TmY0VkNrRldpYTBuNV9BUmxrTUhHOTM5MjlkM1Fna1pVZURoemd6WlB6WEhPT0RnMm5GeVVUc2Z6SWJwSkkwUzVEQmRQQ2d1X3c0TGEwbFRZaDJtb01GM2pBS3JrV3E1Rk94TG1KVUtUcjd3S0hGMnAyZzRET05MQWNiWWcxeHc0YTdMenBPNHlTcVRqLWtmek8wSTMyczUyaDlBVjhIRi1XNlhRbVFFZkw4aVRQU203Rlp1NGNKdlRPZ1NhTE53IiwiaWQiOiJmY19DWDdvYXQ2cU5yZXRwdFFQaWQtZXVBRV81In0%3D"
+    }
+  ],
+  "ai_overview": {
+    "text_blocks": [
+      {
+        "type": "paragraph",
+        "snippet": "Perhitungan PPh 21 untuk karyawan diatur menggunakan skema Tarif Efektif Rata-rata (TER) sejak Januari 2024 berdasarkan PP No. 58 Tahun 2023 dan PMK No. 168 Tahun 2023. Anda dapat melakukan simulasi cepat melalui Kalkulator Pajak DJP.",
+        "snippet_links": [
+          {
+            "text": "Kalkulator Pajak DJP",
+            "link": "https://www.google.co.id/goto?url=CAESWgHrOzAVHnFskryZ2HkIg3VR8RNy1JLvchEFRaeFq4qhS4Yg5Dj4mGsBUaw3HajNVuTw8MQO_WcduGqdSelwQ8N6O5phVL_0p8s5sHV39s-cw-wOx6kOiHQO-g"
+          }
+        ],
+        "reference_indexes": [
+          0,
+          1,
+          2
+        ]
+      },
+      {
+        "type": "heading",
+        "snippet": "1. Skema Perhitungan Bulanan (Januari s.d. November)"
+      },
+      {
+        "type": "paragraph",
+        "snippet": "Pada periode Januari hingga November, pemotongan PPh 21 menggunakan tarif TER yang dikalikan langsung dengan penghasilan bruto bulanan.",
+        "reference_indexes": [
+          0,
+          3
+        ]
+      },
+      {
+        "type": "paragraph",
+        "snippet": "Penghasilan bruto meliputi:"
+      },
+      {
+        "type": "list",
+        "list": [
+          {
+            "snippet": "Gaji pokok"
+          },
+          {
+            "snippet": "Tunjangan tetap dan tidak tetap"
+          },
+          {
+            "snippet": "Lembur, THR, dan bonus",
+            "reference_indexes": [
+              1,
+              4
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "snippet": "Tarif TER dikelompokkan berdasarkan status PTKP (Penghasilan Tidak Kena Pajak):",
+        "reference_indexes": [
+          5
+        ]
+      },
+      {
+        "type": "list",
+        "list": [
+          {
+            "snippet": "Kategori A: TK/0, TK/1, dan K/0"
+          },
+          {
+            "snippet": "Kategori B: TK/2, TK/3, K/1, dan K/2"
+          },
+          {
+            "snippet": "Kategori C: K/3",
+            "reference_indexes": [
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "snippet": "Rumus:\n$\\text{PPh\\ 21\\ Bulanan}=\\text{Penghasilan\\ Bruto}\\times \\text{Tarif\\ TER}$",
+        "snippet_latex": [
+          "\\text{PPh\\ 21\\ Bulanan}=\\text{Penghasilan\\ Bruto}\\times \\text{Tarif\\ TER}"
+        ],
+        "reference_indexes": [
+          1,
+          5
+        ]
+      },
+      {
+        "type": "heading",
+        "snippet": "2. Skema Perhitungan Tahunan (Masa Pajak Desember)"
+      },
+      {
+        "type": "paragraph",
+        "snippet": "Pada bulan Desember (masa pajak terakhir), perusahaan wajib menghitung ulang total pajak yang terutang selama 1 tahun penuh menggunakan tarif progresif Pasal 17 UU PPh.",
+        "reference_indexes": [
+          0,
+          4
+        ]
+      },
+      {
+        "type": "paragraph",
+        "snippet": "Langkah perhitungannya:"
+      },
+      {
+        "type": "list",
+        "list": [
+          {
+            "snippet": "Hitung total penghasilan bruto setahun.",
+            "reference_indexes": [
+              1
+            ]
+          },
+          {
+            "snippet": "Kurangi dengan biaya pengurang (biaya jabatan 5% [maks. Rp500.000/bulan atau Rp6.000.000/tahun] serta iuran pensiun/JHT yang dibayar karyawan) untuk mendapat penghasilan neto.",
+            "reference_indexes": [
+              1,
+              6,
+              7,
+              8
+            ]
+          },
+          {
+            "snippet": "Kurangi penghasilan neto dengan PTKP setahun untuk mendapatkan Penghasilan Kena Pajak (PKP).",
+            "reference_indexes": [
+              1,
+              8
+            ]
+          },
+          {
+            "snippet": "Kalikan PKP dengan tarif progresif Pasal 17:",
+            "list": [
+              {
+                "snippet": "0 s.d. Rp60 juta: 5%"
+              },
+              {
+                "snippet": ">Rp60 juta s.d. Rp250 juta: 15%"
+              },
+              {
+                "snippet": ">Rp250 juta s.d. Rp500 juta: 25%"
+              },
+              {
+                "snippet": ">Rp500 juta s.d. Rp5 miliar: 30%"
+              },
+              {
+                "snippet": ">Rp5 miliar: 35%",
+                "reference_indexes": [
+                  0,
+                  4,
+                  9
+                ]
+              }
+            ],
+            "reference_indexes": [
+              0,
+              4,
+              9
+            ]
+          },
+          {
+            "snippet": "Kurangi PPh terutang setahun tersebut dengan total PPh 21 yang sudah dipotong dari bulan Januari sampai November. Selisihnya dipotongkan pada gaji bulan Desember.",
+            "reference_indexes": [
+              0,
+              10,
+              11
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "snippet": "Jika Anda ingin simulasi spesifik, silakan sebutkan:"
+      },
+      {
+        "type": "list",
+        "list": [
+          {
+            "snippet": "Gaji bruto per bulan"
+          },
+          {
+            "snippet": "Status PTKP (contoh: TK/0, K/1, dll.)"
+          },
+          {
+            "snippet": "Komponen tambahan seperti THR atau bonus jika ada."
+          }
+        ]
+      }
+    ],
+    "references": [
+      {
+        "index": 0,
+        "title": "Cara Menghitung PPh Pasal 21 bagi Pegawai Tetap Berdasarkan PMK 168/2023 - Ortax",
+        "link": "https://www.google.co.id/goto?url=CAESfAHrOzAVzwKOF3KgT1BsZNKFux3MnEAzWBU00vjp8BpAaefXufmf4HDvHIb7ucUdSGsVjhJiQhKnUMjP4XgVF21RU9tC5mdaWdypWQjKh_OSxuKtCD-f7WBJ-bkzA9GeFDP4OJI8AhOKbNapHoGPlz0nQ3mP1DkLQlCo8aI",
+        "snippet": "PMK 168/2023: PPh 21 Pegawai Tetap * Jan–Nov: Gunakan Tarif Efektif Rata-rata (TER) x bruto. Kategori TER: A (TK/0 Rp54M, TK/1-K/0 Rp58,5M), B (TK/2-K/1 Rp63M, TK/",
+        "source": "Ortax",
+        "source_icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://ortax.org&client=AIM&size=128&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+        "thumbnail": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQwQK_Jln28CED9cTog9NiqZ4gOBN-HTV-sQTP4EWsJ3YMuex_iITILDLC7BBSYkprmTs5oJwt6EaB5DL4_TkjsdK8CjTPuphGWjgbIGFTCR-YlR1yej8V-Tvuc1DoD1ZD2y9BQuzxfazdGq3RErPJwEWQ"
+      },
+      {
+        "index": 1,
+        "title": "Ketahui Dasar Hukum dan Cara Menghitung PPh 21, Terbaru!",
+        "link": "https://www.google.co.id/goto?url=CAESdwHrOzAV28PhoBIqhi6dkuxO1UFvGpwNlLAg4cOaTkePmLtVwpXsPFxur-zjMOtdQ5Z8c-N3FGgCSl5ErvmGjK1rLRS_Sn0ndmKUD2v1IZU5q6M-c7kdpg1mnc4Yyvs8eaJ1U2DCnOuBdwF0cfRvEvgrt5iD5MKI",
+        "snippet": "Ketahui Dasar Hukum dan Cara Menghitung PPh 21, Terbaru! * Dasar Hukum Perhitungan PPh 21. * Skema Perhitungan PPh 21 yang Berlaku. * Cara Menghitung PPh 21. * Con...",
+        "source": "Pegadaian",
+        "source_icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://pegadaian.co.id&client=AIM&size=128&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+        "thumbnail": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcRzhp-JxnzA8DvXtH-761rvXlBBvo5HWQ60tra5vyomqhJJODeFRAXKqbP_ii_QkPlw12zuDVfceZq4sO7iWDw6isBBljaouwoBYYrt1k76qaViDprTFkswJPu8t6NXzzYlIa-B9uszdz6yaS7fKyEJNLw"
+      },
+      {
+        "index": 2,
+        "title": "Kalkulator Pajak | Direktorat Jenderal Pajak",
+        "link": "https://www.google.co.id/goto?url=CAESWgHrOzAVHnFskryZ2HkIg3VR8RNy1JLvchEFRaeFq4qhS4Yg5Dj4mGsBUaw3HajNVuTw8MQO_WcduGqdSelwQ8N6O5phVL_0p8s5sHV39s-cw-wOx6kOiHQO-g",
+        "snippet": "... Pegawai yang Menerima Jasa Produksi, Tantiem, Bonus atau Imbalan Kepada Mantan Pegawai, 21-100-12 Pegawai yang Melakukan Penarikan Uang Pensiun, 21-100-13 Pese...",
+        "source": "Direktorat Jenderal Pajak",
+        "source_icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://kalkulator.pajak.go.id&client=AIM&size=128&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+        "thumbnail": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcSpwtG3JZQ3jDks3g-c1NZbSHP_635XS7T9nMvZX1k_eRTLdH90Iz3C1a8O5ntEy22SDlp5Z2ZE8cWzHXPDo8Eozg1IEwNwv3LOmAsCrA0Tr9ElJYS677SV45sOdzF9yWWRtDEIsCb9txbbb1m-s3yQsR0"
+      },
+      {
+        "index": 3,
+        "title": "Cara Perhitungan Pajak Penghasilan 21 bagi Pegawai Pemerintah ...",
+        "link": "https://www.google.co.id/goto?url=CAESzAEB6zswFc6Oh888vKr1PFBsdDMPLNeCLXZLCcCliX0yFzX5vLk1AREnSuLKlCP8K25U32AT9fXW-Hl3nUpIhQcScrSGZjpQ3KXD7JpOYLrWvuAjtSPY8esTSGF0oO3FBl5tN3VpLwiFM6g9Re88Wh_awy1SxDo6ye9wDhsKkIYVnX4cYNp1NAH-nwU66wQvZC_gWahk4_Zp0ZuXEHzzu18jbKYJunmFYuDX4XhpQKyXav8rqD9HEagqa5VtUrd0eGyubqMlgRB7Eu5_kO8",
+        "snippet": "Penyerderhanaan penghitungan atas pemotongan Pajak Penghasilan Pasal 21 melalui penggunaan tabel tarif efektif untuk menghitung kewajiban PPh Pasal 21 masa pajak s",
+        "source": "Kemenkeu Learning Center",
+        "source_icon": "https://serpapi.com/searches/6ae87e09078106d1842415ef/images/JvftZDFwdKDr-cm1nhnimvD7fGbEKjFWNxQe6g4KUzyY3vLQJAOUryH655LfhA7z.png",
+        "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRjAELqZPsYhlKOL9TFWIbP8kQvTkcqB3vdvft81UR85JdRiiOdEq3ICjA9UgH_zA2u6MCIIiSqs8m6o9NYZzM-4X_iJJMbFuFq7BW_vlGhkvmP1-qTx8ngJy6JeEIDjiVB3YUEYaIh7ESpqdew364CmZ8"
+      },
+      {
+        "index": 4,
+        "title": "Panduan Penghitungan PPh 21 Karyawan dan Contoh",
+        "link": "https://www.google.co.id/goto?url=CAESgQEB6zswFSF7aAPJkCaZzn8_86bL1QCvgwsL_4yvN8FSNKgR3hB8Y_-UKaElUdG7EJSNCptqDS3MHVsKaRR2Gv0UqAOw1VAtrncJbkYGz4omRzZkXiiwHXf-AF-KCCCr7c-N_b5hzNf7JCil6GrzA-EeTbx8m7BGL6Nsj9wcFa_qLAg",
+        "snippet": "Contoh Perhitungan PPh 21 Karyawan. Mulai 2024, pemotongan pajak penghasilan pasal 21 masa Januari-November wajib pakai Tarif Efektif Rata-rata (TER) sesuai PMK 16...",
+        "source": "Mekari Klikpajak",
+        "source_icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://klikpajak.id&client=AIM&size=128&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+        "thumbnail": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcR3FzlKQnjWUT5JK_bMCzZxC6fm8Jjy5gi3JEKUjPVaPOvcTUIqAyMCw-B5BZDUtTstZQifWSac6N-PSxTMJovy3SjHDyg8wxFH6evQlCj-TMzhz_ulGG3oDVoPX26vyWIS16rJpYvx4GPNI0EE-nvPD4E"
+      },
+      {
+        "index": 5,
+        "title": "Cara Menghitung PPh 21 Karyawan 2026: Rumus TER & Contohnya",
+        "link": "https://www.google.co.id/goto?url=CAESgAEB6zswFZCcrWjoCW4eNa4t7LFTskOHz17IIsWXBNW27GitPTsZ9dkbQ5hZDC0lfH6lWhkfg3sGNcBsLOOZQRFeMf6f60LR3RA3O6uNOrpKbGwXkR3iqYg-i_xgDrYvslP0jiNQ9qAqQ2gsigR2jbAP-6ZoOwMkHLLEgE31K_YGYA",
+        "snippet": "Cara Menghitung PPh 21 Karyawan 2026: Rumus TER & Contohnya. By Admin; 01 July 2025. Share. X FB In WA Telegram. 0. Pajak Penghasilan (PPh) Pasal 21 merupakan paja...",
+        "source": "PB Taxand",
+        "source_icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://pbtaxand.com&client=AIM&size=128&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+        "thumbnail": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTzsGpIugPEXDTAeyuUKomp5NS4IIVt4V6rSdWCesqxWy7CkEBZ7mQ-cVuuEuH8rqu6GOqdX84TPbVX2rQav7kxyoLK4KEkZtFrabzVFKWNvCSRMS3knewEONDiHrM-1ml5es-Wxu_HLFKgSjS3L7koSuU"
+      },
+      {
+        "index": 6,
+        "title": "Contoh & Cara Perhitungan PPh Pasal 21 Karyawan Terbaru",
+        "link": "https://www.google.co.id/goto?url=CAESlwEB6zswFUlS975DbLwNgGZPVZuoC2eW9qFr6IYarwIPwgM7zlU7zo74CFOOLDZRvpXhebumgWGQysYVfEbJE3mq-lqoIjMon4CCy86Y3jzyMAM70njKJDIZW8GmZ6dH7LrYPeUUEqjYyez8JH_Xsj0qGAp9exDcjFl_-oiBAvHoqCoUuFsAsjavfw2bI0u67_oAbevm-X0P",
+        "snippet": "Contoh Cara Perhitungan PPh Pasal 21 Karyawan Terbarun 2026. ...",
+        "source": "Mekari Talenta",
+        "source_icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://www.talenta.co&client=AIM&size=128&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+        "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNBFVy3qjwHJx8e1Qj9wGD1m-DEruGqLrFblAnE30QkKFjMHWH0RtXzpnmbwE_DcBSFtIajVE9Yl501v-Cmi-ZSIaxKKOj2_Lnm3rnNBSfDabmbbwrP3PcsvYcj5Q0oQmmjrArgvKRG2U9GajXyj9I5Uc"
+      },
+      {
+        "index": 7,
+        "title": "Cara Menghitung PPh 21 Karyawan dengan Mudah - Ayo Pajak",
+        "link": "https://www.google.co.id/goto?url=CAEScAHrOzAVpQGPCerDB9nQAJgLQP0Oht3HU7iFMYZya1HMp6S9DPxmT8x8WNiJ91pMESdBFcksrgbtMH6dQmlnMNZvE7dDVaw0FfH0zzYZ4NQ2ZJHYPMuFUFsYTlwGj28sMDlOyezL39m7T6LU3-w-2Dw",
+        "snippet": "* e-Bupot Unifikasi. * e-Bupot PPh 21/26. * Integrasi API. ... Cara Menghitung PPh 21 Karyawan dengan Mudah. PPh 21 merupakan pajak atas pendapatan yang sudah dite...",
+        "source": "Ayo Pajak",
+        "source_icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://ayopajak.com&client=AIM&size=128&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+        "thumbnail": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcTVOpPyfjYstSpp21Q9HxnZclzUG1wmXdotnQr_Ro4-Ml_h8MeqNkneD_dHyOtJt1J0-dOGApBdGF1pDfEWXSoImTZhocZ7fMvLjsQkOej3yw3pNtDz6AwLQ_OfTpXyXp9CCrHsc_YU5kIPdF49hsoKTvo"
+      },
+      {
+        "index": 8,
+        "title": "Kamu karyawan dan bingung tata cara menghitung PPh yang harus ...",
+        "link": "https://www.google.co.id/goto?url=CAESzAEB6zswFZ48YcWSC4JJss-MZ7I3aMA6k9Eqt0kjGzfbmngbnVO6n-4mlTJOM6bq2za_xVjkezwgNAzA3DciNlC8mR5IiWcJGrf8ymND2QttJcC6dkIbL5-1Zt8hFHpDLuUl3V7xTcOWtSMxPBI8O1yEVsWC_xRkdgaQIyMFBuk0YoTS8s8dYvzydHbiuo3vssOPNw8srFU0QzNAWmnLrPVXbU8mvEc9UAI0AnIG77vFu1cJikhG8ldX1aJUzOY1FRfknXXTsL70FPxz944",
+        "snippet": "Kamu karyawan dan bingung tata cara menghitung PPh yang harus dibayarkan? Yuk simak video berikut! | Direktorat Jenderal Pajak | Facebook banyak orang tidak menyad",
+        "source": "Facebook",
+        "source_icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.facebook.com&client=AIM&size=128&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+        "thumbnail": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcS8KqPVpPMgJzSWWvr6liayXIrLl0HimURlhKke0_-bd9qNOLgJF7Irv8oL8AR2eiyMkXviptIgBtYbU2ZVejjA85QKVhW70-yrgQNLZbGzy-LqoViaKVhKV8HlfYcmKBRbqC6fxuWk5A5ZJAbh_VpdQZg"
+      },
+      {
+        "index": 9,
+        "title": "Pajak Penghasilan Pasal 21",
+        "link": "https://www.google.co.id/goto?url=CAESjwEB6zswFWEPg7cRugq-s3s70fXko1KKbJHcVMJtlP_SJcEwsqlgm3YjjgQNlBZyWeh-yh405Ic3bsACC_4L05T7Mnj0WwNqHe3iIwZUf4vlcBWlx6zBRGi8ZuVj5joXh7X-TYZW0JE9gJWoF2k0vb-8YEOSELASDkzhpBsgfmyp2KlvmIoIlJ9kkAUDipFXOA",
+        "snippet": "PPh 21: Pemotongan penghasilan orang pribadi terkait pekerjaan, jabatan, jasa, dan kegiatan. Dasar Hukum: UU No. 7/1983 s.t.d.t.d UU No. 36/2008, UU No. 7/2021, PP...",
+        "source": "DJPB Kemenkeu",
+        "source_icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://djpb.kemenkeu.go.id&client=AIM&size=128&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+        "thumbnail": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQWYbzxWwWiGHVupGpKShlRvlQqs_T-6hA1xH3TCSZUHjZ0lXdVYt0O_yTP6TiHC4ZTa1nlLCVct7Mtrmduu4flzdeOOm2Dw2kPM-mAeMxxBIj2DkwMKfIc7SbgY5ey-TY2_UcWgI32OP0jzghYtRBlhuI"
+      },
+      {
+        "index": 10,
+        "title": "Halo #KawanPajak! Masih bingung cara hitung PPh 21 dari gaji kamu? ...",
+        "link": "https://www.google.co.id/goto?url=CAESZgHrOzAVCVjNkr08OhVLFvID4II6lCo-8e-oNC94ZIsClMldOiPCR1hjH0Xd6DXQWZIKNLQEpORTRXy_K_tHExMxpikRRUv0jNP_6bc5ZSXZwmChgz3bOvaRHtcqP2aSn7sRMN1aKg",
+        "snippet": "Halo #KawanPajak! Masih bingung cara hitung PPh 21 dari gaji kamu? Tenang, di konten kali ini kita bahas langkah-langkahnya dengan cara yang gampang dimengerti. Yu",
+        "source": "Instagram",
+        "source_icon": "https://serpapi.com/searches/6ae87e09078106d1842415ef/images/JvftZDFwdKDr-cm1nhnimjS1P53SKTSM6RyOaxc2IMjSda2xBUZeuEBEtwY0VSt8.png",
+        "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxI5ivFICOHANHMmmL56G20v4b8kIUxTOOgaHG60kXWFxI_4SFn9HcPVgZD_l2DZb2nR7YtBvX4c6EZ9Xxn7nqj4YuMZ3ExFtSCLAYbtUaBuGQlXBhIXjVDcB22rppUjTvYiByVW4V6q0rAVy82r7lNFg"
+      },
+      {
+        "index": 11,
+        "title": "CARA MENGHITUNG PPH PASAL 21 MASA PAJAK DESEMBER 2024",
+        "link": "https://www.google.co.id/goto?url=CAESZgHrOzAVAWMwcC-O4UpUcct9D5rhUPm7lFGlfI6EEmhB7xm5W8gudVOdeTi8sfvJbrZ-hexLkb90uR6IL6k_qFWNsulJ7pMzV7tluMRCVNs-GLbA2EmmVw3TeByJvzOReqabdRKZWA",
+        "snippet": "CARA MENGHITUNG PPH PASAL 21 MASA PAJAK DESEMBER 2024 halo asalamualaikum dalam video ini kita akan melihat bagaimana ketentuan penghitungan PPH pasal 21 masa paja",
+        "source": "YouTube",
+        "source_icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8_9hAAAAhUlEQVR4AWNwL_ChCFPHgP8MxqxA7ArEKVBcCcUNIAznI-RdQXrABgAZpv8ZjP6Tg0F6QQbsosCAXSADHmGVVPIC0jKEDHgAMuAbmgRE445D___feYzXIJBeBigH04BVW_9DAcgwqEGYaik2gGIvUByIlEbjDooTEiwps5GRlNmolpkowgBVP9wMSzSKGAAAAABJRU5ErkJggg.png",
+        "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTXLt4kOvOd0KXLenrpjcAPy-trGduK2YwYZA0G0Gwi0QdFJwWBTs-9ew7pcy_ASEkzgkS10Asaejy3ep81oJzCJ56cBqMBRPeA1H_SqREsDp2Z2-rTPVMn3bNW9gvbf1FeVaPvlbKxAni9CQNdC3ityfk"
+      }
+    ]
+  },
+  "organic_results": [
+    {
+      "position": 1,
+      "title": "Menghitung PPh 21 Karyawan yang Masuk pada ...",
+      "link": "https://ortax.org/menghitung-pph-21-karyawan-yang-masuk-pada-pertengahan-tahun",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESiQEB6zswFVaHWCk2Gg_AbBJRRHTN8OBzKuvUsUvd_a7k4TywPrGgKeT8hLT2r3YTDlWxksmk4UrpgUDpOm_HsfxoEMp_imim6QAqSq94g5c7mpclcNwbTSO6NltApMRMJLpNlp4wRAtW3UO3Qm6Vp2nLUrc7dSjTD0ggf6A_m5rrGl5X_S0y22ud0Q&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQFnoECCwQAQ&uoh=1",
+      "displayed_link": "https://ortax.org › Artikel Edukasi",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAclBMVEVHcEz29vb6-vr4-Pj____________-_v7________________7-_v4-Pj________________39_f____Dw8L___8AAAD___9ycnGHh4evrq7t7e0uLS3d3dyjoqJVVVTFxcVjY2PKyso-Pj6amprS0tJa3tykAAAAFnRSTlMAUTls4evN9_zFRJELCd-xs7UPr7iyWDo_0AAAAUNJREFUKJGNU9t2gyAQJCoiakh625WIt9j-_y92ADXGtud0jw_AMOPsuAqxVF1W2ihldFXW4rnqVGdSFSglTZ6-7rHkKnlX6iV5YKecD5WfNiw7YszZgiaBp9r2mRuU66tf34iaHTRO9H4GmHovdyILtnVzH266G8sURI1dF3ids31Dg6Wh82xdi9Iwt0TDKjgR3ePKlKKCqiPHrfOCXoNuEZSV0Io_iTpc8OSReuyWKLTICg4vVGBzD1sjUWyqMEIVoycyW8Iz8A5UABcddBoW_SoL0BQ27tBqoMyrc2VgaGG20eZ9awWGKgn3o980Nl5ZY0QrCKEhUssBsHmNAyH4-Kbo9xA_4gvB43C2Fgrua8N88KL-CJxmmpq-2321y_nxsY-VJ3-PiTn9Z8Cg_PZElpfdaApxTrXZhlqnP2b-l9_hGxsYNGU8r6EtAAAAAElFTkSuQmCC.png",
+      "date": "9 Jan 2024",
+      "snippet": "Penghitungan PPh Pasal 21 akan berbeda untuk masing-masing kondisi. Berikut penjelasannya. Karyawan dengan Kewajiban Subjektif Sejak Awal Tahun.",
+      "snippet_highlighted_words": [
+        "Penghitungan PPh",
+        "21",
+        "Karyawan"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "Penghitungan PPh Pasal 21 akan berbeda untuk masing-masing kondisi. Berikut penjelasannya. Karyawan dengan Kewajiban Subjektif Sejak Awal Tahun.",
+          "source_info_link": "https://ortax.org/menghitung-pph-21-karyawan-yang-masuk-pada-pertengahan-tahun",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAclBMVEVHcEz29vb6-vr4-Pj____________-_v7________________7-_v4-Pj________________39_f____Dw8L___8AAAD___9ycnGHh4evrq7t7e0uLS3d3dyjoqJVVVTFxcVjY2PKyso-Pj6amprS0tJa3tykAAAAFnRSTlMAUTls4evN9_zFRJELCd-xs7UPr7iyWDo_0AAAAUNJREFUKJGNU9t2gyAQJCoiakh625WIt9j-_y92ADXGtud0jw_AMOPsuAqxVF1W2ihldFXW4rnqVGdSFSglTZ6-7rHkKnlX6iV5YKecD5WfNiw7YszZgiaBp9r2mRuU66tf34iaHTRO9H4GmHovdyILtnVzH266G8sURI1dF3ids31Dg6Wh82xdi9Iwt0TDKjgR3ePKlKKCqiPHrfOCXoNuEZSV0Io_iTpc8OSReuyWKLTICg4vVGBzD1sjUWyqMEIVoycyW8Iz8A5UABcddBoW_SoL0BQ27tBqoMyrc2VgaGG20eZ9awWGKgn3o980Nl5ZY0QrCKEhUssBsHmNAyH4-Kbo9xA_4gvB43C2Fgrua8N88KL-CJxmmpq-2321y_nxsY-VJ3-PiTn9Z8Cg_PZElpfdaApxTrXZhlqnP2b-l9_hGxsYNGU8r6EtAAAAAElFTkSuQmCC.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CsgBL2dvdG8_dXJsPUNBRVNpUUVCNnpzd0ZRaWt5Wmlod0lyMHFvTjBtVzBCb0t0QzBZeVBqeDRZWTdDM1dQd3NHcE1qVUtGQkt4RkgxTXNabktEdnNGSVRJTW1mVndjSEcwRlI0WjdqLXlBQjlwNHRuYkswbHdmYkNhdDZDaEU1bTJVYnZ4SEMxeWRRdG5id3phRUJ5Uzd3d1VxbHRkaXdzZS05ZXFLTm1ibGtYOG9pOVNtU0twSFJIZFo1bEhFOThnbXUxWDl3eFESBBoCCAAaqwUSABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJAhwUIJhAAGAAgACo5CgRjYXJhFTl3FT8aDHBlbmdoaXR1bmdhbhoLcGVyaGl0dW5nYW4aBXJ1bXVzGgpjYXJhaGl0dW5nKlEKBmhpdHVuZxWpq78_GghoaXR1bmdhbhoKbWVuZ2hpdHVuZxoMcGVuZ2hpdHVuZ2FuGgtwZXJoaXR1bmdhbhoFcnVtdXMaCmNhcmFoaXR1bmcqEQoDcHBoFZw66kAaBXBwaDIxKhAKAjIxFfib2EAaBXBwaDIxKhgKCGthcnlhd2FuFbiPnEAaB3BlZ2F3YWkyyAEvZ290bz91cmw9Q0FFU2lRRUI2enN3RlFpa3laaWh3SXIwcW9OMG1XMEJvS3RDMFl5UGp4NFlZN0MzV1B3c0dwTWpVS0ZCS3hGSDFNc1puS0R2c0ZJVElNbWZWd2NIRzBGUjRaN2oteUFCOXA0dG5iSzBsd2ZiQ2F0NkNoRTVtMlVidnhIQzF5ZFF0bmJ3emFFQnlTN3d3VXFsdGRpd3NlLTllcUtObWJsa1g4b2k5U21TS3BIUkhkWjVsSEU5OGdtdTFYOXd4UTo9PGI-TWVuZ2hpdHVuZyBQUGggMjEgS2FyeWF3YW48L2I-IHlhbmcgTWFzdWsgcGFkYSAuLi4gLSBPcnRheEKlATxiPlBlbmdoaXR1bmdhbiBQUGg8L2I-IFBhc2FsIDxiPjIxPC9iPiBha2FuIGJlcmJlZGEgdW50dWsgbWFzaW5nLW1hc2luZyBrb25kaXNpLiBCZXJpa3V0IHBlbmplbGFzYW5ueWEuIDxiPkthcnlhd2FuPC9iPiBkZW5nYW4gS2V3YWppYmFuIFN1Ympla3RpZiBTZWphayBBd2FsIFRhaHVuLiICEAFIAFgAaAA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CsgBL2dvdG8_dXJsPUNBRVNpUUVCNnpzd0ZRaWt5Wmlod0lyMHFvTjBtVzBCb0t0QzBZeVBqeDRZWTdDM1dQd3NHcE1qVUtGQkt4RkgxTXNabktEdnNGSVRJTW1mVndjSEcwRlI0WjdqLXlBQjlwNHRuYkswbHdmYkNhdDZDaEU1bTJVYnZ4SEMxeWRRdG5id3phRUJ5Uzd3d1VxbHRkaXdzZS05ZXFLTm1ibGtYOG9pOVNtU0twSFJIZFo1bEhFOThnbXUxWDl3eFESBBoCCAAaqwUSABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJAhwUIJhAAGAAgACo5CgRjYXJhFTl3FT8aDHBlbmdoaXR1bmdhbhoLcGVyaGl0dW5nYW4aBXJ1bXVzGgpjYXJhaGl0dW5nKlEKBmhpdHVuZxWpq78_GghoaXR1bmdhbhoKbWVuZ2hpdHVuZxoMcGVuZ2hpdHVuZ2FuGgtwZXJoaXR1bmdhbhoFcnVtdXMaCmNhcmFoaXR1bmcqEQoDcHBoFZw66kAaBXBwaDIxKhAKAjIxFfib2EAaBXBwaDIxKhgKCGthcnlhd2FuFbiPnEAaB3BlZ2F3YWkyyAEvZ290bz91cmw9Q0FFU2lRRUI2enN3RlFpa3laaWh3SXIwcW9OMG1XMEJvS3RDMFl5UGp4NFlZN0MzV1B3c0dwTWpVS0ZCS3hGSDFNc1puS0R2c0ZJVElNbWZWd2NIRzBGUjRaN2oteUFCOXA0dG5iSzBsd2ZiQ2F0NkNoRTVtMlVidnhIQzF5ZFF0bmJ3emFFQnlTN3d3VXFsdGRpd3NlLTllcUtObWJsa1g4b2k5U21TS3BIUkhkWjVsSEU5OGdtdTFYOXd4UTo9PGI-TWVuZ2hpdHVuZyBQUGggMjEgS2FyeWF3YW48L2I-IHlhbmcgTWFzdWsgcGFkYSAuLi4gLSBPcnRheEKlATxiPlBlbmdoaXR1bmdhbiBQUGg8L2I-IFBhc2FsIDxiPjIxPC9iPiBha2FuIGJlcmJlZGEgdW50dWsgbWFzaW5nLW1hc2luZyBrb25kaXNpLiBCZXJpa3V0IHBlbmplbGFzYW5ueWEuIDxiPkthcnlhd2FuPC9iPiBkZW5nYW4gS2V3YWppYmFuIFN1Ympla3RpZiBTZWphayBBd2FsIFRhaHVuLiICEAFIAFgAaAA",
+      "source": "Ortax"
+    },
+    {
+      "position": 2,
+      "title": "Kalkulator PPh 21 TER & Tahunan",
+      "link": "https://pajakku.com/kalkulator-pajak/pph-21",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESZgHrOzAVfnY6iZjtrkVYm1a7opqQbEvhbiNEGdnQAmxpNshhyYSHlKvtMgRaH1juQvMABqAaYUzhrPkFC18X1If0CyQ6mv6a-we-GXTWr9SHFqSUiWQ9ftNpCuqTPSg1SsjS26dMrA&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQFnoECDQQAQ&uoh=1",
+      "displayed_link": "https://pajakku.com › Kalkulator Pajak",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAVFBMVEVHcEz__________________________v7____________57-7z4d_s0tDnv7rirqjZp6PXkovQgnrLbGHFUkLAPSi5Mx64JQStDgC_OSSrLSSjJSJxob5sAAAAC3RSTlMANYnF7P9k8xriQtr8iNsAAADBSURBVHgBfZOFEcAgEASxi7si_fcZ4v47jLHoCzvgQipAScHZkyDEQRjcVBTjRhydLsGLhHCHjfDJenL8LePlnfhhfnP4J0P_d_zCmbiuTbMsL4qyqpu2AASTQNk0bdv1w7ii_WhTAJIpALUejDG9Gax1djBjl2NGMcxk_Tw_i94fUGJjlcj1LDxmbHDgj12wQ29m1WWnU0xiodK6G4ehwAW5fyVsMhQ1bggyCFT4yMBTKSOTTZUJXWB0adJFTbbDBInAEvF67_W8AAAAAElFTkSuQmCC.png",
+      "snippet": "Hitung PPh 21 karyawan sesuai skema tarif efektif rata-rata (TER) dan perhitungan tahunan berdasarkan ketentuan perpajakan Indonesia.",
+      "snippet_highlighted_words": [
+        "Hitung PPh 21 karyawan",
+        "perhitungan"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "Hitung PPh 21 karyawan sesuai skema tarif efektif rata-rata (TER) dan perhitungan tahunan berdasarkan ketentuan perpajakan Indonesia.",
+          "source_info_link": "https://pajakku.com/kalkulator-pajak/pph-21",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAVFBMVEVHcEz__________________________v7____________57-7z4d_s0tDnv7rirqjZp6PXkovQgnrLbGHFUkLAPSi5Mx64JQStDgC_OSSrLSSjJSJxob5sAAAAC3RSTlMANYnF7P9k8xriQtr8iNsAAADBSURBVHgBfZOFEcAgEASxi7si_fcZ4v47jLHoCzvgQipAScHZkyDEQRjcVBTjRhydLsGLhHCHjfDJenL8LePlnfhhfnP4J0P_d_zCmbiuTbMsL4qyqpu2AASTQNk0bdv1w7ii_WhTAJIpALUejDG9Gax1djBjl2NGMcxk_Tw_i94fUGJjlcj1LDxmbHDgj12wQ29m1WWnU0xiodK6G4ehwAW5fyVsMhQ1bggyCFT4yMBTKSOTTZUJXWB0adJFTbbDBInAEvF67_W8AAAAAElFTkSuQmCC.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CpgBL2dvdG8_dXJsPUNBRVNaZ0hyT3pBVndIVGdxRy10eVBYVUpRc1lTUnZsNDFRWXBnc0V6ZUNLaU1hSWg5N1FzNEVaZVp5LURQNW1MQnFFTjdzTFNuVTd4VlJoZVpMUkZHbnlwbVRvTWpzdHc4MnVPVHVwcW53SFIwTHVyQ0phM0Q4Q01sZFNJWHQyb2wxazhFaHV5UW11UkESBBoCCAAa4AQSABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJAvAQIJhAAGAAgACo5CgRjYXJhFRfBlz8aDHBlbmdoaXR1bmdhbhoLcGVyaGl0dW5nYW4aBXJ1bXVzGgpjYXJhaGl0dW5nKlEKBmhpdHVuZxXGJgNAGghoaXR1bmdhbhoKbWVuZ2hpdHVuZxoMcGVuZ2hpdHVuZ2FuGgtwZXJoaXR1bmdhbhoFcnVtdXMaCmNhcmFoaXR1bmcqEQoDcHBoFdEg1UAaBXBwaDIxKhAKAjIxFfp20EAaBXBwaDIxKhgKCGthcnlhd2FuFae0iz8aB3BlZ2F3YWkymAEvZ290bz91cmw9Q0FFU1pnSHJPekFWd0hUZ3FHLXR5UFhVSlFzWVNSdmw0MVFZcGdzRXplQ0tpTWFJaDk3UXM0RVplWnktRFA1bUxCcUVON3NMU25VN3hWUmhlWkxSRkdueXBtVG9NanN0dzgydU9UdXBxbndIUjBMdXJDSmEzRDhDTWxkU0lYdDJvbDFrOEVodXlRbXVSQTo0S2Fsa3VsYXRvciA8Yj5QUGggMjE8L2I-IFRFUiAmYW1wOyBUYWh1bmFuIC0gUGFqYWtrdUKTATxiPkhpdHVuZyBQUGggMjEga2FyeWF3YW48L2I-IHNlc3VhaSBza2VtYSB0YXJpZiBlZmVrdGlmIHJhdGEtcmF0YSAoVEVSKSBkYW4gPGI-cGVyaGl0dW5nYW48L2I-IHRhaHVuYW4gYmVyZGFzYXJrYW4ga2V0ZW50dWFuIHBlcnBhamFrYW4gSW5kb25lc2lhLiICEAFIAFgAaAA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CpgBL2dvdG8_dXJsPUNBRVNaZ0hyT3pBVndIVGdxRy10eVBYVUpRc1lTUnZsNDFRWXBnc0V6ZUNLaU1hSWg5N1FzNEVaZVp5LURQNW1MQnFFTjdzTFNuVTd4VlJoZVpMUkZHbnlwbVRvTWpzdHc4MnVPVHVwcW53SFIwTHVyQ0phM0Q4Q01sZFNJWHQyb2wxazhFaHV5UW11UkESBBoCCAAa4AQSABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJAvAQIJhAAGAAgACo5CgRjYXJhFRfBlz8aDHBlbmdoaXR1bmdhbhoLcGVyaGl0dW5nYW4aBXJ1bXVzGgpjYXJhaGl0dW5nKlEKBmhpdHVuZxXGJgNAGghoaXR1bmdhbhoKbWVuZ2hpdHVuZxoMcGVuZ2hpdHVuZ2FuGgtwZXJoaXR1bmdhbhoFcnVtdXMaCmNhcmFoaXR1bmcqEQoDcHBoFdEg1UAaBXBwaDIxKhAKAjIxFfp20EAaBXBwaDIxKhgKCGthcnlhd2FuFae0iz8aB3BlZ2F3YWkymAEvZ290bz91cmw9Q0FFU1pnSHJPekFWd0hUZ3FHLXR5UFhVSlFzWVNSdmw0MVFZcGdzRXplQ0tpTWFJaDk3UXM0RVplWnktRFA1bUxCcUVON3NMU25VN3hWUmhlWkxSRkdueXBtVG9NanN0dzgydU9UdXBxbndIUjBMdXJDSmEzRDhDTWxkU0lYdDJvbDFrOEVodXlRbXVSQTo0S2Fsa3VsYXRvciA8Yj5QUGggMjE8L2I-IFRFUiAmYW1wOyBUYWh1bmFuIC0gUGFqYWtrdUKTATxiPkhpdHVuZyBQUGggMjEga2FyeWF3YW48L2I-IHNlc3VhaSBza2VtYSB0YXJpZiBlZmVrdGlmIHJhdGEtcmF0YSAoVEVSKSBkYW4gPGI-cGVyaGl0dW5nYW48L2I-IHRhaHVuYW4gYmVyZGFzYXJrYW4ga2V0ZW50dWFuIHBlcnBhamFrYW4gSW5kb25lc2lhLiICEAFIAFgAaAA",
+      "source": "Pajakku"
+    },
+    {
+      "position": 3,
+      "title": "Cara Menghitung PPh 21 yang Harus Anda Pahami",
+      "link": "https://ayopajak.com/cara-menghitung-pph-21/",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESZwHrOzAVCHhUJ75pDVRYPJrWeF0n1MX6guCyz-jfR_GK46ZRUBmHpj5u4SGoN0Dg-hwKtw-_kt2nJHVvdvrLtMp4wUtKKGA1Z_uJEBGuaVx8VAIhxiWmIRypKcNke3Mzh2n_FuRhj7Y&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQFnoECDkQAQ&uoh=1",
+      "displayed_link": "https://ayopajak.com › Blog › Hitung",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAQlBMVEVHcEwANFEANFEANFEANFEAM1AANFAANFEAVPkAVfsAVfkAVfoAVPQAVfkAVfkARbEAP48AUvoAVfkAMU0ANFEAMlFtgmsRAAAAFnRSTlMAWej9qGz_pRxZjf9nMXv__wXIBdoWi2kJCgAAAJdJREFUeAF90dUCgzAUA9BgtdDh__-ps8x327wgB2pBIU3b9SUb3DW-Yq6rmGsr5hooCDH82gAFieRYsExKDUOk1DIEKtEw4ERlMkwqnudpBAxVZKbKbLUNS17JNVu0vW_z8tOtc_sB_a-hf3rYdc9bwl9H2_uY4685DXvHXOh2JJmK3YaY3-t8mpG2YugqBl8xoO_apkAXhrkJnvdiNKUAAAAASUVORK5CYII.png",
+      "snippet": "Cara menghitung PPh 21 adalah total gaji neto selama setahun dikalikan dengan besaran tarif pajak yang berlaku. Simak cara menghitungnya disini.",
+      "snippet_highlighted_words": [
+        "total gaji neto selama setahun dikalikan dengan besaran tarif pajak yang berlaku"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "Cara menghitung PPh 21 adalah total gaji neto selama setahun dikalikan dengan besaran tarif pajak yang berlaku. Simak cara menghitungnya disini.",
+          "source_info_link": "https://ayopajak.com/cara-menghitung-pph-21/",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAQlBMVEVHcEwANFEANFEANFEANFEAM1AANFAANFEAVPkAVfsAVfkAVfoAVPQAVfkAVfkARbEAP48AUvoAVfkAMU0ANFEAMlFtgmsRAAAAFnRSTlMAWej9qGz_pRxZjf9nMXv__wXIBdoWi2kJCgAAAJdJREFUeAF90dUCgzAUA9BgtdDh__-ps8x327wgB2pBIU3b9SUb3DW-Yq6rmGsr5hooCDH82gAFieRYsExKDUOk1DIEKtEw4ERlMkwqnudpBAxVZKbKbLUNS17JNVu0vW_z8tOtc_sB_a-hf3rYdc9bwl9H2_uY4685DXvHXOh2JJmK3YaY3-t8mpG2YugqBl8xoO_apkAXhrkJnvdiNKUAAAAASUVORK5CYII.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CpkBL2dvdG8_dXJsPUNBRVNad0hyT3pBVnFITHphMU9zMHk5Q2NuLU1pUVkxTmRtc1VVOTJjRWd1XzFIUVF1Z3p6OFNnZnM0Ulc2R2ltMlVRUnlfbVNJVVNVNzFLeVFIWGNHREpjSGNCMF9lMng1WENHM3Z1RDcxc2YwVnQ4a2xQTGtEM2g2R05UbVN0UGlXSm45VnczTHlxV1JvEgQaAggAGvEEEgAaACIAKgAyBggBEgJpZDoAQgQIARAmSgBaAHIAegCCQM0ECCYQABgAIAAqOQoEY2FyYRX16eNAGgxwZW5naGl0dW5nYW4aC3BlcmhpdHVuZ2FuGgVydW11cxoKY2FyYWhpdHVuZypRCgZoaXR1bmcVg1c0QBoIaGl0dW5nYW4aCm1lbmdoaXR1bmcaDHBlbmdoaXR1bmdhbhoLcGVyaGl0dW5nYW4aBXJ1bXVzGgpjYXJhaGl0dW5nKhEKA3BwaBUcrAxBGgVwcGgyMSoQCgIyMRW9XQlBGgVwcGgyMSoYCghrYXJ5YXdhbhWJ-SVAGgdwZWdhd2FpMpkBL2dvdG8_dXJsPUNBRVNad0hyT3pBVnFITHphMU9zMHk5Q2NuLU1pUVkxTmRtc1VVOTJjRWd1XzFIUVF1Z3p6OFNnZnM0Ulc2R2ltMlVRUnlfbVNJVVNVNzFLeVFIWGNHREpjSGNCMF9lMng1WENHM3Z1RDcxc2YwVnQ4a2xQTGtEM2g2R05UbVN0UGlXSm45VnczTHlxV1JvOkA8Yj5DYXJhIE1lbmdoaXR1bmcgUFBoIDIxPC9iPiB5YW5nIEhhcnVzIEFuZGEgUGFoYW1pIC0gQXlvIFBhamFrQpcBQ2FyYSBtZW5naGl0dW5nIFBQaCAyMSBhZGFsYWggPGI-dG90YWwgZ2FqaSBuZXRvIHNlbGFtYSBzZXRhaHVuIGRpa2FsaWthbiBkZW5nYW4gYmVzYXJhbiB0YXJpZiBwYWphayB5YW5nIGJlcmxha3U8L2I-LiBTaW1hayBjYXJhIG1lbmdoaXR1bmdueWEgZGlzaW5pLiICEAFIAFgAaAA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CpkBL2dvdG8_dXJsPUNBRVNad0hyT3pBVnFITHphMU9zMHk5Q2NuLU1pUVkxTmRtc1VVOTJjRWd1XzFIUVF1Z3p6OFNnZnM0Ulc2R2ltMlVRUnlfbVNJVVNVNzFLeVFIWGNHREpjSGNCMF9lMng1WENHM3Z1RDcxc2YwVnQ4a2xQTGtEM2g2R05UbVN0UGlXSm45VnczTHlxV1JvEgQaAggAGvEEEgAaACIAKgAyBggBEgJpZDoAQgQIARAmSgBaAHIAegCCQM0ECCYQABgAIAAqOQoEY2FyYRX16eNAGgxwZW5naGl0dW5nYW4aC3BlcmhpdHVuZ2FuGgVydW11cxoKY2FyYWhpdHVuZypRCgZoaXR1bmcVg1c0QBoIaGl0dW5nYW4aCm1lbmdoaXR1bmcaDHBlbmdoaXR1bmdhbhoLcGVyaGl0dW5nYW4aBXJ1bXVzGgpjYXJhaGl0dW5nKhEKA3BwaBUcrAxBGgVwcGgyMSoQCgIyMRW9XQlBGgVwcGgyMSoYCghrYXJ5YXdhbhWJ-SVAGgdwZWdhd2FpMpkBL2dvdG8_dXJsPUNBRVNad0hyT3pBVnFITHphMU9zMHk5Q2NuLU1pUVkxTmRtc1VVOTJjRWd1XzFIUVF1Z3p6OFNnZnM0Ulc2R2ltMlVRUnlfbVNJVVNVNzFLeVFIWGNHREpjSGNCMF9lMng1WENHM3Z1RDcxc2YwVnQ4a2xQTGtEM2g2R05UbVN0UGlXSm45VnczTHlxV1JvOkA8Yj5DYXJhIE1lbmdoaXR1bmcgUFBoIDIxPC9iPiB5YW5nIEhhcnVzIEFuZGEgUGFoYW1pIC0gQXlvIFBhamFrQpcBQ2FyYSBtZW5naGl0dW5nIFBQaCAyMSBhZGFsYWggPGI-dG90YWwgZ2FqaSBuZXRvIHNlbGFtYSBzZXRhaHVuIGRpa2FsaWthbiBkZW5nYW4gYmVzYXJhbiB0YXJpZiBwYWphayB5YW5nIGJlcmxha3U8L2I-LiBTaW1hayBjYXJhIG1lbmdoaXR1bmdueWEgZGlzaW5pLiICEAFIAFgAaAA",
+      "source": "Ayo Pajak"
+    },
+    {
+      "position": 4,
+      "title": "Cara Menghitung PPh 21 Tanpa NPWP Karyawan",
+      "link": "https://www.google.co.id/goto?url=CAESbgHrOzAVFizSalaDCWQwmWiqy0eyUUVaIHmLBR25y9kn0MWGE8lRsHbPAJqis0RTTVSpStvWw6jgGd78LdgZBoarwsL8fQgoz_Ot5WcsGN_PFE5KX6t2m909Gv6xuvgHAfm_6RyVtsVt8O-tRaOI",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESbgHrOzAVTbenUXLNc6oSnHcfAmoYqixH12ZMJwhJSEeQBLihOmoO47V1KNskfBEOj79EoqhvNZcL6peqvo8YFo5RhZ3fi4vNbdhm7fSORkeie7Ku2mg5V-RSm8c4JfsWryJHr7fIZ-Dc53OzkAZf&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQFnoECDMQAQ&uoh=1",
+      "displayed_link": "https://www.talenta.co › Artikel HR & Payroll",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAS1BMVEVHcEzkS1DWP0XPNz_bQ0nHMTnGLzjNNj7hSE3UPEPgSEzZQUfdREnnTVHiSE3rUFPlTFDpUFPuU1bzWFnmTVD5XV7hSE3bQ0j3XF7NkkXpAAAAGXRSTlMAAXKYQtf__xv_Kv__iv_h_v___13_DcLMfEq-pAAAAPBJREFUeAGNklWCRSEAQud2d-5_pSMiTHw9bI_YX58pY8oQYvafZeoWRZLsiymxvCiFCVhEWtV13ZDL6DnbGrBpuqInR694llg3DONkDgjlYITzvEytZue4XGyc13Xblz6woHTwMrAObF63bd-PE51Wn4xkx9WCOt2DjUeAE4H1BCbj9epGuLO7GuaVRkAY7W7DjkYbr0lO4BJLjrPYdWO6pBPHD7MKlsmDNOkYZG_76wWn7tcx3vNWP3Tj_GRLfrubd9em8-PKM5qieM4nGNepZ4MxFnSfee-JGFlQbPmLsNAA9ngj1u93dabCnkxWF9_zOA65eNeTjgAAAABJRU5ErkJggg.png",
+      "date": "24 Mar 2024",
+      "snippet": "Setiap karyawan yang akan membayar PPh 21 tetapi belum memiliki NPWP harus mengalikan jumlah penghasilannya dengan persentase Wajib Pajak ...",
+      "snippet_highlighted_words": [
+        "karyawan",
+        "PPh 21"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "Setiap karyawan yang akan membayar PPh 21 tetapi belum memiliki NPWP harus mengalikan jumlah penghasilannya dengan persentase Wajib Pajak ...",
+          "source_info_link": "https://www.google.co.id/goto?url=CAESbgHrOzAVFizSalaDCWQwmWiqy0eyUUVaIHmLBR25y9kn0MWGE8lRsHbPAJqis0RTTVSpStvWw6jgGd78LdgZBoarwsL8fQgoz_Ot5WcsGN_PFE5KX6t2m909Gv6xuvgHAfm_6RyVtsVt8O-tRaOI",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAS1BMVEVHcEzkS1DWP0XPNz_bQ0nHMTnGLzjNNj7hSE3UPEPgSEzZQUfdREnnTVHiSE3rUFPlTFDpUFPuU1bzWFnmTVD5XV7hSE3bQ0j3XF7NkkXpAAAAGXRSTlMAAXKYQtf__xv_Kv__iv_h_v___13_DcLMfEq-pAAAAPBJREFUeAGNklWCRSEAQud2d-5_pSMiTHw9bI_YX58pY8oQYvafZeoWRZLsiymxvCiFCVhEWtV13ZDL6DnbGrBpuqInR694llg3DONkDgjlYITzvEytZue4XGyc13Xblz6woHTwMrAObF63bd-PE51Wn4xkx9WCOt2DjUeAE4H1BCbj9epGuLO7GuaVRkAY7W7DjkYbr0lO4BJLjrPYdWO6pBPHD7MKlsmDNOkYZG_76wWn7tcx3vNWP3Tj_GRLfrubd9em8-PKM5qieM4nGNepZ4MxFnSfee-JGFlQbPmLsNAA9ngj1u93dabCnkxWF9_zOA65eNeTjgAAAABJRU5ErkJggg.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CqIBL2dvdG8_dXJsPUNBRVNiZ0hyT3pBVkZpelNhbGFEQ1dRd21XaXF5MGV5VVVWYUlIbUxCUjI1eTlrbjBNV0dFOGxSc0hiUEFKcWlzMFJUVFZTcFN0dld3NmpnR2Q3OExkZ1pCb2Fyd3NMOGZRZ296X090NVdjc0dOX1BGRTVLWDZ0Mm05MDlHdjZ4dXZnSEFmbV82UnlWdHNWdDhPLXRSYU9JEgQaAggAGv0EEgIIABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJA1wQIJhAAGAAgACo5CgRjYXJhFftnpUAaDHBlbmdoaXR1bmdhbhoLcGVyaGl0dW5nYW4aBXJ1bXVzGgpjYXJhaGl0dW5nKlEKBmhpdHVuZxWsE94_GghoaXR1bmdhbhoKbWVuZ2hpdHVuZxoMcGVuZ2hpdHVuZ2FuGgtwZXJoaXR1bmdhbhoFcnVtdXMaCmNhcmFoaXR1bmcqEQoDcHBoFSTjvkAaBXBwaDIxKhAKAjIxFXCvukAaBXBwaDIxKhgKCGthcnlhd2FuFfwYw0AaB3BlZ2F3YWkyogEvZ290bz91cmw9Q0FFU2JnSHJPekFWRml6U2FsYURDV1F3bVdpcXkwZXlVVVZhSUhtTEJSMjV5OWtuME1XR0U4bFJzSGJQQUpxaXMwUlRUVlNwU3R2V3c2amdHZDc4TGRnWkJvYXJ3c0w4ZlFnb3pfT3Q1V2NzR05fUEZFNUtYNnQybTkwOUd2Nnh1dmdIQWZtXzZSeVZ0c1Z0OE8tdFJhT0k6ODxiPkNhcmEgTWVuZ2hpdHVuZyBQUGggMjE8L2I-IFRhbnBhIE5QV1AgPGI-S2FyeWF3YW48L2I-QqABU2V0aWFwIDxiPmthcnlhd2FuPC9iPiB5YW5nIGFrYW4gbWVtYmF5YXIgPGI-UFBoIDIxPC9iPiB0ZXRhcGkgYmVsdW0gbWVtaWxpa2kgTlBXUCBoYXJ1cyBtZW5nYWxpa2FuIGp1bWxhaCBwZW5naGFzaWxhbm55YSBkZW5nYW4gcGVyc2VudGFzZSBXYWppYiBQYWphayZuYnNwOy4uLiICEAFIAFgAaAA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CqIBL2dvdG8_dXJsPUNBRVNiZ0hyT3pBVkZpelNhbGFEQ1dRd21XaXF5MGV5VVVWYUlIbUxCUjI1eTlrbjBNV0dFOGxSc0hiUEFKcWlzMFJUVFZTcFN0dld3NmpnR2Q3OExkZ1pCb2Fyd3NMOGZRZ296X090NVdjc0dOX1BGRTVLWDZ0Mm05MDlHdjZ4dXZnSEFmbV82UnlWdHNWdDhPLXRSYU9JEgQaAggAGv0EEgIIABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJA1wQIJhAAGAAgACo5CgRjYXJhFftnpUAaDHBlbmdoaXR1bmdhbhoLcGVyaGl0dW5nYW4aBXJ1bXVzGgpjYXJhaGl0dW5nKlEKBmhpdHVuZxWsE94_GghoaXR1bmdhbhoKbWVuZ2hpdHVuZxoMcGVuZ2hpdHVuZ2FuGgtwZXJoaXR1bmdhbhoFcnVtdXMaCmNhcmFoaXR1bmcqEQoDcHBoFSTjvkAaBXBwaDIxKhAKAjIxFXCvukAaBXBwaDIxKhgKCGthcnlhd2FuFfwYw0AaB3BlZ2F3YWkyogEvZ290bz91cmw9Q0FFU2JnSHJPekFWRml6U2FsYURDV1F3bVdpcXkwZXlVVVZhSUhtTEJSMjV5OWtuME1XR0U4bFJzSGJQQUpxaXMwUlRUVlNwU3R2V3c2amdHZDc4TGRnWkJvYXJ3c0w4ZlFnb3pfT3Q1V2NzR05fUEZFNUtYNnQybTkwOUd2Nnh1dmdIQWZtXzZSeVZ0c1Z0OE8tdFJhT0k6ODxiPkNhcmEgTWVuZ2hpdHVuZyBQUGggMjE8L2I-IFRhbnBhIE5QV1AgPGI-S2FyeWF3YW48L2I-QqABU2V0aWFwIDxiPmthcnlhd2FuPC9iPiB5YW5nIGFrYW4gbWVtYmF5YXIgPGI-UFBoIDIxPC9iPiB0ZXRhcGkgYmVsdW0gbWVtaWxpa2kgTlBXUCBoYXJ1cyBtZW5nYWxpa2FuIGp1bWxhaCBwZW5naGFzaWxhbm55YSBkZW5nYW4gcGVyc2VudGFzZSBXYWppYiBQYWphayZuYnNwOy4uLiICEAFIAFgAaAA",
+      "source": "Mekari Talenta"
+    },
+    {
+      "position": 5,
+      "title": "Yuk Ketahui Cara Menghitung Pajak Penghasilan yang ...",
+      "link": "https://www.google.co.id/goto?url=CAESowEB6zswFYBk9P6SNDa37QiKnj-HR-7stBey_ae-dG3iG7eVrKurQZVKLNAR_9zeM-H73xbEoHS8Z_5Wrp6rbAVAirPLWQUH9jq3CZO0fIDinFh8p7IMpy9vTX1l0RNESkSZ4wEulYZ_oyGvD0vF8A2C37UfMgdDX2oVonmy_wp4S3giI6ETHETDgiY-ep40nEuehIhjO_PbQiFG5jWI5aN5bnpr",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESowEB6zswFZeQpkr-mZ-egfjJ7hJflhmQ7o7MUxJOCIBpaj56XUTlzpqzajR5VR5qzZcH2uVxeRT-006KsyI4vy2hGsYOPRQ7Hy-wrTyp4crePVf2ivWwqbTjIbHaRi2L_20tq66tLnmCxnNu7U_-Ipz9sx6_UmmuQsDHbT7OHXuRHEHao5eqI88sdlHFaEcrkpw-mZhiQkdXBK8CysVgqVdvBIZL&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQFnoECDcQAQ&uoh=1",
+      "displayed_link": "https://bankraya.co.id › articles › insights › detail › yuk-...",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAclBMVEVHcEz____________________--vj2sJL61cX96uL6zbv59fT3uqH849j0n3jykGD5xa-VrcwAQJEAIobn7fTuYADtVgA0aaSDoMVTgrVtkbzvcSW1x9zQ3OnyhE3xejv73M-ludMSWJzI1ubB0OPZ4u2l2PnkAAAABnRSTlMAH6vw_1hVLM6iAAABCUlEQVR4AbWT5cKCMAAAUc8lDZtYNO__iF_a-csjVrfegiCYzRc8ZDGfBT8secHypz4vmQVzXjIPFrxkEfCGDwniEDwVpEJpY8PouRDb2ISJeSakoU6VjqKTkOVFSexc7PWqAtYbbOK3sT8IWb7bUzdt2zhdrYC8wyWRce4g_KTR3v7-tM1XWd-TboHUH4RigNYDwmvsJq8grIH2JIyAD0E6DVMhIPItJO5SUH67df5PsID0jXOnQZYAIjXCWLCdAPidqOIgVNV6GMdhGmXDGeHMQdjthn2ZTcOuo95qDigXP9oL6ROjhdBp41MeCVjZ-B_q9OV2i4-fqEveHvu3F-ft1Xt7ed9e_2_VKhtyeKVUEwAAAABJRU5ErkJggg.png",
+      "date": "16 Des 2024",
+      "snippet": "Penghasilan lebih dari Rp500 juta per tahun: 30%. 4. Contoh Perhitungan PPh 21. Kasus: Seorang karyawan bernama Andi memiliki penghasilan bruto ...",
+      "snippet_highlighted_words": [
+        "Perhitungan PPh 21",
+        "karyawan"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "Penghasilan lebih dari Rp500 juta per tahun: 30%. 4. Contoh Perhitungan PPh 21. Kasus: Seorang karyawan bernama Andi memiliki penghasilan bruto ...",
+          "source_info_link": "https://www.google.co.id/goto?url=CAESowEB6zswFYBk9P6SNDa37QiKnj-HR-7stBey_ae-dG3iG7eVrKurQZVKLNAR_9zeM-H73xbEoHS8Z_5Wrp6rbAVAirPLWQUH9jq3CZO0fIDinFh8p7IMpy9vTX1l0RNESkSZ4wEulYZ_oyGvD0vF8A2C37UfMgdDX2oVonmy_wp4S3giI6ETHETDgiY-ep40nEuehIhjO_PbQiFG5jWI5aN5bnpr",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAclBMVEVHcEz____________________--vj2sJL61cX96uL6zbv59fT3uqH849j0n3jykGD5xa-VrcwAQJEAIobn7fTuYADtVgA0aaSDoMVTgrVtkbzvcSW1x9zQ3OnyhE3xejv73M-ludMSWJzI1ubB0OPZ4u2l2PnkAAAABnRSTlMAH6vw_1hVLM6iAAABCUlEQVR4AbWT5cKCMAAAUc8lDZtYNO__iF_a-csjVrfegiCYzRc8ZDGfBT8secHypz4vmQVzXjIPFrxkEfCGDwniEDwVpEJpY8PouRDb2ISJeSakoU6VjqKTkOVFSexc7PWqAtYbbOK3sT8IWb7bUzdt2zhdrYC8wyWRce4g_KTR3v7-tM1XWd-TboHUH4RigNYDwmvsJq8grIH2JIyAD0E6DVMhIPItJO5SUH67df5PsID0jXOnQZYAIjXCWLCdAPidqOIgVNV6GMdhGmXDGeHMQdjthn2ZTcOuo95qDigXP9oL6ROjhdBp41MeCVjZ-B_q9OV2i4-fqEveHvu3F-ft1Xt7ed9e_2_VKhtyeKVUEwAAAABJRU5ErkJggg.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CuoBL2dvdG8_dXJsPUNBRVNvd0VCNnpzd0ZZQms5UDZTTkRhMzdRaUtuai1IUi03c3RCZXlfYWUtZEczaUc3ZVZyS3VyUVpWS0xOQVJfOXplTS1INzN4YkVvSFM4Wl81V3JwNnJiQVZBaXJQTFdRVUg5anEzQ1pPMGZJRGluRmg4cDdJTXB5OXZUWDFsMFJORVNrU1o0d0V1bFlaX295R3ZEMHZGOEEyQzM3VWZNZ2REWDJvVm9ubXlfd3A0UzNnaUk2RVRIRVREZ2lZLWVwNDBuRXVlaEloak9fUGJRaUZHNWpXSTVhTjVibnByEgQaAggAGtAFEgAaACIAKgAyBggBEgJpZDoAQgQIARAmSgBaAHIAegCCQKwFCCYQABgAIAAqOQoEY2FyYRXZ1MZAGgxwZW5naGl0dW5nYW4aC3BlcmhpdHVuZ2FuGgVydW11cxoKY2FyYWhpdHVuZypRCgZoaXR1bmcVGD6bPxoIaGl0dW5nYW4aCm1lbmdoaXR1bmcaDHBlbmdoaXR1bmdhbhoLcGVyaGl0dW5nYW4aBXJ1bXVzGgpjYXJhaGl0dW5nKhEKA3BwaBWACYVAGgVwcGgyMSoQCgIyMRW1VjFAGgVwcGgyMSoYCghrYXJ5YXdhbhWZFdI_GgdwZWdhd2FpMuoBL2dvdG8_dXJsPUNBRVNvd0VCNnpzd0ZZQms5UDZTTkRhMzdRaUtuai1IUi03c3RCZXlfYWUtZEczaUc3ZVZyS3VyUVpWS0xOQVJfOXplTS1INzN4YkVvSFM4Wl81V3JwNnJiQVZBaXJQTFdRVUg5anEzQ1pPMGZJRGluRmg4cDdJTXB5OXZUWDFsMFJORVNrU1o0d0V1bFlaX295R3ZEMHZGOEEyQzM3VWZNZ2REWDJvVm9ubXlfd3A0UzNnaUk2RVRIRVREZ2lZLWVwNDBuRXVlaEloak9fUGJRaUZHNWpXSTVhTjVibnByOj9ZdWsgS2V0YWh1aSA8Yj5DYXJhIE1lbmdoaXR1bmc8L2I-IFBhamFrIFBlbmdoYXNpbGFuIHlhbmcgQmVuYXJCpgFQZW5naGFzaWxhbiBsZWJpaCBkYXJpIFJwNTAwIGp1dGEgcGVyIHRhaHVuOiAzMCUuIDQuIENvbnRvaCA8Yj5QZXJoaXR1bmdhbiBQUGggMjE8L2I-LiBLYXN1czogU2VvcmFuZyA8Yj5rYXJ5YXdhbjwvYj4gYmVybmFtYSBBbmRpIG1lbWlsaWtpIHBlbmdoYXNpbGFuIGJydXRvJm5ic3A7Li4uIgIQAUgAWABoAA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CuoBL2dvdG8_dXJsPUNBRVNvd0VCNnpzd0ZZQms5UDZTTkRhMzdRaUtuai1IUi03c3RCZXlfYWUtZEczaUc3ZVZyS3VyUVpWS0xOQVJfOXplTS1INzN4YkVvSFM4Wl81V3JwNnJiQVZBaXJQTFdRVUg5anEzQ1pPMGZJRGluRmg4cDdJTXB5OXZUWDFsMFJORVNrU1o0d0V1bFlaX295R3ZEMHZGOEEyQzM3VWZNZ2REWDJvVm9ubXlfd3A0UzNnaUk2RVRIRVREZ2lZLWVwNDBuRXVlaEloak9fUGJRaUZHNWpXSTVhTjVibnByEgQaAggAGtAFEgAaACIAKgAyBggBEgJpZDoAQgQIARAmSgBaAHIAegCCQKwFCCYQABgAIAAqOQoEY2FyYRXZ1MZAGgxwZW5naGl0dW5nYW4aC3BlcmhpdHVuZ2FuGgVydW11cxoKY2FyYWhpdHVuZypRCgZoaXR1bmcVGD6bPxoIaGl0dW5nYW4aCm1lbmdoaXR1bmcaDHBlbmdoaXR1bmdhbhoLcGVyaGl0dW5nYW4aBXJ1bXVzGgpjYXJhaGl0dW5nKhEKA3BwaBWACYVAGgVwcGgyMSoQCgIyMRW1VjFAGgVwcGgyMSoYCghrYXJ5YXdhbhWZFdI_GgdwZWdhd2FpMuoBL2dvdG8_dXJsPUNBRVNvd0VCNnpzd0ZZQms5UDZTTkRhMzdRaUtuai1IUi03c3RCZXlfYWUtZEczaUc3ZVZyS3VyUVpWS0xOQVJfOXplTS1INzN4YkVvSFM4Wl81V3JwNnJiQVZBaXJQTFdRVUg5anEzQ1pPMGZJRGluRmg4cDdJTXB5OXZUWDFsMFJORVNrU1o0d0V1bFlaX295R3ZEMHZGOEEyQzM3VWZNZ2REWDJvVm9ubXlfd3A0UzNnaUk2RVRIRVREZ2lZLWVwNDBuRXVlaEloak9fUGJRaUZHNWpXSTVhTjVibnByOj9ZdWsgS2V0YWh1aSA8Yj5DYXJhIE1lbmdoaXR1bmc8L2I-IFBhamFrIFBlbmdoYXNpbGFuIHlhbmcgQmVuYXJCpgFQZW5naGFzaWxhbiBsZWJpaCBkYXJpIFJwNTAwIGp1dGEgcGVyIHRhaHVuOiAzMCUuIDQuIENvbnRvaCA8Yj5QZXJoaXR1bmdhbiBQUGggMjE8L2I-LiBLYXN1czogU2VvcmFuZyA8Yj5rYXJ5YXdhbjwvYj4gYmVybmFtYSBBbmRpIG1lbWlsaWtpIHBlbmdoYXNpbGFuIGJydXRvJm5ic3A7Li4uIgIQAUgAWABoAA",
+      "source": "Bank Raya"
+    },
+    {
+      "position": 6,
+      "title": "Panduan Lengkap PPh Pribadi Karyawan Swasta",
+      "link": "https://www.google.co.id/goto?url=CAESmQEB6zswFU7-g75bIm9g9FlTC_dAjRFEw5EErj5qgPtRqzS7mTtngIqF4zlP9TcxVBwde-Cd2OvqOBYCvF6ocHwag1A8AEaqakrF0KjE0WG0zO7ePPGzDrRyKK2JQgkTvlUl8Rf6CI4R2WXw5Ah_GGfBeMNC66iD_6ttGxzVX7nknDaVUaLuQOlP23WBbVGYd2op1wQvddpFrzY",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESmQEB6zswFQ3n6PSCWnkrx9i--ylUdRPnQXLGjyG2_QhVzVQHwQm5m08NfezLi73U-Ba8tjGJhrHedgEF92Q0soANpxJMl-7W7e7LUHbtgg92gpmudWfPLQg8Wd22UkplBO0tPaBeJkkZ7hdqYV5LemyU7vMBSSf_7pD-U_HZGVUTKHGGAudq_z9lPStsMSLwgmYv2-jMwFrUo84&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQFnoECDoQAQ&uoh=1",
+      "displayed_link": "https://klikpajak.id › Blog",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAZlBMVEVHcEz8p1z4lEb3kkT7oFP3jT75m0_6pFn5mUz9sWj9smn3kkT4l0n7olb7pFn5nU_9r2b9smr6pVr-qlv3kEH9tGz8qmD6plv5nU_4mUv6o1b6oFP8rWT5m073lUb6pFj1iDf2jT1f6epbAAAAE3RSTlMAZ89tDKAeUDT8iX2ynEDm2bm9EWmTqQAAALpJREFUKJG90dsSgiAQBmBMDc1Ma5aDgArv_5It5DRDQJfuFTMfy_4AIefV9Y-1DrqSUQC4F6xB24YCXmBbliba_s1Qo63RqZ217REUScooT2ut--iEpqdozmAdQI2LEdu0qpKEAJQ8tNZKiSSiz9GB3tUuxh-sMb6U0mkhBE9ebwnD1Co4n9Ore9p9n6EJVoE456ZPjBB1ELtl8IVmDGOsySBF6tGeGSMkEGP5b6bBchN9PWbWVwU7r94djw7zaarawgAAAABJRU5ErkJggg.png",
+      "date": "30 Nov 2023",
+      "snippet": "1. Cara Hitung PPh 21/26 Karyawan yang Memiliki NPWP ; Penghasilan Neto Setahun, = Rp10.000.000 x 12 bulan, = Rp120.000.000 ; PTKP (TK/0), = Rp54.",
+      "snippet_highlighted_words": [
+        "Cara Hitung PPh 21",
+        "Karyawan"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "1. Cara Hitung PPh 21/26 Karyawan yang Memiliki NPWP ; Penghasilan Neto Setahun, = Rp10.000.000 x 12 bulan, = Rp120.000.000 ; PTKP (TK/0), = Rp54.",
+          "source_info_link": "https://www.google.co.id/goto?url=CAESmQEB6zswFU7-g75bIm9g9FlTC_dAjRFEw5EErj5qgPtRqzS7mTtngIqF4zlP9TcxVBwde-Cd2OvqOBYCvF6ocHwag1A8AEaqakrF0KjE0WG0zO7ePPGzDrRyKK2JQgkTvlUl8Rf6CI4R2WXw5Ah_GGfBeMNC66iD_6ttGxzVX7nknDaVUaLuQOlP23WBbVGYd2op1wQvddpFrzY",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAZlBMVEVHcEz8p1z4lEb3kkT7oFP3jT75m0_6pFn5mUz9sWj9smn3kkT4l0n7olb7pFn5nU_9r2b9smr6pVr-qlv3kEH9tGz8qmD6plv5nU_4mUv6o1b6oFP8rWT5m073lUb6pFj1iDf2jT1f6epbAAAAE3RSTlMAZ89tDKAeUDT8iX2ynEDm2bm9EWmTqQAAALpJREFUKJG90dsSgiAQBmBMDc1Ma5aDgArv_5It5DRDQJfuFTMfy_4AIefV9Y-1DrqSUQC4F6xB24YCXmBbliba_s1Qo63RqZ217REUScooT2ut--iEpqdozmAdQI2LEdu0qpKEAJQ8tNZKiSSiz9GB3tUuxh-sMb6U0mkhBE9ebwnD1Co4n9Ore9p9n6EJVoE456ZPjBB1ELtl8IVmDGOsySBF6tGeGSMkEGP5b6bBchN9PWbWVwU7r94djw7zaarawgAAAABJRU5ErkJggg.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=Ct0BL2dvdG8_dXJsPUNBRVNtUUVCNnpzd0ZVNy1nNzViSW05ZzlGbFRDX2RBalJGRXc1RUVyajVxZ1B0UnF6UzdtVHRuZ0lxRjR6bFA5VGN4VkJ3ZGUtQ2QyT3ZxT0JZQ3ZGNm9jSHdhZzFBOEFFYXFha3JGMEtqRTBXRzB6TzdlUFBHekRyUnlLSzJKUWdrVHZsVWw4UmY2Q0k0UjJXWHc1QWhfR0dmQmVNTkM2NmlEXzZ0dEd4elZYN25rbkRhVlVhTHVRT2xQMjNXQmJWR1lkMm9wMXdRdmRkcEZyelkSBBoCCAAauQUSAggAGgAiACoAMgYIARICaWQ6AEIECAEQJkoAWgByAHoAgkCTBQgmEAAYACAAKjkKBGNhcmEV2VIvQBoMcGVuZ2hpdHVuZ2FuGgtwZXJoaXR1bmdhbhoFcnVtdXMaCmNhcmFoaXR1bmcqUQoGaGl0dW5nFUHaLkAaCGhpdHVuZ2FuGgptZW5naGl0dW5nGgxwZW5naGl0dW5nYW4aC3BlcmhpdHVuZ2FuGgVydW11cxoKY2FyYWhpdHVuZyoRCgNwcGgVDqDEQBoFcHBoMjEqEAoCMjEVg_89QBoFcHBoMjEqGAoIa2FyeWF3YW4VriK1QBoHcGVnYXdhaTLdAS9nb3RvP3VybD1DQUVTbVFFQjZ6c3dGVTctZzc1YkltOWc5RmxUQ19kQWpSRkV3NUVFcmo1cWdQdFJxelM3bVR0bmdJcUY0emxQOVRjeFZCd2RlLUNkMk92cU9CWUN2RjZvY0h3YWcxQThBRWFxYWtyRjBLakUwV0cwek83ZVBQR3pEclJ5S0sySlFna1R2bFVsOFJmNkNJNFIyV1h3NUFoX0dHZkJlTU5DNjZpRF82dHRHeHpWWDdua25EYVZVYUx1UU9sUDIzV0JiVkdZZDJvcDF3UXZkZHBGcnpZOjlQYW5kdWFuIExlbmdrYXAgPGI-UFBoPC9iPiBQcmliYWRpIDxiPkthcnlhd2FuPC9iPiBTd2FzdGFCoAExLiA8Yj5DYXJhIEhpdHVuZyBQUGggMjE8L2I-LzI2IDxiPkthcnlhd2FuPC9iPiB5YW5nIE1lbWlsaWtpIE5QV1AgOyBQZW5naGFzaWxhbiBOZXRvIFNldGFodW4sID0gUnAxMC4wMDAuMDAwIHggMTIgYnVsYW4sID0gUnAxMjAuMDAwLjAwMCA7IFBUS1AgKFRLLzApLCA9IFJwNTQuIgIQAUgAWABoAA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=Ct0BL2dvdG8_dXJsPUNBRVNtUUVCNnpzd0ZVNy1nNzViSW05ZzlGbFRDX2RBalJGRXc1RUVyajVxZ1B0UnF6UzdtVHRuZ0lxRjR6bFA5VGN4VkJ3ZGUtQ2QyT3ZxT0JZQ3ZGNm9jSHdhZzFBOEFFYXFha3JGMEtqRTBXRzB6TzdlUFBHekRyUnlLSzJKUWdrVHZsVWw4UmY2Q0k0UjJXWHc1QWhfR0dmQmVNTkM2NmlEXzZ0dEd4elZYN25rbkRhVlVhTHVRT2xQMjNXQmJWR1lkMm9wMXdRdmRkcEZyelkSBBoCCAAauQUSAggAGgAiACoAMgYIARICaWQ6AEIECAEQJkoAWgByAHoAgkCTBQgmEAAYACAAKjkKBGNhcmEV2VIvQBoMcGVuZ2hpdHVuZ2FuGgtwZXJoaXR1bmdhbhoFcnVtdXMaCmNhcmFoaXR1bmcqUQoGaGl0dW5nFUHaLkAaCGhpdHVuZ2FuGgptZW5naGl0dW5nGgxwZW5naGl0dW5nYW4aC3BlcmhpdHVuZ2FuGgVydW11cxoKY2FyYWhpdHVuZyoRCgNwcGgVDqDEQBoFcHBoMjEqEAoCMjEVg_89QBoFcHBoMjEqGAoIa2FyeWF3YW4VriK1QBoHcGVnYXdhaTLdAS9nb3RvP3VybD1DQUVTbVFFQjZ6c3dGVTctZzc1YkltOWc5RmxUQ19kQWpSRkV3NUVFcmo1cWdQdFJxelM3bVR0bmdJcUY0emxQOVRjeFZCd2RlLUNkMk92cU9CWUN2RjZvY0h3YWcxQThBRWFxYWtyRjBLakUwV0cwek83ZVBQR3pEclJ5S0sySlFna1R2bFVsOFJmNkNJNFIyV1h3NUFoX0dHZkJlTU5DNjZpRF82dHRHeHpWWDdua25EYVZVYUx1UU9sUDIzV0JiVkdZZDJvcDF3UXZkZHBGcnpZOjlQYW5kdWFuIExlbmdrYXAgPGI-UFBoPC9iPiBQcmliYWRpIDxiPkthcnlhd2FuPC9iPiBTd2FzdGFCoAExLiA8Yj5DYXJhIEhpdHVuZyBQUGggMjE8L2I-LzI2IDxiPkthcnlhd2FuPC9iPiB5YW5nIE1lbWlsaWtpIE5QV1AgOyBQZW5naGFzaWxhbiBOZXRvIFNldGFodW4sID0gUnAxMC4wMDAuMDAwIHggMTIgYnVsYW4sID0gUnAxMjAuMDAwLjAwMCA7IFBUS1AgKFRLLzApLCA9IFJwNTQuIgIQAUgAWABoAA",
+      "source": "Mekari Klikpajak"
+    },
+    {
+      "position": 7,
+      "title": "Cara Menghitung PPh 21 Karyawan",
+      "link": "https://www.google.co.id/goto?url=CAEScgHrOzAVrtRp5mlMjTIPXTU3Vwt0qQqPXOZ991dt_JfcmTHqguGwXbJceg-5RZQlFA_RE-ZIAaUSLCp9gB8sh_sWYfRUMxqpPcFqdhWkU_wVWociWIv97qUzV3XSCIEE5YNZqthATOSks5tZeDs2puSZDQ",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAEScgHrOzAV8tPyQuYVLLUtuJhhxXejCZt6vxzX4vgZ9RaSEuARsa82t-3hK5AHa5Xp7Gu5f9dIu4DW6paIwdsUJP1C3vK4rZi5OjwgFZ5GOxX-LCh9OH8UpIcBHehj349SERfrJuzjxy1ToC5DYOSmZ1jf2A&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQFnoECDIQAQ&uoh=1",
+      "displayed_link": "https://catapa.com › blog › cara-menghitung-pph-21-ka...",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAdVBMVEVHcEwAyoMAzoYAyoQAzYUAyoMAzYgAyoMAyoMfjlwAyYMAzIUAyoMA0IdBFA0yJxg1Fg00Fg00GQ80GhAzHhIzHhIAyoQAyoMA1o8zGQ8Ay4QAy4QExYASqoEAyYMAyoMihVYdlmEPunkzFw4zIRQzIRQ0EwvsAl-_AAAAJ3RSTlMAeyS7S_4N05khNEFsXRJUIEIwZcXdpMYWsYvhVQOv70Vnop11_oN48BgiAAABSklEQVR4AX3JR2LrIAAFwEc1BtQ7NQ5G97_h7zWJMtvBW4TiCmGcCIL35E1yxXHXeMcI2xjVosPH-gHjOOLKNM241i_4gCTgK7b9gGs8sRv-EaI3q7UJR6Nc0sQaND8n7lw02854Ss3BlWE060wtfuIrpdn61bC4MCrUxn3MCr8Jh5e7sdtjbh7AayDJRvxrLB26gvnZtcAe8cYyluno8ZakMsvbXusM4wyjEr8ZeiPJUSHFWZEbsqlN46eIYIkISlnGS3FcaJLNZmAiAOFWbzVT3lhap1UzK_TakJuXAIKzEEnvAeJRO68t7iSRpFbDwJRJ693l6BnOOkqh8OL1azLKBegMy7tylgndUfsR7TFMMzbnvAHlm2sBtM86L7VflmUaxn5oqcW_Yq11qRMiPtJ92xNXvuX4WU648Kwfbhy7Z5l_Kec09PjuK2B-GiRrykR3AAAAAElFTkSuQmCC.png",
+      "date": "8 Sep 2021",
+      "snippet": "Perhitungan Persentase PPh 21 · PKP hingga Rp 50.000.000 memiliki tarif pajak 5% · PKP di antara Rp 50.000.000 hingga Rp 250.000.000 memiliki ...",
+      "snippet_highlighted_words": [
+        "Perhitungan",
+        "PPh 21"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "Perhitungan Persentase PPh 21 · PKP hingga Rp 50.000.000 memiliki tarif pajak 5% · PKP di antara Rp 50.000.000 hingga Rp 250.000.000 memiliki ...",
+          "source_info_link": "https://www.google.co.id/goto?url=CAEScgHrOzAVrtRp5mlMjTIPXTU3Vwt0qQqPXOZ991dt_JfcmTHqguGwXbJceg-5RZQlFA_RE-ZIAaUSLCp9gB8sh_sWYfRUMxqpPcFqdhWkU_wVWociWIv97qUzV3XSCIEE5YNZqthATOSks5tZeDs2puSZDQ",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAdVBMVEVHcEwAyoMAzoYAyoQAzYUAyoMAzYgAyoMAyoMfjlwAyYMAzIUAyoMA0IdBFA0yJxg1Fg00Fg00GQ80GhAzHhIzHhIAyoQAyoMA1o8zGQ8Ay4QAy4QExYASqoEAyYMAyoMihVYdlmEPunkzFw4zIRQzIRQ0EwvsAl-_AAAAJ3RSTlMAeyS7S_4N05khNEFsXRJUIEIwZcXdpMYWsYvhVQOv70Vnop11_oN48BgiAAABSklEQVR4AX3JR2LrIAAFwEc1BtQ7NQ5G97_h7zWJMtvBW4TiCmGcCIL35E1yxXHXeMcI2xjVosPH-gHjOOLKNM241i_4gCTgK7b9gGs8sRv-EaI3q7UJR6Nc0sQaND8n7lw02854Ss3BlWE060wtfuIrpdn61bC4MCrUxn3MCr8Jh5e7sdtjbh7AayDJRvxrLB26gvnZtcAe8cYyluno8ZakMsvbXusM4wyjEr8ZeiPJUSHFWZEbsqlN46eIYIkISlnGS3FcaJLNZmAiAOFWbzVT3lhap1UzK_TakJuXAIKzEEnvAeJRO68t7iSRpFbDwJRJ693l6BnOOkqh8OL1azLKBegMy7tylgndUfsR7TFMMzbnvAHlm2sBtM86L7VflmUaxn5oqcW_Yq11qRMiPtJ92xNXvuX4WU648Kwfbhy7Z5l_Kec09PjuK2B-GiRrykR3AAAAAElFTkSuQmCC.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CqgBL2dvdG8_dXJsPUNBRVNjZ0hyT3pBVnJ0UnA1bWxNalRJUFhUVTNWd3QwcVFxUFhPWjk5MWR0X0pmY21USHFndUd3WGJKY2VnLTVSWlFsRkFfUkUtWklBYVVTTENwOWdCOHNoX3NXWWZSVU14cXBQY0ZxZGhXa1Vfd1ZXb2NpV0l2OTdxVXpWM1hTQ0lFRTVZTlpxdGhBVE9Ta3M1dFplRHMycHVTWkRREgQaAggAGo8FEgAaACIAKgAyBggBEgJpZDoAQgQIARAmSgBaAHIAegCCQOsECCYQABgAIAAqOQoEY2FyYRUYM7RAGgxwZW5naGl0dW5nYW4aC3BlcmhpdHVuZ2FuGgVydW11cxoKY2FyYWhpdHVuZypRCgZoaXR1bmcVXMqvPxoIaGl0dW5nYW4aCm1lbmdoaXR1bmcaDHBlbmdoaXR1bmdhbhoLcGVyaGl0dW5nYW4aBXJ1bXVzGgpjYXJhaGl0dW5nKhEKA3BwaBXlaANBGgVwcGgyMSoQCgIyMRXlaANBGgVwcGgyMSoYCghrYXJ5YXdhbhW9gPpAGgdwZWdhd2FpMqgBL2dvdG8_dXJsPUNBRVNjZ0hyT3pBVnJ0UnA1bWxNalRJUFhUVTNWd3QwcVFxUFhPWjk5MWR0X0pmY21USHFndUd3WGJKY2VnLTVSWlFsRkFfUkUtWklBYVVTTENwOWdCOHNoX3NXWWZSVU14cXBQY0ZxZGhXa1Vfd1ZXb2NpV0l2OTdxVXpWM1hTQ0lFRTVZTlpxdGhBVE9Ta3M1dFplRHMycHVTWkRROjQ8Yj5DYXJhIE1lbmdoaXR1bmcgUFBoIDIxIEthcnlhd2FuPC9iPiB8IENBVEFQQSBCbG9nQrIBPGI-UGVyaGl0dW5nYW48L2I-IFBlcnNlbnRhc2UgPGI-UFBoIDIxPC9iPiAmbWlkZG90OyBQS1AgaGluZ2dhIFJwIDUwLjAwMC4wMDAgbWVtaWxpa2kgdGFyaWYgcGFqYWsgNSUgJm1pZGRvdDsgUEtQIGRpIGFudGFyYSBScCA1MC4wMDAuMDAwIGhpbmdnYSBScCAyNTAuMDAwLjAwMCBtZW1pbGlraSZuYnNwOy4uLiICEAFIAFgAaAA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CqgBL2dvdG8_dXJsPUNBRVNjZ0hyT3pBVnJ0UnA1bWxNalRJUFhUVTNWd3QwcVFxUFhPWjk5MWR0X0pmY21USHFndUd3WGJKY2VnLTVSWlFsRkFfUkUtWklBYVVTTENwOWdCOHNoX3NXWWZSVU14cXBQY0ZxZGhXa1Vfd1ZXb2NpV0l2OTdxVXpWM1hTQ0lFRTVZTlpxdGhBVE9Ta3M1dFplRHMycHVTWkRREgQaAggAGo8FEgAaACIAKgAyBggBEgJpZDoAQgQIARAmSgBaAHIAegCCQOsECCYQABgAIAAqOQoEY2FyYRUYM7RAGgxwZW5naGl0dW5nYW4aC3BlcmhpdHVuZ2FuGgVydW11cxoKY2FyYWhpdHVuZypRCgZoaXR1bmcVXMqvPxoIaGl0dW5nYW4aCm1lbmdoaXR1bmcaDHBlbmdoaXR1bmdhbhoLcGVyaGl0dW5nYW4aBXJ1bXVzGgpjYXJhaGl0dW5nKhEKA3BwaBXlaANBGgVwcGgyMSoQCgIyMRXlaANBGgVwcGgyMSoYCghrYXJ5YXdhbhW9gPpAGgdwZWdhd2FpMqgBL2dvdG8_dXJsPUNBRVNjZ0hyT3pBVnJ0UnA1bWxNalRJUFhUVTNWd3QwcVFxUFhPWjk5MWR0X0pmY21USHFndUd3WGJKY2VnLTVSWlFsRkFfUkUtWklBYVVTTENwOWdCOHNoX3NXWWZSVU14cXBQY0ZxZGhXa1Vfd1ZXb2NpV0l2OTdxVXpWM1hTQ0lFRTVZTlpxdGhBVE9Ta3M1dFplRHMycHVTWkRROjQ8Yj5DYXJhIE1lbmdoaXR1bmcgUFBoIDIxIEthcnlhd2FuPC9iPiB8IENBVEFQQSBCbG9nQrIBPGI-UGVyaGl0dW5nYW48L2I-IFBlcnNlbnRhc2UgPGI-UFBoIDIxPC9iPiAmbWlkZG90OyBQS1AgaGluZ2dhIFJwIDUwLjAwMC4wMDAgbWVtaWxpa2kgdGFyaWYgcGFqYWsgNSUgJm1pZGRvdDsgUEtQIGRpIGFudGFyYSBScCA1MC4wMDAuMDAwIGhpbmdnYSBScCAyNTAuMDAwLjAwMCBtZW1pbGlraSZuYnNwOy4uLiICEAFIAFgAaAA",
+      "source": "Catapa"
+    },
+    {
+      "position": 8,
+      "title": "Contoh Penghitungan PPh 21 DTP yang Bekerja Januari- ...",
+      "link": "https://www.google.co.id/goto?url=CAESlwEB6zswFVXsZ3cNWppd-BvgirLdkXiwJucH0ak7OKoT-59ganl6MIX7aZ1cNrIKM_ntOxJ055cxsbjj2QsdksD5IKk8tIsNXvTE-aPOEcNjtlK0MXPmGOIEdpuq75qSbRhGQQJMNuYO7dvyAxmN4G6CcA1eyeiX_Aq44NEL9mFU0vDx73y18o_Jfs7DckKxuAaUui8LCuoR",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESlwEB6zswFQykgyovTwq2cjiGOrFNTl60nb3dPesTzmqUd5K9wC7D9edQq6sCGPCkQgoSPfu7kSzHOdJg_9VAW5k7xVosw2_Aa_OzU9XRSH4kJvY43NG_8QCvp11oNB4amIGORbbLBz5f7HQ4FEGquyR9Z6DFb4GmKenZoc9gropKYa4HVW4HI8SpxLJjSO8XUq77S7xEoKMd&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQFnoECDYQAQ&uoh=1",
+      "displayed_link": "https://klikpajak.id › Blog",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAZlBMVEVHcEz8p1z4lEb3kkT7oFP3jT75m0_6pFn5mUz9sWj9smn3kkT4l0n7olb7pFn5nU_9r2b9smr6pVr-qlv3kEH9tGz8qmD6plv5nU_4mUv6o1b6oFP8rWT5m073lUb6pFj1iDf2jT1f6epbAAAAE3RSTlMAZ89tDKAeUDT8iX2ynEDm2bm9EWmTqQAAALpJREFUKJG90dsSgiAQBmBMDc1Ma5aDgArv_5It5DRDQJfuFTMfy_4AIefV9Y-1DrqSUQC4F6xB24YCXmBbliba_s1Qo63RqZ217REUScooT2ut--iEpqdozmAdQI2LEdu0qpKEAJQ8tNZKiSSiz9GB3tUuxh-sMb6U0mkhBE9ebwnD1Co4n9Ore9p9n6EJVoE456ZPjBB1ELtl8IVmDGOsySBF6tGeGSMkEGP5b6bBchN9PWbWVwU7r94djw7zaarawgAAAABJRU5ErkJggg.png",
+      "snippet": "a. Penghitungan PPh Pasal 21 terutang bulan Januari 2020 ; Penghasilan Neto Setahun: ; = 12 bulan x Rp15.670.000, = Rp188.040.000 ; = PTKP (K/1), = (Rp63.000.000).",
+      "snippet_highlighted_words": [
+        "Penghitungan PPh",
+        "21"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "a. Penghitungan PPh Pasal 21 terutang bulan Januari 2020 ; Penghasilan Neto Setahun: ; = 12 bulan x Rp15.670.000, = Rp188.040.000 ; = PTKP (K/1), = (Rp63.000.000).",
+          "source_info_link": "https://www.google.co.id/goto?url=CAESlwEB6zswFVXsZ3cNWppd-BvgirLdkXiwJucH0ak7OKoT-59ganl6MIX7aZ1cNrIKM_ntOxJ055cxsbjj2QsdksD5IKk8tIsNXvTE-aPOEcNjtlK0MXPmGOIEdpuq75qSbRhGQQJMNuYO7dvyAxmN4G6CcA1eyeiX_Aq44NEL9mFU0vDx73y18o_Jfs7DckKxuAaUui8LCuoR",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAZlBMVEVHcEz8p1z4lEb3kkT7oFP3jT75m0_6pFn5mUz9sWj9smn3kkT4l0n7olb7pFn5nU_9r2b9smr6pVr-qlv3kEH9tGz8qmD6plv5nU_4mUv6o1b6oFP8rWT5m073lUb6pFj1iDf2jT1f6epbAAAAE3RSTlMAZ89tDKAeUDT8iX2ynEDm2bm9EWmTqQAAALpJREFUKJG90dsSgiAQBmBMDc1Ma5aDgArv_5It5DRDQJfuFTMfy_4AIefV9Y-1DrqSUQC4F6xB24YCXmBbliba_s1Qo63RqZ217REUScooT2ut--iEpqdozmAdQI2LEdu0qpKEAJQ8tNZKiSSiz9GB3tUuxh-sMb6U0mkhBE9ebwnD1Co4n9Ore9p9n6EJVoE456ZPjBB1ELtl8IVmDGOsySBF6tGeGSMkEGP5b6bBchN9PWbWVwU7r94djw7zaarawgAAAABJRU5ErkJggg.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CtoBL2dvdG8_dXJsPUNBRVNsd0VCNnpzd0ZWWHNaM2NOV3BwZC1Cdmdpckxka1hpd0p1Y0gwYWs3T0tvVC01OWdhbmw2TUlYN2FaMWNOcklLTV9udE94SjA1NWN4c2JqajJRc2Rrc0Q1SUtrOHRJc05YdlRFLWFQT0VjTmp0bEswTVhQbUdPSUVkcHVxNzVxU2JSaEdRUUpNTnVZTzdkdnlBeG1ONEc2Q2NBMWV5ZWlYX0FxNDRORUw5bUZVMHZEeDczeTE4b19KZnM3RGNrS3h1QWFVdWk4TEN1b1ISBBoCCAAaygUSABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJApgUIJhAAGAAgACo5CgRjYXJhFT-K9D8aDHBlbmdoaXR1bmdhbhoLcGVyaGl0dW5nYW4aBXJ1bXVzGgpjYXJhaGl0dW5nKlEKBmhpdHVuZxUUFgxAGghoaXR1bmdhbhoKbWVuZ2hpdHVuZxoMcGVuZ2hpdHVuZ2FuGgtwZXJoaXR1bmdhbhoFcnVtdXMaCmNhcmFoaXR1bmcqEQoDcHBoFfaAzEAaBXBwaDIxKhAKAjIxFaQ-y0AaBXBwaDIxKhgKCGthcnlhd2FuFdcnqD8aB3BlZ2F3YWky2gEvZ290bz91cmw9Q0FFU2x3RUI2enN3RlZYc1ozY05XcHBkLUJ2Z2lyTGRrWGl3SnVjSDBhazdPS29ULTU5Z2FubDZNSVg3YVoxY05ySUtNX250T3hKMDU1Y3hzYmpqMlFzZGtzRDVJS2s4dElzTlh2VEUtYVBPRWNOanRsSzBNWFBtR09JRWRwdXE3NXFTYlJoR1FRSk1OdVlPN2R2eUF4bU40RzZDY0ExZXllaVhfQXE0NE5FTDltRlUwdkR4NzN5MThvX0pmczdEY2tLeHVBYVV1aThMQ3VvUjo-Q29udG9oIDxiPlBlbmdoaXR1bmdhbiBQUGggMjE8L2I-IERUUCB5YW5nIEJla2VyamEgSmFudWFyaSAuLi5CsQFhLiA8Yj5QZW5naGl0dW5nYW4gUFBoPC9iPiBQYXNhbCA8Yj4yMTwvYj4gdGVydXRhbmcgYnVsYW4gSmFudWFyaSAyMDIwIDsgUGVuZ2hhc2lsYW4gTmV0byBTZXRhaHVuOiA7ID0gMTIgYnVsYW4geCBScDE1LjY3MC4wMDAsID0gUnAxODguMDQwLjAwMCA7ID0gUFRLUCAoSy8xKSwgPSAoUnA2My4wMDAuMDAwKS4iAhABSABYAGgA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CtoBL2dvdG8_dXJsPUNBRVNsd0VCNnpzd0ZWWHNaM2NOV3BwZC1Cdmdpckxka1hpd0p1Y0gwYWs3T0tvVC01OWdhbmw2TUlYN2FaMWNOcklLTV9udE94SjA1NWN4c2JqajJRc2Rrc0Q1SUtrOHRJc05YdlRFLWFQT0VjTmp0bEswTVhQbUdPSUVkcHVxNzVxU2JSaEdRUUpNTnVZTzdkdnlBeG1ONEc2Q2NBMWV5ZWlYX0FxNDRORUw5bUZVMHZEeDczeTE4b19KZnM3RGNrS3h1QWFVdWk4TEN1b1ISBBoCCAAaygUSABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJApgUIJhAAGAAgACo5CgRjYXJhFT-K9D8aDHBlbmdoaXR1bmdhbhoLcGVyaGl0dW5nYW4aBXJ1bXVzGgpjYXJhaGl0dW5nKlEKBmhpdHVuZxUUFgxAGghoaXR1bmdhbhoKbWVuZ2hpdHVuZxoMcGVuZ2hpdHVuZ2FuGgtwZXJoaXR1bmdhbhoFcnVtdXMaCmNhcmFoaXR1bmcqEQoDcHBoFfaAzEAaBXBwaDIxKhAKAjIxFaQ-y0AaBXBwaDIxKhgKCGthcnlhd2FuFdcnqD8aB3BlZ2F3YWky2gEvZ290bz91cmw9Q0FFU2x3RUI2enN3RlZYc1ozY05XcHBkLUJ2Z2lyTGRrWGl3SnVjSDBhazdPS29ULTU5Z2FubDZNSVg3YVoxY05ySUtNX250T3hKMDU1Y3hzYmpqMlFzZGtzRDVJS2s4dElzTlh2VEUtYVBPRWNOanRsSzBNWFBtR09JRWRwdXE3NXFTYlJoR1FRSk1OdVlPN2R2eUF4bU40RzZDY0ExZXllaVhfQXE0NE5FTDltRlUwdkR4NzN5MThvX0pmczdEY2tLeHVBYVV1aThMQ3VvUjo-Q29udG9oIDxiPlBlbmdoaXR1bmdhbiBQUGggMjE8L2I-IERUUCB5YW5nIEJla2VyamEgSmFudWFyaSAuLi5CsQFhLiA8Yj5QZW5naGl0dW5nYW4gUFBoPC9iPiBQYXNhbCA8Yj4yMTwvYj4gdGVydXRhbmcgYnVsYW4gSmFudWFyaSAyMDIwIDsgUGVuZ2hhc2lsYW4gTmV0byBTZXRhaHVuOiA7ID0gMTIgYnVsYW4geCBScDE1LjY3MC4wMDAsID0gUnAxODguMDQwLjAwMCA7ID0gUFRLUCAoSy8xKSwgPSAoUnA2My4wMDAuMDAwKS4iAhABSABYAGgA",
+      "source": "Mekari Klikpajak"
+    }
+  ],
+  "related_searches": [
+    {
+      "block_position": 1,
+      "query": "Kalkulator PPh 21",
+      "link": "https://www.google.co.id/search?sca_esv=0960b8087080fe36&hl=id&gl=id&sxsrf=AKL5yDhxxkT6K3EYA6dBhflwlTKWTbqZQw:1793621513898&q=Kalkulator+PPh+21&sa=X&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQ1QJ6BAgxEAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=Kalkulator+PPh+21"
+    },
+    {
+      "block_position": 1,
+      "query": "Cara menghitung PPh 21",
+      "link": "https://www.google.co.id/search?sca_esv=0960b8087080fe36&hl=id&gl=id&sxsrf=AKL5yDhxxkT6K3EYA6dBhflwlTKWTbqZQw:1793621513898&q=Cara+menghitung+PPh+21&sa=X&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQ1QJ6BAhMEAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=Cara+menghitung+PPh+21"
+    },
+    {
+      "block_position": 1,
+      "query": "Cara menghitung PPh 21 per bulan",
+      "link": "https://www.google.co.id/search?sca_esv=0960b8087080fe36&hl=id&gl=id&sxsrf=AKL5yDhxxkT6K3EYA6dBhflwlTKWTbqZQw:1793621513898&q=Cara+menghitung+PPh+21+per+bulan&sa=X&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQ1QJ6BAhNEAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=Cara+menghitung+PPh+21+per+bulan"
+    },
+    {
+      "block_position": 1,
+      "query": "Kalkulator PPh 21 Excel",
+      "link": "https://www.google.co.id/search?sca_esv=0960b8087080fe36&hl=id&gl=id&sxsrf=AKL5yDhxxkT6K3EYA6dBhflwlTKWTbqZQw:1793621513898&q=Kalkulator+PPh+21+Excel&sa=X&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQ1QJ6BAhLEAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=Kalkulator+PPh+21+Excel"
+    },
+    {
+      "block_position": 1,
+      "query": "PTKP PPh 21",
+      "link": "https://www.google.co.id/search?sca_esv=0960b8087080fe36&hl=id&gl=id&sxsrf=AKL5yDhxxkT6K3EYA6dBhflwlTKWTbqZQw:1793621513898&q=PTKP+PPh+21&sa=X&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQ1QJ6BAhEEAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=PTKP+PPh+21"
+    },
+    {
+      "block_position": 1,
+      "query": "Perhitungan PPh 21 tahun 2022",
+      "link": "https://www.google.co.id/search?sca_esv=0960b8087080fe36&hl=id&gl=id&sxsrf=AKL5yDhxxkT6K3EYA6dBhflwlTKWTbqZQw:1793621513898&q=Perhitungan+PPh+21+tahun+2022&sa=X&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQ1QJ6BAg_EAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=Perhitungan+PPh+21+tahun+2022"
+    },
+    {
+      "block_position": 1,
+      "query": "Potongan PPh 21 Karyawan",
+      "link": "https://www.google.co.id/search?sca_esv=0960b8087080fe36&hl=id&gl=id&sxsrf=AKL5yDhxxkT6K3EYA6dBhflwlTKWTbqZQw:1793621513898&q=Potongan+PPh+21+Karyawan&sa=X&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQ1QJ6BAg8EAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=Potongan+PPh+21+Karyawan"
+    },
+    {
+      "block_position": 1,
+      "query": "PPh 21 berapa persen",
+      "link": "https://www.google.co.id/search?sca_esv=0960b8087080fe36&hl=id&gl=id&sxsrf=AKL5yDhxxkT6K3EYA6dBhflwlTKWTbqZQw:1793621513898&q=PPh+21+berapa+persen&sa=X&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQ1QJ6BAg1EAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=PPh+21+berapa+persen"
+    }
+  ],
+  "pagination": {
+    "current": 1,
+    "next": "https://www.google.co.id/search?q=cara+hitung+pph+21+karyawan&sca_esv=0960b8087080fe36&hl=id&gl=id&sxsrf=AKL5yDhxxkT6K3EYA6dBhflwlTKWTbqZQw:1793621513898&ei=CX7oat6qNretptQPid-euAE&start=10&sa=N&sstk=AS6-VmI9JZL01_yvAnnEQcylTaTSGHOmn_RfdEv0LB_biS_ztGA2lVC_191PVrL479RishdIyfzDhCN4jAY5SEKN-_cd2WU_GHQYHA&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQ8NMDegQILxAW",
+    "other_pages": {
+      "2": "https://www.google.co.id/search?q=cara+hitung+pph+21+karyawan&sca_esv=0960b8087080fe36&hl=id&gl=id&sxsrf=AKL5yDhxxkT6K3EYA6dBhflwlTKWTbqZQw:1793621513898&ei=CX7oat6qNretptQPid-euAE&start=10&sa=N&sstk=AS6-VmI9JZL01_yvAnnEQcylTaTSGHOmn_RfdEv0LB_biS_ztGA2lVC_191PVrL479RishdIyfzDhCN4jAY5SEKN-_cd2WU_GHQYHA&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQ8tMDegQILxAE",
+      "3": "https://www.google.co.id/search?q=cara+hitung+pph+21+karyawan&sca_esv=0960b8087080fe36&hl=id&gl=id&sxsrf=AKL5yDhxxkT6K3EYA6dBhflwlTKWTbqZQw:1793621513898&ei=CX7oat6qNretptQPid-euAE&start=20&sa=N&sstk=AS6-VmI9JZL01_yvAnnEQcylTaTSGHOmn_RfdEv0LB_biS_ztGA2lVC_191PVrL479RishdIyfzDhCN4jAY5SEKN-_cd2WU_GHQYHA&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQ8tMDegQILxAG",
+      "4": "https://www.google.co.id/search?q=cara+hitung+pph+21+karyawan&sca_esv=0960b8087080fe36&hl=id&gl=id&sxsrf=AKL5yDhxxkT6K3EYA6dBhflwlTKWTbqZQw:1793621513898&ei=CX7oat6qNretptQPid-euAE&start=30&sa=N&sstk=AS6-VmI9JZL01_yvAnnEQcylTaTSGHOmn_RfdEv0LB_biS_ztGA2lVC_191PVrL479RishdIyfzDhCN4jAY5SEKN-_cd2WU_GHQYHA&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQ8tMDegQILxAI",
+      "5": "https://www.google.co.id/search?q=cara+hitung+pph+21+karyawan&sca_esv=0960b8087080fe36&hl=id&gl=id&sxsrf=AKL5yDhxxkT6K3EYA6dBhflwlTKWTbqZQw:1793621513898&ei=CX7oat6qNretptQPid-euAE&start=40&sa=N&sstk=AS6-VmI9JZL01_yvAnnEQcylTaTSGHOmn_RfdEv0LB_biS_ztGA2lVC_191PVrL479RishdIyfzDhCN4jAY5SEKN-_cd2WU_GHQYHA&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQ8tMDegQILxAK",
+      "6": "https://www.google.co.id/search?q=cara+hitung+pph+21+karyawan&sca_esv=0960b8087080fe36&hl=id&gl=id&sxsrf=AKL5yDhxxkT6K3EYA6dBhflwlTKWTbqZQw:1793621513898&ei=CX7oat6qNretptQPid-euAE&start=50&sa=N&sstk=AS6-VmI9JZL01_yvAnnEQcylTaTSGHOmn_RfdEv0LB_biS_ztGA2lVC_191PVrL479RishdIyfzDhCN4jAY5SEKN-_cd2WU_GHQYHA&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQ8tMDegQILxAM",
+      "7": "https://www.google.co.id/search?q=cara+hitung+pph+21+karyawan&sca_esv=0960b8087080fe36&hl=id&gl=id&sxsrf=AKL5yDhxxkT6K3EYA6dBhflwlTKWTbqZQw:1793621513898&ei=CX7oat6qNretptQPid-euAE&start=60&sa=N&sstk=AS6-VmI9JZL01_yvAnnEQcylTaTSGHOmn_RfdEv0LB_biS_ztGA2lVC_191PVrL479RishdIyfzDhCN4jAY5SEKN-_cd2WU_GHQYHA&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQ8tMDegQILxAO",
+      "8": "https://www.google.co.id/search?q=cara+hitung+pph+21+karyawan&sca_esv=0960b8087080fe36&hl=id&gl=id&sxsrf=AKL5yDhxxkT6K3EYA6dBhflwlTKWTbqZQw:1793621513898&ei=CX7oat6qNretptQPid-euAE&start=70&sa=N&sstk=AS6-VmI9JZL01_yvAnnEQcylTaTSGHOmn_RfdEv0LB_biS_ztGA2lVC_191PVrL479RishdIyfzDhCN4jAY5SEKN-_cd2WU_GHQYHA&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQ8tMDegQILxAQ",
+      "9": "https://www.google.co.id/search?q=cara+hitung+pph+21+karyawan&sca_esv=0960b8087080fe36&hl=id&gl=id&sxsrf=AKL5yDhxxkT6K3EYA6dBhflwlTKWTbqZQw:1793621513898&ei=CX7oat6qNretptQPid-euAE&start=80&sa=N&sstk=AS6-VmI9JZL01_yvAnnEQcylTaTSGHOmn_RfdEv0LB_biS_ztGA2lVC_191PVrL479RishdIyfzDhCN4jAY5SEKN-_cd2WU_GHQYHA&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQ8tMDegQILxAS",
+      "10": "https://www.google.co.id/search?q=cara+hitung+pph+21+karyawan&sca_esv=0960b8087080fe36&hl=id&gl=id&sxsrf=AKL5yDhxxkT6K3EYA6dBhflwlTKWTbqZQw:1793621513898&ei=CX7oat6qNretptQPid-euAE&start=90&sa=N&sstk=AS6-VmI9JZL01_yvAnnEQcylTaTSGHOmn_RfdEv0LB_biS_ztGA2lVC_191PVrL479RishdIyfzDhCN4jAY5SEKN-_cd2WU_GHQYHA&ved=2ahUKEwie08npoOmXAxW3lokEHYmvBxcQ8tMDegQILxAU"
+    }
+  },
+  "serpapi_pagination": {
+    "current": 1,
+    "next_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=cara+hitung+pph+21+karyawan&start=10",
+    "next": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=cara+hitung+pph+21+karyawan&start=10",
+    "other_pages": {
+      "2": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=cara+hitung+pph+21+karyawan&start=10",
+      "3": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=cara+hitung+pph+21+karyawan&start=20",
+      "4": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=cara+hitung+pph+21+karyawan&start=30",
+      "5": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=cara+hitung+pph+21+karyawan&start=40",
+      "6": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=cara+hitung+pph+21+karyawan&start=50",
+      "7": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=cara+hitung+pph+21+karyawan&start=60",
+      "8": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=cara+hitung+pph+21+karyawan&start=70",
+      "9": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=cara+hitung+pph+21+karyawan&start=80",
+      "10": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=cara+hitung+pph+21+karyawan&start=90"
+    }
+  },
+  "serpapi_calls_count": 1
+}

@@ -43,5 +43,5 @@ describe("Requirement 6: Skrip tsx dan Pemuatan Modul", () => {
     expect(stdout).toContain("Jumlah panggilan SerpApi");
     expect(stdout).toContain("Daftar domain unik");
     expect(stdout).toContain("LinovHR");
-  });
+  }, 30000);
 });

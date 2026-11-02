@@ -178,29 +178,29 @@ describe("Fase 2: Parser & Klien SerpApi dengan Fixture Asli", () => {
     expect(extractDomainFromUrl("bukan-url")).toBe("");
   });
 
-  it("mengurai tautan perantara Google (parameter q=, url=, encoded, dan path relatif)", () => {
-    // Parameter q pada www.google.co.id
+  it("mengurai tautan perantara Google (pengaman defensif: parameter q=, url=, encoded, dan path relatif)", () => {
+    // Pengaman defensif: parameter q pada www.google.co.id
     expect(
       unwrapGoogleUrl(
         "https://www.google.co.id/url?q=https://linovhr.com/fitur-payroll&sa=U&ved=2ahUKEwj"
       )
     ).toBe("https://linovhr.com/fitur-payroll");
 
-    // Parameter q yang di-URL encode
+    // Pengaman defensif: parameter q yang di-URL encode
     expect(
       unwrapGoogleUrl(
         "https://www.google.com/url?q=https%3A%2F%2Ftalenta.co%2Fdemo&sa=U"
       )
     ).toBe("https://talenta.co/demo");
 
-    // Parameter url pada google.com
+    // Pengaman defensif: parameter url pada google.com
     expect(
       unwrapGoogleUrl(
         "https://www.google.com/url?url=https://www.gadjian.com/fitur"
       )
     ).toBe("https://www.gadjian.com/fitur");
 
-    // Path relatif /url?q=...
+    // Pengaman defensif: path relatif /url?q=...
     expect(
       unwrapGoogleUrl("/url?q=https%3A%2F%2Fdataon.com%2Fhris")
     ).toBe("https://dataon.com/hris");
@@ -343,6 +343,78 @@ describe("Fase 2: Parser & Klien SerpApi dengan Fixture Asli", () => {
 
     // notlinovhr.com bukan is_own
     expect(evaluation.sources[3]?.is_own).toBe(false);
+  });
+
+  it("mengurai fixture asli software-hr-terbaik.json dan mendeteksi domain nyata termasuk linovhr.com", () => {
+    const raw = loadFixture("software-hr-terbaik.json");
+    const parsed = parseSerpApiResponse(raw);
+
+    expect(parsed.hasAiOverview).toBe(true);
+    // 7 referensi mentah, 2 adalah YouTube (1 duplikat terdeduplikasi) -> 6 sumber unik
+    expect(parsed.sources.length).toBeGreaterThanOrEqual(6);
+
+    const domains = parsed.sources.map((s) => s.domain);
+    // Pastikan TIDAK ADA domain www.google.co.id
+    expect(domains).not.toContain("www.google.co.id");
+    expect(domains).not.toContain("google.co.id");
+
+    // Pastikan domain nyata terbaca
+    expect(domains).toContain("www.talenta.co");
+    expect(domains).toContain("jobseeker.software");
+    expect(domains).toContain("www.hashmicro.com");
+    expect(domains).toContain("jubelio.com");
+    expect(domains).toContain("www.linovhr.com");
+    expect(domains).toContain("www.youtube.com");
+
+    const evaluation = evaluateAiOverviewDetection(parsed, {
+      brandDomain: "linovhr.com",
+      competitorDomains: ["talenta.co", "hashmicro.com"],
+    });
+
+    expect(evaluation.status).toBe("detected");
+    expect(evaluation.detected_domain).toBe(true);
+    expect(evaluation.detected_text).toBe(true);
+    expect(evaluation.matched_terms).toContain("LinovHR");
+
+    const linovSource = evaluation.sources.find((s) => s.domain === "www.linovhr.com");
+    expect(linovSource?.is_own).toBe(true);
+
+    const talentaSource = evaluation.sources.find((s) => s.domain === "www.talenta.co");
+    expect(talentaSource?.is_competitor).toBe(true);
+  });
+
+  it("mengurai fixture asli cara-hitung-pph-21-karyawan.json dan menghasilkan domain-domain nyata", () => {
+    const raw = loadFixture("cara-hitung-pph-21-karyawan.json");
+    const parsed = parseSerpApiResponse(raw);
+
+    expect(parsed.hasAiOverview).toBe(true);
+    expect(parsed.sources).toHaveLength(12);
+
+    const domains = new Set(parsed.sources.map((s) => s.domain));
+    // Domain unik harus lebih dari 10 domain nyata
+    expect(domains.size).toBeGreaterThanOrEqual(10);
+
+    expect(domains.has("ortax.org")).toBe(true);
+    expect(domains.has("pegadaian.co.id")).toBe(true);
+    expect(domains.has("kalkulator.pajak.go.id")).toBe(true);
+    expect(domains.has("klikpajak.id")).toBe(true);
+    expect(domains.has("pbtaxand.com")).toBe(true);
+    expect(domains.has("www.talenta.co")).toBe(true);
+    expect(domains.has("ayopajak.com")).toBe(true);
+    expect(domains.has("www.facebook.com")).toBe(true);
+    expect(domains.has("djpb.kemenkeu.go.id")).toBe(true);
+
+    // Ref 3 (Kemenkeu Learning Center) yang tetap berdomain Google ditandai is_google_internal
+    const internalSource = parsed.sources.find((s) => s.domain === "www.google.co.id");
+    expect(internalSource).toBeDefined();
+    expect(internalSource?.is_google_internal).toBe(true);
+
+    const evaluation = evaluateAiOverviewDetection(parsed, {
+      brandDomain: "linovhr.com",
+    });
+
+    // Google internal tidak dianggap is_own
+    expect(evaluation.detected_domain).toBe(false);
   });
 
   it("memastikan deteksi domain menolak notlinovhr.com jika linovhr.com tidak ada", () => {
