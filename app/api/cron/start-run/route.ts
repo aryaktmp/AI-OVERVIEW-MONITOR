@@ -6,6 +6,7 @@ import {
   createSupabaseQueueStore,
   startCheckRun,
 } from "@/lib/queue";
+import { rotateActiveKeywordBatch } from "@/lib/keyword-batches";
 
 export const dynamic = "force-dynamic";
 
@@ -20,13 +21,25 @@ async function handleStartRun(request: Request) {
   try {
     const supabase = createSupabaseAdminClient();
     const store = createSupabaseQueueStore(supabase);
+
+    const url = new URL(request.url);
+    // Jadwal mingguan otomatis (Senin) secara bawaan merotasi batch kecuali diberikan parameter ?rotate=false
+    const shouldRotate = url.searchParams.get("rotate") !== "false";
+    let batchRotation = null;
+
+    if (shouldRotate) {
+      batchRotation = await rotateActiveKeywordBatch(supabase, {
+        actorId: "system:cron",
+      });
+    }
+
     const [result, cleanedRawCount] = await Promise.all([
       startCheckRun(store),
       cleanupExpiredRawPayloads(supabase, 90).catch(() => 0),
     ]);
 
     return NextResponse.json(
-      { ...result, cleanedRawCount },
+      { ...result, cleanedRawCount, batchRotation },
       { status: 200, headers: { "Cache-Control": "no-store, max-age=0" } }
     );
   } catch (err) {

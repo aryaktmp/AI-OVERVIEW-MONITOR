@@ -144,3 +144,41 @@ Berdasarkan investigasi respons langsung Google SerpApi pada kueri nyata ("softw
    - Karena URL berbasis asal situs dari domain yang sama memiliki URL dasar yang identik (misalnya beberapa video YouTube dari channel berbeda), kunci deduplikasi menggunakan gabungan URL ternormalisasi dan judul referensi (`${normUrl}::${title}`).
 4. **Kebijakan Nilai Source Tak Dikenal**:
    - Nilai `source` yang tidak ada di daftar pemetaan platform (`KNOWN_SOURCE_PLATFORMS`) tidak ditebak menjadi domain dan ditandai `is_unresolved: true`, sehingga dikecualikan dari deteksi domain, peringkat kompetitor, dan tingkat 3 (seperti perlakuan pada referensi internal Google).
+
+## 11. Implementasi Fase Data: Sistem Batch Keyword & Penjadwalan Mingguan (2 November 2026)
+
+Untuk mendukung pemantauan berkala dan rotasi keyword mingguan:
+1. **Entitas `keyword_batches`**:
+   - Kolom: `id` (uuid PK), `name` (text), `description` (text), `order_index` (int unique), `is_active` (boolean), `is_enabled` (boolean), `is_demo` (boolean), `created_at`, `updated_at`.
+   - **Indeks Unik Parsial**: `CREATE UNIQUE INDEX keyword_batches_single_active_idx ON public.keyword_batches (is_active) WHERE is_active = true;` menjamin di level basis data bahwa maksimal hanya ada SATU batch berstatus aktif secara bersamaan.
+2. **Koneksi Relasi dengan `keywords`**:
+   - Menambahkan kolom `keywords.batch_id` (uuid FK) merujuk ke `keyword_batches.id` dengan aturan `ON DELETE SET NULL`.
+   - Dilengkapi indeks `keywords_batch_id_idx` dan `keywords_batch_id_active_idx` untuk performa kueri antrean dan filter per batch.
+3. **Pengaturan & Audit Trail (`batch_schedule_settings` & `batch_audit_logs`)**:
+   - `batch_schedule_settings`: menyimpan konfigurasi mode rotasi (`auto` vs `manual_frozen`) dan penanda waktu `override_until`.
+   - `batch_audit_logs`: merekam audit trail setiap perpindahan batch (`previous_batch_id`, `new_batch_id`, `trigger_type`, `actor_id`, `notes`).
+4. **Row Level Security (RLS)**:
+   - Ketiga tabel baru dilengkapi RLS dan kebijakan izin baca (`SELECT`) untuk role `authenticated`.
+5. **Inisialisasi Data Migrasi**:
+   - Menginisialisasi Batch 1 (aktif), Batch 2, dan Batch 3, serta memigrasikan seluruh keyword eksisting yang belum memiliki batch ke Batch 1 agar sistem tetap berfungsi penuh (*zero-downtime & backward-compatible*).
+
+## 12. Implementasi Fase Logika: Rotasi Otomatis, Kontrol Manual, & Search Filtering (2 November 2026)
+
+Menerapkan aturan bisnis dan orkestrasi pemrosesan batch keyword:
+1. **Rotasi Batch Otomatis (`rotateActiveKeywordBatch`)**:
+   - Berjalan secara *sequential round-robin* (`Batch 1 -> Batch 2 -> Batch 3 -> Batch 1`) berdasarkan `order_index ASC`.
+   - **Penanganan Edge Case Batch Kosong (*Skip Empty Batch*)**: Sistem otomatis menyaring batch yang memiliki `activeKeywords > 0`. Jika sebuah batch kosong, rotasi melompat ke batch valid berikutnya. Jika semua batch kosong, sistem mempertahankan batch aktif saat ini dan mencatat peringatan di audit log.
+   - **Penanganan Edge Case Overlap Jadwal**: Sebelum merotasi, sistem memeriksa apakah ada run berstatus `running` di `check_runs`. Jika masih berjalan, rotasi ditunda (`skipped_running_run`) guna mencegah tumpang tindih data.
+   - **Mode Manual Frozen & Override Until**: Jika mode `manual_frozen` aktif, rotasi rutin dilewati (kecuali dipaksa dengan flag `force: true`). Jika terdapat `override_until` yang telah kedaluwarsa, pengaturan otomatis dinormalisasi kembali ke mode `auto`.
+2. **Kontrol Manual Admin (`overrideActiveKeywordBatch` & `setBatchScheduleMode`)**:
+   - Admin dapat memilih batch tujuan secara eksplisit.
+   - Pergantian batch aktif dilakukan secara transaksional dengan audit trail lengkap (`trigger_type: 'admin_override'`).
+   - Mendukung opsi pembekuan mode (`freezeMode: true`) atau override sementara dengan batas waktu (`overrideUntil`).
+3. **Filter Antrean Search Berbasis Batch Aktif (`lib/queue.ts`)**:
+   - `createSupabaseQueueStore.getActiveKeywords`: secara bawaan mengambil keyword aktif dari batch yang sedang `is_active = true`. Jika tidak ada batch aktif, sistem menyediakan fallback ke seluruh keyword aktif untuk menjaga kompatibilitas.
+   - Menyediakan cache in-memory jangka pendek dengan invalidasi instan (`invalidateActiveKeywordBatchCache`) setiap kali terjadi pergantian batch untuk menjamin *zero-downtime switch*.
+4. **Integrasi Endpoint Cron Mingguan**:
+   - `app/api/cron/start-run/route.ts`: secara otomatis memicu rotasi batch sebelum memulai pemindaian mingguan hari Senin (`?rotate=false` untuk melewatinya).
+   - Menambahkan rute terdedikasi `app/api/cron/rotate-batch/route.ts` untuk pemanggilan rotasi independen via webhook/cron.
+
+

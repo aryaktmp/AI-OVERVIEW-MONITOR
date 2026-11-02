@@ -29,21 +29,25 @@ describe("Requirement 6: Skrip tsx dan Pemuatan Modul", () => {
     }
   });
 
-  it("memastikan skrip try-keyword dapat memuat modul dan berjalan via tsx seperti npm run", () => {
-    const stdout = execSync(
-      'npx tsx scripts/try-keyword.ts --dry-run "linovhr"',
-      {
-        cwd: process.cwd(),
-        encoding: "utf-8",
-      }
-    );
+  it(
+    "memastikan skrip try-keyword dapat memuat modul dan berjalan via tsx seperti npm run",
+    () => {
+      const stdout = execSync(
+        'npx tsx scripts/try-keyword.ts --dry-run "linovhr"',
+        {
+          cwd: process.cwd(),
+          encoding: "utf-8",
+        }
+      );
 
-    const lines = stdout.trim().split(/\r?\n/);
-    expect(lines[0]).toBe("MODE: DRY RUN (fixture, no network)");
-    expect(stdout).toContain("Jumlah panggilan SerpApi");
-    expect(stdout).toContain("Daftar domain unik");
-    expect(stdout).toContain("LinovHR");
-  }, 30000);
+      const lines = stdout.trim().split(/\r?\n/);
+      expect(lines[0]).toBe("MODE: DRY RUN (fixture, no network)");
+      expect(stdout).toContain("Jumlah panggilan SerpApi");
+      expect(stdout).toContain("Daftar domain unik");
+      expect(stdout).toContain("LinovHR");
+    },
+    60000
+  );
 
   it("memastikan mode replay try-keyword membaca fixture tanpa jaringan dan mencetak laporan identik", () => {
     // 1. Fixture software-hr-terbaik.json

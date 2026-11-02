@@ -85,7 +85,7 @@ export interface RunSummary {
 
 export interface QueueStore {
   getRunningCheckRun(): Promise<CheckRunRecord | null>;
-  getActiveKeywords(): Promise<KeywordRecord[]>;
+  getActiveKeywords(batchId?: string): Promise<KeywordRecord[]>;
   createCheckRun(
     total: number,
     nowIso: string,
@@ -293,26 +293,49 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
       return data[0] as CheckRunRecord;
     },
 
-    async getActiveKeywords(): Promise<KeywordRecord[]> {
-      const withDemoRes = await supabase
-        .from("keywords")
-        .select("id, text, active, is_demo")
-        .eq("active", true)
-        .order("created_at", { ascending: true });
+    async getActiveKeywords(batchId?: string): Promise<KeywordRecord[]> {
+      let activeBatchId = batchId;
+      if (!activeBatchId) {
+        try {
+          const { data: activeBatch } = await supabase
+            .from("keyword_batches")
+            .select("id")
+            .eq("is_active", true)
+            .maybeSingle();
 
-      if (!withDemoRes.error && withDemoRes.data) {
-        return withDemoRes.data as KeywordRecord[];
+          if (activeBatch?.id) {
+            activeBatchId = activeBatch.id;
+          }
+        } catch {
+          // Abaikan jika tabel keyword_batches belum ada
+        }
       }
 
-      const { data, error } = await supabase
+      let query = supabase
+        .from("keywords")
+        .select("id, text, active, is_demo, batch_id")
+        .eq("active", true);
+
+      if (activeBatchId) {
+        query = query.eq("batch_id", activeBatchId);
+      }
+
+      const { data, error } = await query.order("created_at", { ascending: true });
+
+      if (!error && data) {
+        return data as KeywordRecord[];
+      }
+
+      const { data: fallbackData, error: fallbackError } = await supabase
         .from("keywords")
         .select("id, text, active")
         .eq("active", true)
         .order("created_at", { ascending: true });
-      if (error) {
-        throw new Error(`Gagal membaca keywords aktif: ${error.message}`);
+
+      if (fallbackError) {
+        throw new Error(`Gagal membaca keywords aktif: ${fallbackError.message}`);
       }
-      return ((data ?? []) as KeywordRecord[]).map((kw) => ({
+      return ((fallbackData ?? []) as KeywordRecord[]).map((kw) => ({
         ...kw,
         is_demo: isKnownDemoKeywordText(kw.text),
       }));
@@ -822,6 +845,7 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
 
 export interface StartRunOptions {
   isDemo?: boolean;
+  batchId?: string;
 }
 
 export type StartRunResult =
@@ -885,7 +909,7 @@ export async function startCheckRun(
 
   const isDemo = options.isDemo ?? isDryRun();
 
-  const allActiveKeywords = await store.getActiveKeywords();
+  const allActiveKeywords = await store.getActiveKeywords(options.batchId);
   // Saat SERPAPI_DRY_RUN=false (isDemo === false), abaikan keyword dengan is_demo = true
   const activeKeywords = isDemo
     ? allActiveKeywords
