@@ -1,0 +1,607 @@
+{
+  "search_parameters": {
+    "engine": "google",
+    "q": "software hr terbaik",
+    "location_requested": "Indonesia",
+    "location_used": "Indonesia",
+    "google_domain": "google.co.id",
+    "hl": "id",
+    "gl": "id",
+    "device": "desktop"
+  },
+  "search_information": {
+    "query_displayed": "software hr terbaik",
+    "total_results": 116,
+    "time_taken_displayed": 0.19,
+    "organic_results_state": "Results for exact spelling"
+  },
+  "related_questions": [
+    {
+      "question": "Software HRIS itu apa?",
+      "type": "ai_overview",
+      "page_token": "XM5finicHdBdboIwAADg7DI-ilXnoolZhlCxDpRiW-jLQluxhPITbUR52112qp1myb4jfN8_pmyq3xeure1uK8fp-358aduLOY9lOy6Vk9-ejXRkbozIZbVavC3AeyHX_q13N23vxgT7mVGGMeXGM1OpgVYUICSo2kiALasxpdMoz6Z2qpiGrEKTyEMgBzwPfZuT4GNg1DXixDs58Osno4n06SZL0Sb0NSZmCbK6K_HkcQuniOLqESUBbgRAJK70QQbuSUxUyjx9pIOaJ1tE8xRz4WkjG36PZhjRoH0lJOqFD-25iTD3oE_hLoFDtM_qpZYBPCZmSahHDwK4NgUahxDybYncxJ_3-KTgKQFF-AQ7BVQXpfFTpJoriPeU9AAz0J1J14wKeV_PRv9j66-itqvu2l7-ADfueRA",
+      "serpapi_ai_overview_link": "https://serpapi.com/search.json?engine=google_ai_overview&page_token=XM5finicHdBdboIwAADg7DI-ilXnoolZhlCxDpRiW-jLQluxhPITbUR52112qp1myb4jfN8_pmyq3xeure1uK8fp-358aduLOY9lOy6Vk9-ejXRkbozIZbVavC3AeyHX_q13N23vxgT7mVGGMeXGM1OpgVYUICSo2kiALasxpdMoz6Z2qpiGrEKTyEMgBzwPfZuT4GNg1DXixDs58Osno4n06SZL0Sb0NSZmCbK6K_HkcQuniOLqESUBbgRAJK70QQbuSUxUyjx9pIOaJ1tE8xRz4WkjG36PZhjRoH0lJOqFD-25iTD3oE_hLoFDtM_qpZYBPCZmSahHDwK4NgUahxDybYncxJ_3-KTgKQFF-AQ7BVQXpfFTpJoriPeU9AAz0J1J14wKeV_PRv9j66-itqvu2l7-ADfueRA",
+      "next_page_token": "eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJSRVJpVjJWaE9UaFhRMlo0Y21sck1FaEZTVUpXV2xoNFFVTnVhR28zT1RSQ2NGa3pjbnBDYURFdFdrcFNVRXN5TVRaUFVHRk1ObU5UWlZodVJ6VjJNWEpmY1VwNlZHOHdjbXhtU0RjMkxWRlFiV2czVkVsb2VFcHROMEpUVDNac1VSSVhNMHBpYjJGd2NVOUtYMVJVTlU1dlVHMWZXRkV3VVZrYUlrRklUakJGTjBaTmExQk9TWGRaT0hCUWJISnNUMDVrYXpkc1ZWQnNkMmhOWkdjIiwiZmN2IjoiMyIsImVpIjoiM0pib2FwcU9KX1RUNU5vUG1fWFEwUVkiLCJxYyI6IkNoTnpiMlowZDJGeVpTQm9jaUIwWlhKaVlXbHJFQ1o5bGtNclA2SUJBbWxrIiwicXVlc3Rpb24iOiJTb2Z0d2FyZSBIUklTIGl0dSBhcGE/IiwibGsiOiJHaFZ6YjJaMGQyRnlaU0JvY21seklHbDBkU0JoY0dFIiwiYnMiOiJjLU15NUJJTHprOHJLVThzU2xYd0NQSU1Wc2dzS1ZWSUxFaTBOeEtYRWkyR3lXUVVaUmJEWkxpQVdqeWNGVklTODRBYUZKSlNnWXpLUkxpV2pHU3dURVlSc2d5WEpwZVFVMm9Sa0tXUWxKa0lGQVBaWkc4a0xDV1loQ3dLc2dWa3VtTkJUbVoyWW5HbVFyQ0xMMGk3UW5GaUZzVDBSSmhNY1VvdVhFYUFFUUEiLCJpZCI6ImZjXzNKYm9hcHFPSl9UVDVOb1BtX1hRMFFZXzUifQ==",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_related_questions&google_domain=google.com&next_page_token=eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJSRVJpVjJWaE9UaFhRMlo0Y21sck1FaEZTVUpXV2xoNFFVTnVhR28zT1RSQ2NGa3pjbnBDYURFdFdrcFNVRXN5TVRaUFVHRk1ObU5UWlZodVJ6VjJNWEpmY1VwNlZHOHdjbXhtU0RjMkxWRlFiV2czVkVsb2VFcHROMEpUVDNac1VSSVhNMHBpYjJGd2NVOUtYMVJVTlU1dlVHMWZXRkV3VVZrYUlrRklUakJGTjBaTmExQk9TWGRaT0hCUWJISnNUMDVrYXpkc1ZWQnNkMmhOWkdjIiwiZmN2IjoiMyIsImVpIjoiM0pib2FwcU9KX1RUNU5vUG1fWFEwUVkiLCJxYyI6IkNoTnpiMlowZDJGeVpTQm9jaUIwWlhKaVlXbHJFQ1o5bGtNclA2SUJBbWxrIiwicXVlc3Rpb24iOiJTb2Z0d2FyZSBIUklTIGl0dSBhcGE%2FIiwibGsiOiJHaFZ6YjJaMGQyRnlaU0JvY21seklHbDBkU0JoY0dFIiwiYnMiOiJjLU15NUJJTHprOHJLVThzU2xYd0NQSU1Wc2dzS1ZWSUxFaTBOeEtYRWkyR3lXUVVaUmJEWkxpQVdqeWNGVklTODRBYUZKSlNnWXpLUkxpV2pHU3dURVlSc2d5WEpwZVFVMm9Sa0tXUWxKa0lGQVBaWkc4a0xDV1loQ3dLc2dWa3VtTkJUbVoyWW5HbVFyQ0xMMGk3UW5GaUZzVDBSSmhNY1VvdVhFYUFFUUEiLCJpZCI6ImZjXzNKYm9hcHFPSl9UVDVOb1BtX1hRMFFZXzUifQ%3D%3D"
+    },
+    {
+      "question": "HC dan HR bedanya apa?",
+      "type": "ai_overview",
+      "page_token": "gc0YHnicHdBdToMwAADgeJk9bvxsKEsWE1w7RKmj5Uf6Ymg7BraFRqYw3ryLp_I0Jn5H-L5_VNvJ3xvaXC5m2K5W4zguz31_Vqcl75etWFXDteMrXinFKi633q1n39d8B4YxeOjHIMkwKJVQhRSKShWiPW0ZWNul0xCmeyc9mM8q4xbO7yYM_DB2bBIDlAmHHklmQGnF8ylFunQDgLWYKRAp6xI7KcxeaGqxLgpSa4JEC0i1AqwQuFKBJrnxCjm4KFXPlTZRZSUbJg3Ki42bA0E5MDCdhccsa8PmJqJATUz2bvEe1eTguzHkBM7oqdR-w0N4JMrP8n3-wuzg8mo3OIaQHtooIGA94lQc0F64QvmPhaQTutqSzogUYWwl2l6zFH7gOcKLmn_t3MX_2O6t1pet-ejPfxaAeKQ",
+      "serpapi_ai_overview_link": "https://serpapi.com/search.json?engine=google_ai_overview&page_token=gc0YHnicHdBdToMwAADgeJk9bvxsKEsWE1w7RKmj5Uf6Ymg7BraFRqYw3ryLp_I0Jn5H-L5_VNvJ3xvaXC5m2K5W4zguz31_Vqcl75etWFXDteMrXinFKi633q1n39d8B4YxeOjHIMkwKJVQhRSKShWiPW0ZWNul0xCmeyc9mM8q4xbO7yYM_DB2bBIDlAmHHklmQGnF8ylFunQDgLWYKRAp6xI7KcxeaGqxLgpSa4JEC0i1AqwQuFKBJrnxCjm4KFXPlTZRZSUbJg3Ki42bA0E5MDCdhccsa8PmJqJATUz2bvEe1eTguzHkBM7oqdR-w0N4JMrP8n3-wuzg8mo3OIaQHtooIGA94lQc0F64QvmPhaQTutqSzogUYWwl2l6zFH7gOcKLmn_t3MX_2O6t1pet-ejPfxaAeKQ",
+      "next_page_token": "eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJSRVJpVjJWaE9UaFhRMlo0Y21sck1FaEZTVUpXV2xoNFFVTnVhR28zT1RSQ2NGa3pjbnBDYURFdFdrcFNVRXN5TVRaUFVHRk1ObU5UWlZodVJ6VjJNWEpmY1VwNlZHOHdjbXhtU0RjMkxWRlFiV2czVkVsb2VFcHROMEpUVDNac1VSSVhNMHBpYjJGd2NVOUtYMVJVTlU1dlVHMWZXRkV3VVZrYUlrRklUakJGTjBaTmExQk9TWGRaT0hCUWJISnNUMDVrYXpkc1ZWQnNkMmhOWkdjIiwiZmN2IjoiMyIsImVpIjoiM0pib2FwcU9KX1RUNU5vUG1fWFEwUVkiLCJxYyI6IkNoTnpiMlowZDJGeVpTQm9jaUIwWlhKaVlXbHJFQ1o5bGtNclA2SUJBbWxrIiwicXVlc3Rpb24iOiJIQyBkYW4gSFIgYmVkYW55YSBhcGE/IiwibGsiOiJHaFZvWXlCa1lXNGdhSElnWW1Wa1lXNTVZU0JoY0dFIiwiYnMiOiJjLU15NUJJTHprOHJLVThzU2xYd0NQSU1Wc2dzS1ZWSUxFaTBOeEtYRWkyR3lXUVVaUmJEWkxpQVdqeWNGVklTODRBYUZKSlNnWXpLUkxpV2pHU3dURVlSc2d5WEpwZVFVMm9Sa0tXUWxKa0lGQVBaWkc4a0xDV1loQ3dLc2dWa3VtTkJUbVoyWW5HbVFyQ0xMMGk3UW5GaUZzVDBSSmhNY1VvdVhFYUFFUUEiLCJpZCI6ImZjXzNKYm9hcHFPSl9UVDVOb1BtX1hRMFFZXzUifQ==",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_related_questions&google_domain=google.com&next_page_token=eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJSRVJpVjJWaE9UaFhRMlo0Y21sck1FaEZTVUpXV2xoNFFVTnVhR28zT1RSQ2NGa3pjbnBDYURFdFdrcFNVRXN5TVRaUFVHRk1ObU5UWlZodVJ6VjJNWEpmY1VwNlZHOHdjbXhtU0RjMkxWRlFiV2czVkVsb2VFcHROMEpUVDNac1VSSVhNMHBpYjJGd2NVOUtYMVJVTlU1dlVHMWZXRkV3VVZrYUlrRklUakJGTjBaTmExQk9TWGRaT0hCUWJISnNUMDVrYXpkc1ZWQnNkMmhOWkdjIiwiZmN2IjoiMyIsImVpIjoiM0pib2FwcU9KX1RUNU5vUG1fWFEwUVkiLCJxYyI6IkNoTnpiMlowZDJGeVpTQm9jaUIwWlhKaVlXbHJFQ1o5bGtNclA2SUJBbWxrIiwicXVlc3Rpb24iOiJIQyBkYW4gSFIgYmVkYW55YSBhcGE%2FIiwibGsiOiJHaFZvWXlCa1lXNGdhSElnWW1Wa1lXNTVZU0JoY0dFIiwiYnMiOiJjLU15NUJJTHprOHJLVThzU2xYd0NQSU1Wc2dzS1ZWSUxFaTBOeEtYRWkyR3lXUVVaUmJEWkxpQVdqeWNGVklTODRBYUZKSlNnWXpLUkxpV2pHU3dURVlSc2d5WEpwZVFVMm9Sa0tXUWxKa0lGQVBaWkc4a0xDV1loQ3dLc2dWa3VtTkJUbVoyWW5HbVFyQ0xMMGk3UW5GaUZzVDBSSmhNY1VvdVhFYUFFUUEiLCJpZCI6ImZjXzNKYm9hcHFPSl9UVDVOb1BtX1hRMFFZXzUifQ%3D%3D"
+    },
+    {
+      "question": "Berapa biaya HRIS?",
+      "type": "ai_overview",
+      "page_token": "0U56V3icHdBbToNAFADQuJl-lgJNtU0aI4-ZggICM1Dmx8AMj8IFqqAU_tyLq3I1Jp4lnO8fuHTN7x2rxvE6HCRpmqZ12fcl5Gvery9CSoe54xJPAbKUN4fd_U5-LPjRHCZN7yfNp4GZgIA4RjozUJJjNuTo6lGwlQhsixn-7C6Vz5DAoS63jgGD34pTXoNF8cMUkiclwJtbQJMlUq7FWRZaFlWfgQmTo5SKr4DuUST7HdSi0xLaMIUoY0oQ1K7BxgDva0Efbhl1X-gZvfNIWJxAEzZV65Fmk5lijqnAHnJ10og5a-2aLQJy4oRocZ-Tdl_xE3oNYU8jI_IyWRvPchU4CDF8sbXQ3E4BEZbAfEMJSzM5UgXdqn5TqQwzmlCG4sgePCSCVcG_jurqf-z4VrTj4frRl3_LAnmi",
+      "serpapi_ai_overview_link": "https://serpapi.com/search.json?engine=google_ai_overview&page_token=0U56V3icHdBbToNAFADQuJl-lgJNtU0aI4-ZggICM1Dmx8AMj8IFqqAU_tyLq3I1Jp4lnO8fuHTN7x2rxvE6HCRpmqZ12fcl5Gvery9CSoe54xJPAbKUN4fd_U5-LPjRHCZN7yfNp4GZgIA4RjozUJJjNuTo6lGwlQhsixn-7C6Vz5DAoS63jgGD34pTXoNF8cMUkiclwJtbQJMlUq7FWRZaFlWfgQmTo5SKr4DuUST7HdSi0xLaMIUoY0oQ1K7BxgDva0Efbhl1X-gZvfNIWJxAEzZV65Fmk5lijqnAHnJ10og5a-2aLQJy4oRocZ-Tdl_xE3oNYU8jI_IyWRvPchU4CDF8sbXQ3E4BEZbAfEMJSzM5UgXdqn5TqQwzmlCG4sgePCSCVcG_jurqf-z4VrTj4frRl3_LAnmi",
+      "next_page_token": "eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJSRVJpVjJWaE9UaFhRMlo0Y21sck1FaEZTVUpXV2xoNFFVTnVhR28zT1RSQ2NGa3pjbnBDYURFdFdrcFNVRXN5TVRaUFVHRk1ObU5UWlZodVJ6VjJNWEpmY1VwNlZHOHdjbXhtU0RjMkxWRlFiV2czVkVsb2VFcHROMEpUVDNac1VSSVhNMHBpYjJGd2NVOUtYMVJVTlU1dlVHMWZXRkV3VVZrYUlrRklUakJGTjBaTmExQk9TWGRaT0hCUWJISnNUMDVrYXpkc1ZWQnNkMmhOWkdjIiwiZmN2IjoiMyIsImVpIjoiM0pib2FwcU9KX1RUNU5vUG1fWFEwUVkiLCJxYyI6IkNoTnpiMlowZDJGeVpTQm9jaUIwWlhKaVlXbHJFQ1o5bGtNclA2SUJBbWxrIiwicXVlc3Rpb24iOiJCZXJhcGEgYmlheWEgSFJJUz8iLCJsayI6IkdoRmlaWEpoY0dFZ1ltbGhlV0VnYUhKcGN3IiwiYnMiOiJjLU15NUJJTHprOHJLVThzU2xYd0NQSU1Wc2dzS1ZWSUxFaTBOeEtYRWkyR3lXUVVaUmJEWkxpQVdqeWNGVklTODRBYUZKSlNnWXpLUkxpV2pHU3dURVlSc2d5WEpwZVFVMm9Sa0tXUWxKa0lGQVBaWkc4a0xDV1loQ3dLc2dWa3VtTkJUbVoyWW5HbVFyQ0xMMGk3UW5GaUZzVDBSSmhNY1VvdVhFYUFFUUEiLCJpZCI6ImZjXzNKYm9hcHFPSl9UVDVOb1BtX1hRMFFZXzUifQ==",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_related_questions&google_domain=google.com&next_page_token=eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJSRVJpVjJWaE9UaFhRMlo0Y21sck1FaEZTVUpXV2xoNFFVTnVhR28zT1RSQ2NGa3pjbnBDYURFdFdrcFNVRXN5TVRaUFVHRk1ObU5UWlZodVJ6VjJNWEpmY1VwNlZHOHdjbXhtU0RjMkxWRlFiV2czVkVsb2VFcHROMEpUVDNac1VSSVhNMHBpYjJGd2NVOUtYMVJVTlU1dlVHMWZXRkV3VVZrYUlrRklUakJGTjBaTmExQk9TWGRaT0hCUWJISnNUMDVrYXpkc1ZWQnNkMmhOWkdjIiwiZmN2IjoiMyIsImVpIjoiM0pib2FwcU9KX1RUNU5vUG1fWFEwUVkiLCJxYyI6IkNoTnpiMlowZDJGeVpTQm9jaUIwWlhKaVlXbHJFQ1o5bGtNclA2SUJBbWxrIiwicXVlc3Rpb24iOiJCZXJhcGEgYmlheWEgSFJJUz8iLCJsayI6IkdoRmlaWEpoY0dFZ1ltbGhlV0VnYUhKcGN3IiwiYnMiOiJjLU15NUJJTHprOHJLVThzU2xYd0NQSU1Wc2dzS1ZWSUxFaTBOeEtYRWkyR3lXUVVaUmJEWkxpQVdqeWNGVklTODRBYUZKSlNnWXpLUkxpV2pHU3dURVlSc2d5WEpwZVFVMm9Sa0tXUWxKa0lGQVBaWkc4a0xDV1loQ3dLc2dWa3VtTkJUbVoyWW5HbVFyQ0xMMGk3UW5GaUZzVDBSSmhNY1VvdVhFYUFFUUEiLCJpZCI6ImZjXzNKYm9hcHFPSl9UVDVOb1BtX1hRMFFZXzUifQ%3D%3D"
+    },
+    {
+      "question": "Aplikasi SDM apa saja?",
+      "type": "ai_overview",
+      "page_token": "Tv5gEHicHZBRboIwAECzy_gpIMKiiVlSQdDZIgUK5WfBAoItBZUJ7m932al2mpl9v-S95H3_iFry35e06vvutlSUYRimp7Y9iWLK2mmdK9ntIZnCMiGOGeNL89XU3kq2sm8DWLcD8CNsU5ELmgAI1bmROouaROKCbbL3EnzHdn5ADhxD1VbDeHS9UFiBapi5ms7gLN-nqlHlkj9gREeopdtERwccGZ9QdhwT4D_5jNgpiV18KSTwCyE8dgZbekZVYaFDwEeVJjsz5lgSKUrIsRNYTzsBOpHk2Ub0GGGXNuM6iHdX2Bhe5CxKXKvB5gu902ZRMXdzCMQiIhbxjhroE63CcLNJnXoHAns-4DDfUm2rhcLXWYQHv0E8i40yPpNPX-tQFqO0CHM5Kdl9pU_-j60-yqZfdtf29AelyXda",
+      "serpapi_ai_overview_link": "https://serpapi.com/search.json?engine=google_ai_overview&page_token=Tv5gEHicHZBRboIwAECzy_gpIMKiiVlSQdDZIgUK5WfBAoItBZUJ7m932al2mpl9v-S95H3_iFry35e06vvutlSUYRimp7Y9iWLK2mmdK9ntIZnCMiGOGeNL89XU3kq2sm8DWLcD8CNsU5ELmgAI1bmROouaROKCbbL3EnzHdn5ADhxD1VbDeHS9UFiBapi5ms7gLN-nqlHlkj9gREeopdtERwccGZ9QdhwT4D_5jNgpiV18KSTwCyE8dgZbekZVYaFDwEeVJjsz5lgSKUrIsRNYTzsBOpHk2Ub0GGGXNuM6iHdX2Bhe5CxKXKvB5gu902ZRMXdzCMQiIhbxjhroE63CcLNJnXoHAns-4DDfUm2rhcLXWYQHv0E8i40yPpNPX-tQFqO0CHM5Kdl9pU_-j60-yqZfdtf29AelyXda",
+      "next_page_token": "eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJSRVJpVjJWaE9UaFhRMlo0Y21sck1FaEZTVUpXV2xoNFFVTnVhR28zT1RSQ2NGa3pjbnBDYURFdFdrcFNVRXN5TVRaUFVHRk1ObU5UWlZodVJ6VjJNWEpmY1VwNlZHOHdjbXhtU0RjMkxWRlFiV2czVkVsb2VFcHROMEpUVDNac1VSSVhNMHBpYjJGd2NVOUtYMVJVTlU1dlVHMWZXRkV3VVZrYUlrRklUakJGTjBaTmExQk9TWGRaT0hCUWJISnNUMDVrYXpkc1ZWQnNkMmhOWkdjIiwiZmN2IjoiMyIsImVpIjoiM0pib2FwcU9KX1RUNU5vUG1fWFEwUVkiLCJxYyI6IkNoTnpiMlowZDJGeVpTQm9jaUIwWlhKaVlXbHJFQ1o5bGtNclA2SUJBbWxrIiwicXVlc3Rpb24iOiJBcGxpa2FzaSBTRE0gYXBhIHNhamE/IiwibGsiOiJHaFZoY0d4cGEyRnphU0J6WkcwZ1lYQmhJSE5oYW1FIiwiYnMiOiJjLU15NUJJTHprOHJLVThzU2xYd0NQSU1Wc2dzS1ZWSUxFaTBOeEtYRWkyR3lXUVVaUmJEWkxpQVdqeWNGVklTODRBYUZKSlNnWXpLUkxpV2pHU3dURVlSc2d5WEpwZVFVMm9Sa0tXUWxKa0lGQVBaWkc4a0xDV1loQ3dLc2dWa3VtTkJUbVoyWW5HbVFyQ0xMMGk3UW5GaUZzVDBSSmhNY1VvdVhFYUFFUUEiLCJpZCI6ImZjXzNKYm9hcHFPSl9UVDVOb1BtX1hRMFFZXzUifQ==",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_related_questions&google_domain=google.com&next_page_token=eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJSRVJpVjJWaE9UaFhRMlo0Y21sck1FaEZTVUpXV2xoNFFVTnVhR28zT1RSQ2NGa3pjbnBDYURFdFdrcFNVRXN5TVRaUFVHRk1ObU5UWlZodVJ6VjJNWEpmY1VwNlZHOHdjbXhtU0RjMkxWRlFiV2czVkVsb2VFcHROMEpUVDNac1VSSVhNMHBpYjJGd2NVOUtYMVJVTlU1dlVHMWZXRkV3VVZrYUlrRklUakJGTjBaTmExQk9TWGRaT0hCUWJISnNUMDVrYXpkc1ZWQnNkMmhOWkdjIiwiZmN2IjoiMyIsImVpIjoiM0pib2FwcU9KX1RUNU5vUG1fWFEwUVkiLCJxYyI6IkNoTnpiMlowZDJGeVpTQm9jaUIwWlhKaVlXbHJFQ1o5bGtNclA2SUJBbWxrIiwicXVlc3Rpb24iOiJBcGxpa2FzaSBTRE0gYXBhIHNhamE%2FIiwibGsiOiJHaFZoY0d4cGEyRnphU0J6WkcwZ1lYQmhJSE5oYW1FIiwiYnMiOiJjLU15NUJJTHprOHJLVThzU2xYd0NQSU1Wc2dzS1ZWSUxFaTBOeEtYRWkyR3lXUVVaUmJEWkxpQVdqeWNGVklTODRBYUZKSlNnWXpLUkxpV2pHU3dURVlSc2d5WEpwZVFVMm9Sa0tXUWxKa0lGQVBaWkc4a0xDV1loQ3dLc2dWa3VtTkJUbVoyWW5HbVFyQ0xMMGk3UW5GaUZzVDBSSmhNY1VvdVhFYUFFUUEiLCJpZCI6ImZjXzNKYm9hcHFPSl9UVDVOb1BtX1hRMFFZXzUifQ%3D%3D"
+    }
+  ],
+  "ai_overview": {
+    "text_blocks": [
+      {
+        "type": "paragraph",
+        "snippet": "Pemilihan software HRIS (Human Resource Information System) terbaik di Indonesia bergantung pada ukuran perusahaan, kebutuhan operasional, serta anggaran. Berikut adalah rekomendasi software HR dan aplikasi HRIS terbaik yang populer dan andal di Indonesia:",
+        "snippet_highlighted_words": [
+          "bergantung pada ukuran perusahaan, kebutuhan operasional, serta anggaran"
+        ]
+      },
+      {
+        "type": "heading",
+        "snippet": "1. Mekari Talenta"
+      },
+      {
+        "type": "list",
+        "list": [
+          {
+            "snippet": "Keunggulan: Solusi HRIS berbasis cloud paling komprehensif di Indonesia. Memiliki fitur database karyawan terpusat, absensi online (GPS/selfie), manajemen shift & cuti, hingga perhitungan otomatis payroll, PPh 21, dan BPJS."
+          },
+          {
+            "snippet": "Cocok untuk: Perusahaan skala menengah hingga besar yang butuh otomatisasi HR menyeluruh."
+          },
+          {
+            "snippet": "Situs resmi: Pelajari fitur lengkapnya di Mekari Talenta.",
+            "snippet_links": [
+              {
+                "text": "Mekari Talenta",
+                "link": "https://www.talenta.co/solusi/hris/"
+              }
+            ],
+            "reference_indexes": [
+              1,
+              2
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "snippet": "2. HashMicro HR Software"
+      },
+      {
+        "type": "list",
+        "list": [
+          {
+            "snippet": "Keunggulan: Terintegrasi penuh dengan sistem ERP, mendukung multi-mata uang, serta memiliki tingkat kustomisasi tinggi untuk kebutuhan enterprise. Dilengkapi AI asisten untuk laporan cepat terkait absensi dan payroll."
+          },
+          {
+            "snippet": "Cocok untuk: Bisnis skala enterprise atau perusahaan dengan proses operasional yang kompleks."
+          },
+          {
+            "snippet": "Situs resmi: Lihat detail harga dan layanan di HashMicro.",
+            "snippet_links": [
+              {
+                "text": "HashMicro",
+                "link": "https://www.hashmicro.com/id/blog/hr-software-terbaik-di-indonesia/"
+              }
+            ],
+            "reference_indexes": [
+              0,
+              2,
+              3
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "snippet": "3. GreatDay HR"
+      },
+      {
+        "type": "list",
+        "list": [
+          {
+            "snippet": "Keunggulan: Sangat ramah pengguna (mobile-first) dengan fokus tinggi pada manajemen absensi karyawan lapangan/remote menggunakan pengenalan wajah (face recognition)."
+          },
+          {
+            "snippet": "Cocok untuk: Perusahaan dengan banyak tim lapangan atau mobilitas tinggi.",
+            "reference_indexes": [
+              2,
+              4
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "snippet": "4. LinovHR"
+      },
+      {
+        "type": "list",
+        "list": [
+          {
+            "snippet": "Keunggulan: Sangat dapat dikustomisasi (highly customizable) untuk mengelola struktur multi-cabang, lengkap dengan modul competency management, learning management, hingga career path."
+          },
+          {
+            "snippet": "Cocok untuk: Perusahaan menengah ke atas dengan struktur organisasi yang dalam.",
+            "reference_indexes": [
+              2,
+              5
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "snippet": "5. Gadjian / Gajihub"
+      },
+      {
+        "type": "list",
+        "list": [
+          {
+            "snippet": "Keunggulan: Antarmuka modern, implementasi cloud yang cepat, dan harga yang bersahabat untuk bisnis berkembang. Fokus kuat pada kemudahan pengelolaan gaji dan kepatuhan administrasi."
+          },
+          {
+            "snippet": "Cocok untuk: UKM, startup, dan bisnis yang mencari efisiensi biaya.",
+            "reference_indexes": [
+              2
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "snippet": "6. Zoho People"
+      },
+      {
+        "type": "list",
+        "list": [
+          {
+            "snippet": "Keunggulan: Platform cloud global yang terjangkau dan mudah diadopsi, dilengkapi Employee Self-Service (ESS), manajemen cuti, onboarding, hingga penilaian kinerja."
+          },
+          {
+            "snippet": "Cocok untuk: Tim lintas negara atau perusahaan yang mencari software fleksibel dengan berbagai tingkatan harga.",
+            "reference_indexes": [
+              3,
+              6
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "snippet": "Kenali lebih dekat fitur unggulan software HRIS dan otomatisasi payroll di Indonesia:"
+      },
+      {
+        "type": "paragraph",
+        "snippet": "Jika Anda ingin rekomendasi yang lebih spesifik, beri tahu saya:"
+      },
+      {
+        "type": "list",
+        "list": [
+          {
+            "snippet": "Berapa jumlah karyawan di perusahaan Anda saat ini?"
+          },
+          {
+            "snippet": "Industri atau bidang usaha apa yang Anda jalankan?"
+          },
+          {
+            "snippet": "Fitur apa yang paling utama Anda butuhkan (apakah absensi lapangan, hitung pajak/payroll, atau manajemen kinerja)?"
+          }
+        ]
+      }
+    ],
+    "references": [
+      {
+        "index": 0,
+        "title": "Software HRIS HashMicro Kelola SDM Lebih Efisien",
+        "link": "https://www.youtube.com/watch?v=b-K0p1RKqho",
+        "snippet": "Software HRIS HashMicro Kelola SDM Lebih Efisien mengelola karyawan bukanlah pekerjaan yang sederhana dari rekrutmen absensi payroll hingga pengembangan karyawan s",
+        "source": "YouTube",
+        "source_icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8_9hAAAAhUlEQVR4AWNwL_ChCFPHgP8MxqxA7ArEKVBcCcUNIAznI-RdQXrABgAZpv8ZjP6Tg0F6QQbsosCAXSADHmGVVPIC0jKEDHgAMuAbmgRE445D___feYzXIJBeBigH04BVW_9DAcgwqEGYaik2gGIvUByIlEbjDooTEiwps5GRlNmolpkowgBVP9wMSzSKGAAAAABJRU5ErkJggg.png",
+        "thumbnail": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQotJ_UPyGQ16LG3u675t9i8GpMs2PxaEftD-7hDTi0SA7o-BNYpgSUTlVg_WSSTQZDEWYcX9J8s7xhXNyvNdIJ9MghMjOWF-_2wHcH83gs52daLSYtOahs1FsVjE7oacXOYfsgDPQz-04mGaCb3NvsCMk"
+      },
+      {
+        "index": 1,
+        "title": "Aplikasi & Software HRIS Terbaik di Indonesia – Mekari Talenta",
+        "link": "https://www.talenta.co/solusi/hris/",
+        "snippet": "Overview: Mekari Talenta adalah software HRIS berbasis cloud terintegrasi untuk mengotomatisasi operasional SDM dan administrasi perusahaan di Indonesia. Fitur Uta...",
+        "source": "Mekari Talenta",
+        "source_icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://www.talenta.co&client=AIM&size=128&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+        "thumbnail": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRWxLAn1so8cCeQnO0bJZVVZE50V78OW28EQn4G7ZBALz144qiLL6rZTg0Xud11xHmbHljk3npxI1Hufd7enkO71-jVRW0fWy3Pu0Ut-MOb48vLSEaAk-GaVweSXUPaawZ1WBOdE8ITYweuqRi_Hb1MFSk"
+      },
+      {
+        "index": 2,
+        "title": "9 Rekomendasi Software HR dan Aplikasi HRIS Terbaik di Indonesia",
+        "link": "https://jobseeker.software/blog/rekomendasi-software-hris-di-indonesia/",
+        "snippet": "9 HRIS in Indonesia (2025/2026): - Jobseeker: UMKM-enterprise, AI face recognition, geo-fencing, local UU PDP compliance. - Talenta by Mekari: Cloud, mobile-first",
+        "source": "Jobseeker Software",
+        "source_icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://jobseeker.software&client=AIM&size=128&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+        "thumbnail": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcSbW2b3qFWVfNkBv9A7RA-I7ohCkhJ7fl2-5K-oT7Lq1tYMFYwZqutjNcbGmsMkzVOxKhMOx1N9D2glzS9EVCN3Ljw83fmNPjGRnJJt1aSXXAlOcKnjqJ1awo_hYlKBlsa8oKGr2X0n6hslnfmJm3HptJ0"
+      },
+      {
+        "index": 3,
+        "title": "28 Software HR & Aplikasi HRIS Terbaik untuk Produktivitas Bisnis",
+        "link": "https://www.hashmicro.com/id/blog/hr-software-terbaik-di-indonesia/",
+        "snippet": "28 Software HR & Aplikasi HRIS Terbaik untuk Produktivitas Bisnis. ... Download Skema Harga Demo Gratis! ... Fitur lengkap dan dapat dikustom sesuai kebutuhan. * F...",
+        "source": "HashMicro",
+        "source_icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://www.hashmicro.com&client=AIM&size=128&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+        "thumbnail": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQXwT3TUW9uD3u1m__Q3VxiuBW1HtOSK93mTzoJz83MquLZr7k_rWpHg3oP4YrPYJWqKA_SBizXOYUYApd7Pnqh1pzDQ9oIxvtEoYAsBPdnOF-HS-gUCZw3DYoYLXn097kPJOIjnICQLiNsEMlXcrFB5VM"
+      },
+      {
+        "index": 4,
+        "title": "5 Aplikasi HRIS Terbaik di Indonesia 2025 - Jubelio",
+        "link": "https://jubelio.com/aplikasi-hris/",
+        "snippet": "5 Aplikasi HRIS Terbaik di Indonesia 2025. Penulis: Darin Rania. Diperbarui: Desember 11, 2025. aplikasi hris · 1. KantorKu HRIS. aplikasi hris kantorku untuk abse...",
+        "source": "Jubelio",
+        "source_icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://jubelio.com&client=AIM&size=128&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+        "thumbnail": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcS2uvTwTY03OorUVET7VpSS2rA7yfsXP5OIJIlbBhJYJUTaKBUyLs_LeCYLJpJ9KPxgYtpUunG4d1UU33Ofvnxh70Q5J11sdfaHLAmviolkikeefPgWv_GIlpUPuT3CM9awwMWxNxxlTHQkr4QB3bAMmBQ"
+      },
+      {
+        "index": 5,
+        "title": "Software HRIS Manufaktur: 10 Rekomendasi Terbaik untuk Atasi ...",
+        "link": "https://www.linovhr.com/blog/software-hris-manufaktur-sistem-shift/",
+        "snippet": "LinovHR adalah software HRIS berbasis cloud yang dirancang untuk membantu perusahaan mengelola seluruh proses HR secara lebih mudah, aman, dan efisien. Aplikasi in...",
+        "source": "LinovHR",
+        "source_icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.linovhr.com&client=AIM&size=128&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+        "thumbnail": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcRpaLbHrGySvkkCKKuItq1Tx0SXMFQmG8-BAP4CrvD0x-GXUEOpCPSA_A1bIAZyXBkDXJxziIxoVpwGM26ipta1QRz5npJiZeGcev-K34Y_4H4z50vwNefl13USeEq_icZPFCWBopkBfj4zx2zrQspKG7c"
+      },
+      {
+        "index": 6,
+        "title": "5 Best HR Software in 2025 - for All-Sized Businesses",
+        "link": "https://www.youtube.com/watch?v=8pjZ8pamnjw&t=219",
+        "snippet": "5 Best HR Software in 2025 - for All-Sized Businesses development also gets attention through onboarding tools document storage and a built-in rewards and recognit",
+        "source": "YouTube",
+        "source_icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8_9hAAAAhUlEQVR4AWNwL_ChCFPHgP8MxqxA7ArEKVBcCcUNIAznI-RdQXrABgAZpv8ZjP6Tg0F6QQbsosCAXSADHmGVVPIC0jKEDHgAMuAbmgRE445D___feYzXIJBeBigH04BVW_9DAcgwqEGYaik2gGIvUByIlEbjDooTEiwps5GRlNmolpkowgBVP9wMSzSKGAAAAABJRU5ErkJggg.png",
+        "thumbnail": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQzYTavdwMfWY2qL1o3Ojz6vgU9-S0bXlKwFdHN8ipQ0_6bQcp1WkSL5egN8_GLcSN7-vacyJkosQDBUpT4vcK6S7Z33uQZn1wSFQLMrfk73q6jOBTIOU1PH9DzbJ2BUW44UZoU_egUyw1Z_JCyFT3FgOE"
+      }
+    ]
+  },
+  "organic_results": [
+    {
+      "position": 1,
+      "title": "20+ Software HR dan Aplikasi HRIS Terbaik Indonesia 2026",
+      "link": "https://scaleocean.com/id/blog/rekomendasi/software-hr-terbaik",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESeQHrOzAV_iBV_w9PwAH96UqLtLk5LccG3l25yYxw6o3DSSpDEBNre4Wo-4c6GT7Rc080wEghDF4QKlWDhf01IbP6viD7zpjLTymBmP3srzdmeT3uGD7_o9-Gekw-mH6HDjlPU1utnWd_kHPCSQHbri1gmNr7yEIn1mM&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQFnoECDMQAQ&uoh=1",
+      "displayed_link": "https://scaleocean.com › Home › Blog › Rekomendasi",
+      "favicon": "",
+      "date": "30 Agu 2026",
+      "snippet": "Rekomendasi Software HR dan Aplikasi HRIS Terbaik di Indonesia · 1. ScaleOcean · 2. Mekari Talenta · 3. Aplikasi HR Gadjian.",
+      "snippet_highlighted_words": [
+        "1. ScaleOcean"
+      ],
+      "sitelinks": {
+        "inline": [
+          {
+            "title": "Software HR ScaleOcean",
+            "link": "https://scaleocean.com/id/blog/rekomendasi/software-hr-terbaik#section-4"
+          },
+          {
+            "title": "Software HR Zoho People",
+            "link": "https://scaleocean.com/id/blog/rekomendasi/software-hr-terbaik#section-12"
+          },
+          {
+            "title": "Software HR Sage",
+            "link": "https://scaleocean.com/id/blog/rekomendasi/software-hr-terbaik#section-18"
+          }
+        ]
+      },
+      "about_this_result": {
+        "source": {
+          "description": "Rekomendasi Software HR dan Aplikasi HRIS Terbaik di Indonesia · 1. ScaleOcean · 2. Mekari Talenta · 3. Aplikasi HR Gadjian.",
+          "source_info_link": "https://scaleocean.com/id/blog/rekomendasi/software-hr-terbaik",
+          "icon": ""
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CrEBL2dvdG8_dXJsPUNBRVNlUUhyT3pBVi00bllUN21ZVUhQbFhsczExNEtMdzVOSkMwSDRHWUNqR05PNTRmX2F3NnhmS1h6bkQ2YmhnSGwwemJLOHRfOFlEODJSdEUyOExPejBaZ3RiWHJUYzZHRFdzaGdRTGFUSjhjYThaSUFKQzRNVlhZVGlITVFWSUxOclIzSXN5MjB4dWo4eFlKTV9ORlkzM2oyVFVpeU44emw2M0VrEgQaAggAGt8DEgIIABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJAuQMIJhAAGAAgACoPCghzb2Z0d2FyZRXvmKBAKgkKAmhyFWNKfkAqDgoHdGVyYmFpaxWELmVAMrEBL2dvdG8_dXJsPUNBRVNlUUhyT3pBVi00bllUN21ZVUhQbFhsczExNEtMdzVOSkMwSDRHWUNqR05PNTRmX2F3NnhmS1h6bkQ2YmhnSGwwemJLOHRfOFlEODJSdEUyOExPejBaZ3RiWHJUYzZHRFdzaGdRTGFUSjhjYThaSUFKQzRNVlhZVGlITVFWSUxOclIzSXN5MjB4dWo4eFlKTV9ORlkzM2oyVFVpeU44emw2M0VrOkYyMCsgPGI-U29mdHdhcmUgSFI8L2I-IGRhbiBBcGxpa2FzaSBIUklTIDxiPlRlcmJhaWs8L2I-IEluZG9uZXNpYSAyMDI2QoYBUmVrb21lbmRhc2kgU29mdHdhcmUgSFIgZGFuIEFwbGlrYXNpIEhSSVMgVGVyYmFpayBkaSBJbmRvbmVzaWEgwrcgPGI-MS4gU2NhbGVPY2VhbjwvYj4gwrcgMi4gTWVrYXJpIFRhbGVudGEgwrcgMy4gQXBsaWthc2kgSFIgR2Fkamlhbi4iAhABSABYAGgA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CrEBL2dvdG8_dXJsPUNBRVNlUUhyT3pBVi00bllUN21ZVUhQbFhsczExNEtMdzVOSkMwSDRHWUNqR05PNTRmX2F3NnhmS1h6bkQ2YmhnSGwwemJLOHRfOFlEODJSdEUyOExPejBaZ3RiWHJUYzZHRFdzaGdRTGFUSjhjYThaSUFKQzRNVlhZVGlITVFWSUxOclIzSXN5MjB4dWo4eFlKTV9ORlkzM2oyVFVpeU44emw2M0VrEgQaAggAGt8DEgIIABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJAuQMIJhAAGAAgACoPCghzb2Z0d2FyZRXvmKBAKgkKAmhyFWNKfkAqDgoHdGVyYmFpaxWELmVAMrEBL2dvdG8_dXJsPUNBRVNlUUhyT3pBVi00bllUN21ZVUhQbFhsczExNEtMdzVOSkMwSDRHWUNqR05PNTRmX2F3NnhmS1h6bkQ2YmhnSGwwemJLOHRfOFlEODJSdEUyOExPejBaZ3RiWHJUYzZHRFdzaGdRTGFUSjhjYThaSUFKQzRNVlhZVGlITVFWSUxOclIzSXN5MjB4dWo4eFlKTV9ORlkzM2oyVFVpeU44emw2M0VrOkYyMCsgPGI-U29mdHdhcmUgSFI8L2I-IGRhbiBBcGxpa2FzaSBIUklTIDxiPlRlcmJhaWs8L2I-IEluZG9uZXNpYSAyMDI2QoYBUmVrb21lbmRhc2kgU29mdHdhcmUgSFIgZGFuIEFwbGlrYXNpIEhSSVMgVGVyYmFpayBkaSBJbmRvbmVzaWEgwrcgPGI-MS4gU2NhbGVPY2VhbjwvYj4gwrcgMi4gTWVrYXJpIFRhbGVudGEgwrcgMy4gQXBsaWthc2kgSFIgR2Fkamlhbi4iAhABSABYAGgA",
+      "source": "ScaleOcean"
+    },
+    {
+      "position": 2,
+      "title": "Software HR untuk Payroll & Absensi Karyawan Otomatis",
+      "link": "https://www.hashmicro.com/id/manajemen-human-resource",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAEScAHrOzAVzdM51P7w4uij8KFgWncxlawzRCYnmt_4Yod6UBfsxxRjrDNJ3p0xitF4Bg7yTZozYNwSsDuLcXcy4U4ShA64axF7qlNJVSu6zq97Ii1NnAysNjR2GH9BDuMp23FIyUd_OQnw33PIbnXn1E4&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQFnoECDAQAQ&uoh=1",
+      "displayed_link": "https://www.hashmicro.com › manajemen-human-resou...",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAolBMVEX___9HcEy-IjC_IS_89ve-Hi2-Hi2-HS2-Hi2-Hy2-HSy-HS2-Hi2-HizAJjO-Hi2-Hy6-Hiy-HSy-Hi2-HSy9Fyi8ECLRcHbZipDJUFjVfoO-Gyvz293____hoqa4AAvwy87BLjm-Hy67Bx7HRE745-jOXmXqur_ZhYvnsLT9-Pjy1Nb24eL78PHGPUm9DiLQdHr--vrLYWi_MDn44-Xen6NOYMgcAAAANnRSTlMBACQ2AZjE0KhadeD_7wtgFIPl3ff_________________Tf_______________93d3d3d3d1-tk1uAAABNklEQVR4AayPVYKlMBBFgzy0cBK0cLf9L28gMO391zeeU0r-SgLXb0yUJFH-hjmSXoqqKpr-nQqCYQKX9bKFr7kcC_5Lk4V3JLuuLanwLk94L-PlW4EaUkYBKGMnVMWHCo8PjeKI0SSNrrS6cDNX4yyDHIuSFljVGYTGAxv_Qm3Z9TiwejwtSgDN5f0IxsXqaa4WzFiy4joXDEJVEogg2FdUmmyIuJRttJ_nerqC7xLZuIsZ8m05sx0FLts2tbwd4gBXxkpYkWtmJWegkv-dd13aY77mC85JQvlXQMLbsR7XDZfkOFP261jyT4WYd8oOT1XQRjzwDQ3iPZ7ptGIBNMZ8ijoe1hKJ-yRtzwZTCjOOwDL-owtEsD01-Dcg0DcwNDTSNzYxNNUXBgEOZlAIMeICDIMPAAC1piHcNJ3Q4QAAAABJRU5ErkJggg.png",
+      "snippet": "Atur jadwal payroll, absensi, cuti, dan administrasi karyawan Anda dalam satu sistem HRIS terpadu yang terintegrasi AI. Coba demo gratis sekarang.",
+      "about_this_result": {
+        "source": {
+          "description": "Atur jadwal payroll, absensi, cuti, dan administrasi karyawan Anda dalam satu sistem HRIS terpadu yang terintegrasi AI. Coba demo gratis sekarang.",
+          "source_info_link": "https://www.hashmicro.com/id/manajemen-human-resource",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAolBMVEX___9HcEy-IjC_IS_89ve-Hi2-Hi2-HS2-Hi2-Hy2-HSy-HS2-Hi2-HizAJjO-Hi2-Hy6-Hiy-HSy-Hi2-HSy9Fyi8ECLRcHbZipDJUFjVfoO-Gyvz293____hoqa4AAvwy87BLjm-Hy67Bx7HRE745-jOXmXqur_ZhYvnsLT9-Pjy1Nb24eL78PHGPUm9DiLQdHr--vrLYWi_MDn44-Xen6NOYMgcAAAANnRSTlMBACQ2AZjE0KhadeD_7wtgFIPl3ff_________________Tf_______________93d3d3d3d1-tk1uAAABNklEQVR4AayPVYKlMBBFgzy0cBK0cLf9L28gMO391zeeU0r-SgLXb0yUJFH-hjmSXoqqKpr-nQqCYQKX9bKFr7kcC_5Lk4V3JLuuLanwLk94L-PlW4EaUkYBKGMnVMWHCo8PjeKI0SSNrrS6cDNX4yyDHIuSFljVGYTGAxv_Qm3Z9TiwejwtSgDN5f0IxsXqaa4WzFiy4joXDEJVEogg2FdUmmyIuJRttJ_nerqC7xLZuIsZ8m05sx0FLts2tbwd4gBXxkpYkWtmJWegkv-dd13aY77mC85JQvlXQMLbsR7XDZfkOFP261jyT4WYd8oOT1XQRjzwDQ3iPZ7ptGIBNMZ8ijoe1hKJ-yRtzwZTCjOOwDL-owtEsD01-Dcg0DcwNDTSNzYxNNUXBgEOZlAIMeICDIMPAAC1piHcNJ3Q4QAAAABJRU5ErkJggg.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CqUBL2dvdG8_dXJsPUNBRVNjQUhyT3pBVjJmQ2I3MFBJRWc1N3lKXy1GekQtZkNOdWNXNkJyX3BqSWN3R0pQMVhSMDZMeVhsT05wY09lcDZiT05qTEZkVF94YWI1N0FBMmhRUVFoek9heGJLcFRrYzZVaENZSzZCRWo3TmNXVHBMNW1Wbi1ldVFLb2NoSnZzcXpSZkd0OW0yMkdlTFdPdnVPMlFLQURJEgQaAggAGtkDEgIIABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJAswMIJhAAGAAgACoPCghzb2Z0d2FyZRVaTXZAKgkKAmhyFRrHbUAqDgoHdGVyYmFpaxUKrjg_MqUBL2dvdG8_dXJsPUNBRVNjQUhyT3pBVjJmQ2I3MFBJRWc1N3lKXy1GekQtZkNOdWNXNkJyX3BqSWN3R0pQMVhSMDZMeVhsT05wY09lcDZiT05qTEZkVF94YWI1N0FBMmhRUVFoek9heGJLcFRrYzZVaENZSzZCRWo3TmNXVHBMNW1Wbi1ldVFLb2NoSnZzcXpSZkd0OW0yMkdlTFdPdnVPMlFLQURJOkA8Yj5Tb2Z0d2FyZSBIUjwvYj4gdW50dWsgUGF5cm9sbCAmYW1wOyBBYnNlbnNpIEthcnlhd2FuIE90b21hdGlzQpIBQXR1ciBqYWR3YWwgcGF5cm9sbCwgYWJzZW5zaSwgY3V0aSwgZGFuIGFkbWluaXN0cmFzaSBrYXJ5YXdhbiBBbmRhIGRhbGFtIHNhdHUgc2lzdGVtIEhSSVMgdGVycGFkdSB5YW5nIHRlcmludGVncmFzaSBBSS4gQ29iYSBkZW1vIGdyYXRpcyBzZWthcmFuZy4iAhABSABYAGgA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CqUBL2dvdG8_dXJsPUNBRVNjQUhyT3pBVjJmQ2I3MFBJRWc1N3lKXy1GekQtZkNOdWNXNkJyX3BqSWN3R0pQMVhSMDZMeVhsT05wY09lcDZiT05qTEZkVF94YWI1N0FBMmhRUVFoek9heGJLcFRrYzZVaENZSzZCRWo3TmNXVHBMNW1Wbi1ldVFLb2NoSnZzcXpSZkd0OW0yMkdlTFdPdnVPMlFLQURJEgQaAggAGtkDEgIIABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJAswMIJhAAGAAgACoPCghzb2Z0d2FyZRVaTXZAKgkKAmhyFRrHbUAqDgoHdGVyYmFpaxUKrjg_MqUBL2dvdG8_dXJsPUNBRVNjQUhyT3pBVjJmQ2I3MFBJRWc1N3lKXy1GekQtZkNOdWNXNkJyX3BqSWN3R0pQMVhSMDZMeVhsT05wY09lcDZiT05qTEZkVF94YWI1N0FBMmhRUVFoek9heGJLcFRrYzZVaENZSzZCRWo3TmNXVHBMNW1Wbi1ldVFLb2NoSnZzcXpSZkd0OW0yMkdlTFdPdnVPMlFLQURJOkA8Yj5Tb2Z0d2FyZSBIUjwvYj4gdW50dWsgUGF5cm9sbCAmYW1wOyBBYnNlbnNpIEthcnlhd2FuIE90b21hdGlzQpIBQXR1ciBqYWR3YWwgcGF5cm9sbCwgYWJzZW5zaSwgY3V0aSwgZGFuIGFkbWluaXN0cmFzaSBrYXJ5YXdhbiBBbmRhIGRhbGFtIHNhdHUgc2lzdGVtIEhSSVMgdGVycGFkdSB5YW5nIHRlcmludGVncmFzaSBBSS4gQ29iYSBkZW1vIGdyYXRpcyBzZWthcmFuZy4iAhABSABYAGgA",
+      "source": "HashMicro"
+    },
+    {
+      "position": 3,
+      "title": "10 Software HR Terbaik untuk Pemantauan Kinerja ...",
+      "link": "https://www.linovhr.com/blog/software-hr-terbaik-untuk-pemantauan-kinerja/",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAEShQEB6zswFdX5Ru0i5cdYGq9bfkuva42QarHTOyVwIe087cge_T1WUBfK4UeACNeG-_9ZWM8eeDftQV6XmnVdU44ZK7gEiUiMYWZbdMThLgTDV6QyqQI7742Tf8q7dGa4MVtvIe3W0-pZ3oKIcMXexPWy0FZ2F0cRvfU0NH0N3dIgGT5pcbFf&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQFnoECCsQAQ&uoh=1",
+      "displayed_link": "https://www.linovhr.com › blog › software-hr-terbaik-un...",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA10lEQVR4AWJAB3x9gPbpQANhKArAcEIkkEhYgIT0CpEAAhBIkJ4hBOk9olfoIYYRoBlKKsJIpmgJu_1ASYa7Wxfdwwdw_DjHLuOKBUbIp342zwDxwkdLXwBwQ0NfALBDVl8AMNAdMNcd4OoOWP9FgAkwASbABJgAE2ACrJiAEIVvB-QQxUTYaKL-poYqLKSTRngQCZwwRUU2YAKhQIi-TEARgaKICF2ZiB6EImeUZCKGiBRFjGXvoY2tggAnyVdk0MEMDpZw4WGFDfY4wMcRAS4IcYf_afcDAVn8zUEKR1sAAAAASUVORK5CYII.png",
+      "date": "13 Okt 2025",
+      "snippet": "Rekomendasi Software HR Terbaik untuk Memantau Kinerja Karyawan · 1. LinovHR · 2. Gadjian · 3. EVA HR HashMicro · 4. Hadirr · 5. Mekari Talenta.",
+      "snippet_highlighted_words": [
+        "1. LinovHR"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "Rekomendasi Software HR Terbaik untuk Memantau Kinerja Karyawan · 1. LinovHR · 2. Gadjian · 3. EVA HR HashMicro · 4. Hadirr · 5. Mekari Talenta.",
+          "source_info_link": "https://www.linovhr.com/blog/software-hr-terbaik-untuk-pemantauan-kinerja/",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA10lEQVR4AWJAB3x9gPbpQANhKArAcEIkkEhYgIT0CpEAAhBIkJ4hBOk9olfoIYYRoBlKKsJIpmgJu_1ASYa7Wxfdwwdw_DjHLuOKBUbIp342zwDxwkdLXwBwQ0NfALBDVl8AMNAdMNcd4OoOWP9FgAkwASbABJgAE2ACrJiAEIVvB-QQxUTYaKL-poYqLKSTRngQCZwwRUU2YAKhQIi-TEARgaKICF2ZiB6EImeUZCKGiBRFjGXvoY2tggAnyVdk0MEMDpZw4WGFDfY4wMcRAS4IcYf_afcDAVn8zUEKR1sAAAAASUVORK5CYII.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CsIBL2dvdG8_dXJsPUNBRVNoUUVCNnpzd0ZkRnEtMjVBRzFibE9mSWNTdklNMjYtWE93alUxUmpQVUhHMUswMzMxN255U3dDaVZmb3RqNFhfU0JmYW51VTUtVVR4VnhBNDYxUmRlTFBYMjNzNkpDMTVkbFZnQllDMHRpOFBGN0pBcUxqdkZmNDNjNlY1STU0eGZ2endlQ3RVV1Ewemt4cXRSSzZ5R3Z2UE9DaGFsZzdBdWw5QVhIT0VGRkZZa0gtSERWc3ASBBoCCAAamwQSABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJA9wMIJhAAGAAgACoPCghzb2Z0d2FyZRXW6bdAKgkKAmhyFamgvUAqDgoHdGVyYmFpaxWJaoxAMsIBL2dvdG8_dXJsPUNBRVNoUUVCNnpzd0ZkRnEtMjVBRzFibE9mSWNTdklNMjYtWE93alUxUmpQVUhHMUswMzMxN255U3dDaVZmb3RqNFhfU0JmYW51VTUtVVR4VnhBNDYxUmRlTFBYMjNzNkpDMTVkbFZnQllDMHRpOFBGN0pBcUxqdkZmNDNjNlY1STU0eGZ2endlQ3RVV1Ewemt4cXRSSzZ5R3Z2UE9DaGFsZzdBdWw5QVhIT0VGRkZZa0gtSERWc3A6PzEwIDxiPlNvZnR3YXJlIEhSIFRlcmJhaWs8L2I-IHVudHVrIFBlbWFudGF1YW4gS2luZXJqYSBLYXJ5YXdhbkK6AVJla29tZW5kYXNpIFNvZnR3YXJlIEhSIFRlcmJhaWsgdW50dWsgTWVtYW50YXUgS2luZXJqYSBLYXJ5YXdhbiAmbWlkZG90OyA8Yj4xLiBMaW5vdkhSPC9iPiAmbWlkZG90OyAyLiBHYWRqaWFuICZtaWRkb3Q7IDMuIEVWQSBIUiBIYXNoTWljcm8gJm1pZGRvdDsgNC4gSGFkaXJyICZtaWRkb3Q7IDUuIE1la2FyaSBUYWxlbnRhLiICEAFIAFgAaAA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CsIBL2dvdG8_dXJsPUNBRVNoUUVCNnpzd0ZkRnEtMjVBRzFibE9mSWNTdklNMjYtWE93alUxUmpQVUhHMUswMzMxN255U3dDaVZmb3RqNFhfU0JmYW51VTUtVVR4VnhBNDYxUmRlTFBYMjNzNkpDMTVkbFZnQllDMHRpOFBGN0pBcUxqdkZmNDNjNlY1STU0eGZ2endlQ3RVV1Ewemt4cXRSSzZ5R3Z2UE9DaGFsZzdBdWw5QVhIT0VGRkZZa0gtSERWc3ASBBoCCAAamwQSABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJA9wMIJhAAGAAgACoPCghzb2Z0d2FyZRXW6bdAKgkKAmhyFamgvUAqDgoHdGVyYmFpaxWJaoxAMsIBL2dvdG8_dXJsPUNBRVNoUUVCNnpzd0ZkRnEtMjVBRzFibE9mSWNTdklNMjYtWE93alUxUmpQVUhHMUswMzMxN255U3dDaVZmb3RqNFhfU0JmYW51VTUtVVR4VnhBNDYxUmRlTFBYMjNzNkpDMTVkbFZnQllDMHRpOFBGN0pBcUxqdkZmNDNjNlY1STU0eGZ2endlQ3RVV1Ewemt4cXRSSzZ5R3Z2UE9DaGFsZzdBdWw5QVhIT0VGRkZZa0gtSERWc3A6PzEwIDxiPlNvZnR3YXJlIEhSIFRlcmJhaWs8L2I-IHVudHVrIFBlbWFudGF1YW4gS2luZXJqYSBLYXJ5YXdhbkK6AVJla29tZW5kYXNpIFNvZnR3YXJlIEhSIFRlcmJhaWsgdW50dWsgTWVtYW50YXUgS2luZXJqYSBLYXJ5YXdhbiAmbWlkZG90OyA8Yj4xLiBMaW5vdkhSPC9iPiAmbWlkZG90OyAyLiBHYWRqaWFuICZtaWRkb3Q7IDMuIEVWQSBIUiBIYXNoTWljcm8gJm1pZGRvdDsgNC4gSGFkaXJyICZtaWRkb3Q7IDUuIE1la2FyaSBUYWxlbnRhLiICEAFIAFgAaAA",
+      "source": "LinovHR"
+    },
+    {
+      "position": 4,
+      "title": "7 Aplikasi HRIS Terbaik di Indonesia 2025 - Impact.",
+      "link": "https://www.impactfirst.co/id/c/aplikasi-hris",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESaAHrOzAV45dwXU6bvTa42xX7vJR4880CcwqHFdXWzKjIazsPBY8aZYHUmknlnkbGeBq-bYSUS0Uii4t_umQwrV0bOOn128nOFbnmMvPBlvafBTNHr7xaiSMNgaxOkpDb3GukDcNfzRMC&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQFnoECCoQAQ&uoh=1",
+      "displayed_link": "https://www.impactfirst.co › Home › Blog",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAaVBMVEUHaPwHZ_wGaPwGZ_wAYvwAXfwAW_wAYPwAWvx2nfvQ2vvr7frd5PqctvsAZfymvfvl6frw8vrY4Pt8ofvL1_v___ooc_xAf_z9-vq6y_uYs_v6-Pofb_yRr_tqlvyvw_sAV_w1ePwAYfzCEJzNAAABEElEQVR4AXSRBQKDMAxFG6Gd4pni9z_k2szQj_PiMSpAsy6icG4IwJ-wRSnobzt-eDCGaJAMfh8GNPBmWBh5AoweI-F6P4gcWevIgD-d3Vke2ZHdH46nM8fGxJSkWV7s6M9KCcouHF9v-nqwSn0Adxa57x83eV64ym5104okPkng5G5Sdxxdnp66qnfc1XJzpP3FV5HBv7JSDl2zyDUewx_1sRRqv5-wrsdBacTdQ8PqhF0i0jb1LcXge3vs7yJn920lOkjQ7RrzJdPX0uJnN0C7Is_SBGIwMZ9Px8PehkY-80W2O-tIwwzWRqyv480Cba1N_ZdrBe8Cb_oaphwighkIAkydYPugjkemcADCXgEACk0PBAwvzdIAAAAASUVORK5CYII.png",
+      "date": "28 Apr 2025",
+      "snippet": "Pelajari fitur utama, fungsi, manfaat, cara implementasi, dan rekomendasi aplikasi HRIS terbaik di Indonesia 2025: Impact HRIS, BambooHR, ...",
+      "snippet_highlighted_words": [
+        "Impact HRIS"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "Pelajari fitur utama, fungsi, manfaat, cara implementasi, dan rekomendasi aplikasi HRIS terbaik di Indonesia 2025: Impact HRIS, BambooHR, ...",
+          "source_info_link": "https://www.impactfirst.co/id/c/aplikasi-hris",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAaVBMVEUHaPwHZ_wGaPwGZ_wAYvwAXfwAW_wAYPwAWvx2nfvQ2vvr7frd5PqctvsAZfymvfvl6frw8vrY4Pt8ofvL1_v___ooc_xAf_z9-vq6y_uYs_v6-Pofb_yRr_tqlvyvw_sAV_w1ePwAYfzCEJzNAAABEElEQVR4AXSRBQKDMAxFG6Gd4pni9z_k2szQj_PiMSpAsy6icG4IwJ-wRSnobzt-eDCGaJAMfh8GNPBmWBh5AoweI-F6P4gcWevIgD-d3Vke2ZHdH46nM8fGxJSkWV7s6M9KCcouHF9v-nqwSn0Adxa57x83eV64ym5104okPkng5G5Sdxxdnp66qnfc1XJzpP3FV5HBv7JSDl2zyDUewx_1sRRqv5-wrsdBacTdQ8PqhF0i0jb1LcXge3vs7yJn920lOkjQ7RrzJdPX0uJnN0C7Is_SBGIwMZ9Px8PehkY-80W2O-tIwwzWRqyv480Cba1N_ZdrBe8Cb_oaphwighkIAkydYPugjkemcADCXgEACk0PBAwvzdIAAAAASUVORK5CYII.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CpoBL2dvdG8_dXJsPUNBRVNhQUhyT3pBVlAwUDNfaTdqNmdWN3d6UlJobll2eTd1LTNHSVdXUG0zbmw0amhMc1pIV1NYcV90UmpDZkYxc2ZlUmZEaXA4ZW9ReXllTEEzcW14ZExTMUdjX29SVVJBTXUxdEczeWhrZlRuMTJfZU9JbjBYN0tzaER0RFZVejVnUk40cmFkVjBUOHBHShIEGgIIABrPAxICCAAaACIAKgAyBggBEgJpZDoAQgQIARAmSgBaAHIAegCCQKkDCCYQABgAIAAqDwoIc29mdHdhcmUVBf5oPyoJCgJochXcUoc_Kg4KB3RlcmJhaWsVd3EKQDKaAS9nb3RvP3VybD1DQUVTYUFIck96QVZQMFAzX2k3ajZnVjd3elJSaG5Zdnk3dS0zR0lXV1BtM25sNGpoTHNaSFdTWHFfdFJqQ2ZGMXNmZVJmRGlwOGVvUXl5ZUxBM3FteGRMUzFHY19vUlVSQU11MXRHM3loa2ZUbjEyX2VPSW4wWDdLc2hEdERWVXo1Z1JONHJhZFYwVDhwR0o6OjcgQXBsaWthc2kgSFJJUyA8Yj5UZXJiYWlrPC9iPiBkaSBJbmRvbmVzaWEgMjAyNSAtIEltcGFjdC5CmQFQZWxhamFyaSBmaXR1ciB1dGFtYSwgZnVuZ3NpLCBtYW5mYWF0LCBjYXJhIGltcGxlbWVudGFzaSwgZGFuIHJla29tZW5kYXNpIGFwbGlrYXNpIEhSSVMgdGVyYmFpayBkaSBJbmRvbmVzaWEgMjAyNTogPGI-SW1wYWN0IEhSSVM8L2I-LCBCYW1ib29IUiwmbmJzcDsuLi4iAhABSABYAGgA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CpoBL2dvdG8_dXJsPUNBRVNhQUhyT3pBVlAwUDNfaTdqNmdWN3d6UlJobll2eTd1LTNHSVdXUG0zbmw0amhMc1pIV1NYcV90UmpDZkYxc2ZlUmZEaXA4ZW9ReXllTEEzcW14ZExTMUdjX29SVVJBTXUxdEczeWhrZlRuMTJfZU9JbjBYN0tzaER0RFZVejVnUk40cmFkVjBUOHBHShIEGgIIABrPAxICCAAaACIAKgAyBggBEgJpZDoAQgQIARAmSgBaAHIAegCCQKkDCCYQABgAIAAqDwoIc29mdHdhcmUVBf5oPyoJCgJochXcUoc_Kg4KB3RlcmJhaWsVd3EKQDKaAS9nb3RvP3VybD1DQUVTYUFIck96QVZQMFAzX2k3ajZnVjd3elJSaG5Zdnk3dS0zR0lXV1BtM25sNGpoTHNaSFdTWHFfdFJqQ2ZGMXNmZVJmRGlwOGVvUXl5ZUxBM3FteGRMUzFHY19vUlVSQU11MXRHM3loa2ZUbjEyX2VPSW4wWDdLc2hEdERWVXo1Z1JONHJhZFYwVDhwR0o6OjcgQXBsaWthc2kgSFJJUyA8Yj5UZXJiYWlrPC9iPiBkaSBJbmRvbmVzaWEgMjAyNSAtIEltcGFjdC5CmQFQZWxhamFyaSBmaXR1ciB1dGFtYSwgZnVuZ3NpLCBtYW5mYWF0LCBjYXJhIGltcGxlbWVudGFzaSwgZGFuIHJla29tZW5kYXNpIGFwbGlrYXNpIEhSSVMgdGVyYmFpayBkaSBJbmRvbmVzaWEgMjAyNTogPGI-SW1wYWN0IEhSSVM8L2I-LCBCYW1ib29IUiwmbmJzcDsuLi4iAhABSABYAGgA",
+      "source": "impactfirst.co"
+    },
+    {
+      "position": 5,
+      "title": "Solusi Pengelolaan SDM, Ini 3 Software HR Perusahaan ...",
+      "link": "https://www.soltius.co.id/id/blog/software-hr-perusahaan-terbaik-untuk-meningkatkan-bisnis-anda",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESmgEB6zswFS3Al70TPP80iYmb17x86qQ-mDXZEFG1hJqDgqVFL350hP8So7RMEZFPp5VrWSQBEDpBOAJeWjL6S1-UczxtJ7D5fq-T8svh-L790RxN6UO6_9lDVnhL2NucvITiseHEI-6_mA7IyGZON5vfV521Seepdj80Mk78-r1Zd3r8Ixi2uhjZUFd8mS_pqRKogXBaDUsj5c8c&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQFnoECEIQAQ&uoh=1",
+      "displayed_link": "https://www.soltius.co.id › blog › software-hr-perusaha...",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAyVBMVEX_______7__v79_fr99Or85M_80rf9x6n8w6P92r_97Nv32cXyrYHvi0z1dyL7ZwD-YQD7YQD5cA71fjDwnGbyz7b5qnP1fUD2ZBH5XwD7WgD9WQD7XgD2dTf3m2L22bD-XwDuYgDqahnxcyv_XADpiT341LX__Pn5mFX5fR7vqnD13MTwt43zkEb3zan-t436fzL0yp75l2b_7-X74tPxhTz6rH71cgv8kE3_7OH-iUP5izr4uIT9oV_z27vwfTTvkE_1q4bqcxwAeAEHAAABk0lEQVR4AV2Qh3qDIBSFMWJ2grPxIrVoacjeeyfv_1Alq0WPg_vxc8cB_csoPIV0adQ0TcNQQW4fGdgqlsrlUrFSNfNJuFZvNIntENfzA5zF1Y9WCEAjxiiFz_hLz7NiYJwl6beXJkAF_WnL_7yO4Ix2e0GtHwyGhDn0e_TO6w_BdrxBVT67Wz7w6LP4HFmOHYDJVA3xdKkKgYhm8wdcNLjtjkz0cq-MVpeUuWWpTstS6sBKooJmerQmZLNVIf4gsK6oHQ3iTsjchQq3Oxv2Cy1RSR5AhLU7nDCnM8_cZ8EoE-EGd7gE55iDhVIYrR9w77DNNld2DNGjJ44d2uzr0EDSp-IBZTkU5GAiHS4mALvqI2pxu9nOOImJkwwkUsIrh9ONZaghlVR5PE4INKznjLUdtcXy9DfNIOQsKb3GN9vniCTeamRhXG0fLikT4QCjl8zpGRwRNS--H58TarP0ijVf_SVhDOD58uYII11W2b-tHSG4s25dixJlZVanvc1uvx8e-k-UlcTzu7ChPOT1vkAN_QIxQymHFjyHagAAAABJRU5ErkJggg.png",
+      "snippet": "Software HR perusahaan terbaik untuk meningkatkan bisnis Anda selanjutnya tak lain yaitu Human Resource Information System atau Sistem Informasi Sumber Daya ...",
+      "snippet_highlighted_words": [
+        "Human Resource Information System"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "Software HR perusahaan terbaik untuk meningkatkan bisnis Anda selanjutnya tak lain yaitu Human Resource Information System atau Sistem Informasi Sumber Daya ...",
+          "source_info_link": "https://www.soltius.co.id/id/blog/software-hr-perusahaan-terbaik-untuk-meningkatkan-bisnis-anda",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAyVBMVEX_______7__v79_fr99Or85M_80rf9x6n8w6P92r_97Nv32cXyrYHvi0z1dyL7ZwD-YQD7YQD5cA71fjDwnGbyz7b5qnP1fUD2ZBH5XwD7WgD9WQD7XgD2dTf3m2L22bD-XwDuYgDqahnxcyv_XADpiT341LX__Pn5mFX5fR7vqnD13MTwt43zkEb3zan-t436fzL0yp75l2b_7-X74tPxhTz6rH71cgv8kE3_7OH-iUP5izr4uIT9oV_z27vwfTTvkE_1q4bqcxwAeAEHAAABk0lEQVR4AV2Qh3qDIBSFMWJ2grPxIrVoacjeeyfv_1Alq0WPg_vxc8cB_csoPIV0adQ0TcNQQW4fGdgqlsrlUrFSNfNJuFZvNIntENfzA5zF1Y9WCEAjxiiFz_hLz7NiYJwl6beXJkAF_WnL_7yO4Ix2e0GtHwyGhDn0e_TO6w_BdrxBVT67Wz7w6LP4HFmOHYDJVA3xdKkKgYhm8wdcNLjtjkz0cq-MVpeUuWWpTstS6sBKooJmerQmZLNVIf4gsK6oHQ3iTsjchQq3Oxv2Cy1RSR5AhLU7nDCnM8_cZ8EoE-EGd7gE55iDhVIYrR9w77DNNld2DNGjJ44d2uzr0EDSp-IBZTkU5GAiHS4mALvqI2pxu9nOOImJkwwkUsIrh9ONZaghlVR5PE4INKznjLUdtcXy9DfNIOQsKb3GN9vniCTeamRhXG0fLikT4QCjl8zpGRwRNS--H58TarP0ijVf_SVhDOD58uYII11W2b-tHSG4s25dixJlZVanvc1uvx8e-k-UlcTzu7ChPOT1vkAN_QIxQymHFjyHagAAAABJRU5ErkJggg.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=Ct4BL2dvdG8_dXJsPUNBRVNtZ0VCNnpzd0ZjTWNfbHlhdU9KaS0xTlVXbnczX1hIR2VQd3dOdFl2akhnOXJESTVDaUE1TTdjeTdiYnBrelA2ODJGR1BnTkpjLVRzY01QVllBdjEzQW1JWUlYSklfUW80WGk5aGFydy05aTE3RWJMRkxhY2JDRGZlM2JIQjdQVDZZckFRc1V4SnExalQ4ZzgwS0NobWptZTM3QnJ2V3AzZEY0QjZFTjU2U2dYaDRHbWlNVTlJVUxiSVhiUWFrbWxNN2d6R2FhLUZwUjQ3alU5EgQaAggAGqkEEgAaACIAKgAyBggBEgJpZDoAQgQIARAmSgBaAHIAegCCQIUECCYQABgAIAAqDwoIc29mdHdhcmUVqyGlQCoJCgJochV2ia9AKg4KB3RlcmJhaWsVxOecQDLeAS9nb3RvP3VybD1DQUVTbWdFQjZ6c3dGY01jX2x5YXVPSmktMU5VV253M19YSEdlUHd3TnRZdmpIZzlyREk1Q2lBNU03Y3k3YmJwa3pQNjgyRkdQZ05KYy1Uc2NNUFZZQXYxM0FtSVlJWEpJX1FvNFhpOWhhcnctOWkxN0ViTEZMYWNiQ0RmZTNiSEI3UFQ2WXJBUXNVeEpxMWpUOGc4MEtDaG1qbWUzN0JydldwM2RGNEI2RU41NlNnWGg0R21pTVU5SVVMYklYYlFha21sTTdnekdhYS1GcFI0N2pVOTo_U29sdXNpIFBlbmdlbG9sYWFuIFNETSwgSW5pIDMgPGI-U29mdHdhcmUgSFI8L2I-IFBlcnVzYWhhYW4gLi4uQqwBU29mdHdhcmUgSFIgcGVydXNhaGFhbiB0ZXJiYWlrIHVudHVrIG1lbmluZ2thdGthbiBiaXNuaXMgQW5kYSBzZWxhbmp1dG55YSB0YWsgbGFpbiB5YWl0dSA8Yj5IdW1hbiBSZXNvdXJjZSBJbmZvcm1hdGlvbiBTeXN0ZW08L2I-IGF0YXUgU2lzdGVtIEluZm9ybWFzaSBTdW1iZXIgRGF5YSZuYnNwOy4uLiICEAFIAFgAaAA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=Ct4BL2dvdG8_dXJsPUNBRVNtZ0VCNnpzd0ZjTWNfbHlhdU9KaS0xTlVXbnczX1hIR2VQd3dOdFl2akhnOXJESTVDaUE1TTdjeTdiYnBrelA2ODJGR1BnTkpjLVRzY01QVllBdjEzQW1JWUlYSklfUW80WGk5aGFydy05aTE3RWJMRkxhY2JDRGZlM2JIQjdQVDZZckFRc1V4SnExalQ4ZzgwS0NobWptZTM3QnJ2V3AzZEY0QjZFTjU2U2dYaDRHbWlNVTlJVUxiSVhiUWFrbWxNN2d6R2FhLUZwUjQ3alU5EgQaAggAGqkEEgAaACIAKgAyBggBEgJpZDoAQgQIARAmSgBaAHIAegCCQIUECCYQABgAIAAqDwoIc29mdHdhcmUVqyGlQCoJCgJochV2ia9AKg4KB3RlcmJhaWsVxOecQDLeAS9nb3RvP3VybD1DQUVTbWdFQjZ6c3dGY01jX2x5YXVPSmktMU5VV253M19YSEdlUHd3TnRZdmpIZzlyREk1Q2lBNU03Y3k3YmJwa3pQNjgyRkdQZ05KYy1Uc2NNUFZZQXYxM0FtSVlJWEpJX1FvNFhpOWhhcnctOWkxN0ViTEZMYWNiQ0RmZTNiSEI3UFQ2WXJBUXNVeEpxMWpUOGc4MEtDaG1qbWUzN0JydldwM2RGNEI2RU41NlNnWGg0R21pTVU5SVVMYklYYlFha21sTTdnekdhYS1GcFI0N2pVOTo_U29sdXNpIFBlbmdlbG9sYWFuIFNETSwgSW5pIDMgPGI-U29mdHdhcmUgSFI8L2I-IFBlcnVzYWhhYW4gLi4uQqwBU29mdHdhcmUgSFIgcGVydXNhaGFhbiB0ZXJiYWlrIHVudHVrIG1lbmluZ2thdGthbiBiaXNuaXMgQW5kYSBzZWxhbmp1dG55YSB0YWsgbGFpbiB5YWl0dSA8Yj5IdW1hbiBSZXNvdXJjZSBJbmZvcm1hdGlvbiBTeXN0ZW08L2I-IGF0YXUgU2lzdGVtIEluZm9ybWFzaSBTdW1iZXIgRGF5YSZuYnNwOy4uLiICEAFIAFgAaAA",
+      "source": "Soltius Indonesia"
+    },
+    {
+      "position": 6,
+      "title": "\"Software HR Terbaik (HRIS) di 2026: 14 Platform ...",
+      "link": "https://resources.rework.com/id/tools/hr-people/best-hr-software-2026",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESgAEB6zswFcmyyrBL09J596A6PxDkPVjpx-jkFBLnpwtKle9uu5Xqtf0gMCuPO_rtOyK5aFX9fgA0wE2TdorN28pbzOca74XZDBRUKfIAwLwdE0NLMp_goTKwAzX2-8-8e0CvnUzi1CnqgXLkdqtTK9rjCTmKDI7ON0AveX7hdesdsw&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQFnoECD0QAQ&uoh=1",
+      "displayed_link": "https://resources.rework.com › tools › hr-people › best-h...",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAKlBMVEVHcEwRcrcRcrcRcbcRcbYRcrcPcLYRcbcRcrcQcbYQcLYQcbYQcLYScrdpIt4vAAAADXRSTlMAvPJvUskJi9pFGTQip3-cQgAAAONJREFUOI2NU1sCgyAMa8uroL3_dQcoWMCN5UtNbPoEaEg2IJMIMQabYIK3LnMPyNmBj04WuOPhzUoXmA3fFfEbL1Jd_It_z6MI7HdeJGbBGgCNwfYIcNLIcjhL1-43SqMDheivxrXfIgQV2vpW-dm-GehuprO6dARuygE9LsNlRn4UtLhCIG8RPPfEQCbUUKp2mNpQe6fGQ8CTwIzz5SedG2HIMZcZJgGXJEjpl2GmIUcLac7y0BuQhzWPm1D1sW7M4oFqR-vyzxujPN1fS7tf-_3hAByb0yvHiz-PtyBF83b-H2ZtI-JId6RQAAAAAElFTkSuQmCC.png",
+      "snippet": "1. BambooHR: HRIS Inti Paling Bersih untuk Tim Kecil dan Mid-Size ... Filosofi produk BambooHR tetap konsisten selama lebih dari satu dekade: software HR ...",
+      "snippet_highlighted_words": [
+        "BambooHR"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "1. BambooHR: HRIS Inti Paling Bersih untuk Tim Kecil dan Mid-Size ... Filosofi produk BambooHR tetap konsisten selama lebih dari satu dekade: software HR ...",
+          "source_info_link": "https://resources.rework.com/id/tools/hr-people/best-hr-software-2026",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAKlBMVEVHcEwRcrcRcrcRcbcRcbYRcrcPcLYRcbcRcrcQcbYQcLYQcbYQcLYScrdpIt4vAAAADXRSTlMAvPJvUskJi9pFGTQip3-cQgAAAONJREFUOI2NU1sCgyAMa8uroL3_dQcoWMCN5UtNbPoEaEg2IJMIMQabYIK3LnMPyNmBj04WuOPhzUoXmA3fFfEbL1Jd_It_z6MI7HdeJGbBGgCNwfYIcNLIcjhL1-43SqMDheivxrXfIgQV2vpW-dm-GehuprO6dARuygE9LsNlRn4UtLhCIG8RPPfEQCbUUKp2mNpQe6fGQ8CTwIzz5SedG2HIMZcZJgGXJEjpl2GmIUcLac7y0BuQhzWPm1D1sW7M4oFqR-vyzxujPN1fS7tf-_3hAByb0yvHiz-PtyBF83b-H2ZtI-JId6RQAAAAAElFTkSuQmCC.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CrwBL2dvdG8_dXJsPUNBRVNnQUVCNnpzd0ZaLUl6elBraVdaYVYxQ0Q2NExWNEdfZ3QtZXhvX2RJWEVSSEYtNDRsakMxaVowV2dwNTE0bUN0QXpjNTNVM3BHQ0gwVnJnMENFUDUteHdkMERDYmZDVmp3UW9mdmx6VjF2QnBDUTBKWU54NWREcFczaS0wajBacUVyTlhuZVU1WEFDZjR2d3lYTi1kRndvTEQ4X2FwZFlNWG1yM3p0MjZNR0kzX2cSBBoCCAAa9wMSABoAIgAqADIGCAMSAmlkOgBCBAgBECZKAFoAcgB6AIJA0wMIJhAAGAAgACoPCghzb2Z0d2FyZRV6EZRAKgkKAmhyFT5ArUAqDgoHdGVyYmFpaxW4gIBAMrwBL2dvdG8_dXJsPUNBRVNnQUVCNnpzd0ZaLUl6elBraVdaYVYxQ0Q2NExWNEdfZ3QtZXhvX2RJWEVSSEYtNDRsakMxaVowV2dwNTE0bUN0QXpjNTNVM3BHQ0gwVnJnMENFUDUteHdkMERDYmZDVmp3UW9mdmx6VjF2QnBDUTBKWU54NWREcFczaS0wajBacUVyTlhuZVU1WEFDZjR2d3lYTi1kRndvTEQ4X2FwZFlNWG1yM3p0MjZNR0kzX2c6MjxiPlNvZnR3YXJlIEhSIFRlcmJhaWs8L2I-IChIUklTKSBkaSAyMDI2IC0gUmV3b3JrQqkBMS4gPGI-QmFtYm9vSFI8L2I-OiBIUklTIEludGkgUGFsaW5nIEJlcnNpaCB1bnR1ayBUaW0gS2VjaWwgZGFuIE1pZC1TaXplIC4uLiBGaWxvc29maSBwcm9kdWsgQmFtYm9vSFIgdGV0YXAga29uc2lzdGVuIHNlbGFtYSBsZWJpaCBkYXJpIHNhdHUgZGVrYWRlOiBzb2Z0d2FyZSBIUiZuYnNwOy4uLiICEAFIAFgAaAA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CrwBL2dvdG8_dXJsPUNBRVNnQUVCNnpzd0ZaLUl6elBraVdaYVYxQ0Q2NExWNEdfZ3QtZXhvX2RJWEVSSEYtNDRsakMxaVowV2dwNTE0bUN0QXpjNTNVM3BHQ0gwVnJnMENFUDUteHdkMERDYmZDVmp3UW9mdmx6VjF2QnBDUTBKWU54NWREcFczaS0wajBacUVyTlhuZVU1WEFDZjR2d3lYTi1kRndvTEQ4X2FwZFlNWG1yM3p0MjZNR0kzX2cSBBoCCAAa9wMSABoAIgAqADIGCAMSAmlkOgBCBAgBECZKAFoAcgB6AIJA0wMIJhAAGAAgACoPCghzb2Z0d2FyZRV6EZRAKgkKAmhyFT5ArUAqDgoHdGVyYmFpaxW4gIBAMrwBL2dvdG8_dXJsPUNBRVNnQUVCNnpzd0ZaLUl6elBraVdaYVYxQ0Q2NExWNEdfZ3QtZXhvX2RJWEVSSEYtNDRsakMxaVowV2dwNTE0bUN0QXpjNTNVM3BHQ0gwVnJnMENFUDUteHdkMERDYmZDVmp3UW9mdmx6VjF2QnBDUTBKWU54NWREcFczaS0wajBacUVyTlhuZVU1WEFDZjR2d3lYTi1kRndvTEQ4X2FwZFlNWG1yM3p0MjZNR0kzX2c6MjxiPlNvZnR3YXJlIEhSIFRlcmJhaWs8L2I-IChIUklTKSBkaSAyMDI2IC0gUmV3b3JrQqkBMS4gPGI-QmFtYm9vSFI8L2I-OiBIUklTIEludGkgUGFsaW5nIEJlcnNpaCB1bnR1ayBUaW0gS2VjaWwgZGFuIE1pZC1TaXplIC4uLiBGaWxvc29maSBwcm9kdWsgQmFtYm9vSFIgdGV0YXAga29uc2lzdGVuIHNlbGFtYSBsZWJpaCBkYXJpIHNhdHUgZGVrYWRlOiBzb2Z0d2FyZSBIUiZuYnNwOy4uLiICEAFIAFgAaAA",
+      "source": "Rework"
+    },
+    {
+      "position": 7,
+      "title": "6 Aplikasi dan Software HRIS Terbaik Gratis dan Berbayar ...",
+      "link": "https://hrd.id/blog/33/6-aplikasi-dan-software-hris-terbaik-gratis-dan-berbayar-untuk-membantu-hrd.html",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESogEB6zswFbSyOD4CtMylCIa9N_qGHKwFeu_Gr1iCFTUtpEtl2GzktDKjLUIKQJvZgkE9p5GkUDV2Ll7Y2FOa9e8PDBYivx9Ud1Ls-1tapSH4W5jQoD9I9a6-rczMgMn5pAnA5SuStgEy2RsAbySSDMENziaXWh66hJm_PEeH7vMt9QPj6_AR-ILG804VKUpE2OBPQgdpLfF2v4XUyrh60a7Cr6U&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQFnoECD8QAQ&uoh=1",
+      "displayed_link": "https://hrd.id › blog › 6-aplikasi-dan-software-hris-terbai...",
+      "snippet": "6 Aplikasi dan Software HRIS Terbaik Gratis dan Berbayar untuk Membantu HRD · 1. HRD.ID – HRIS Berbayar Paling Terjangkau di Indonesia · 2. OrangeHRM (Community ...",
+      "snippet_highlighted_words": [
+        "1. HRD.ID – HRIS Berbayar Paling Terjangkau di Indonesia"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "6 Aplikasi dan Software HRIS Terbaik Gratis dan Berbayar untuk Membantu HRD · 1. HRD.ID – HRIS Berbayar Paling Terjangkau di Indonesia · 2. OrangeHRM (Community ...",
+          "source_info_link": "https://hrd.id/blog/33/6-aplikasi-dan-software-hris-terbaik-gratis-dan-berbayar-untuk-membantu-hrd.html"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CukBL2dvdG8_dXJsPUNBRVNvZ0VCNnpzd0ZUa3lVT0FrVXE5V3owNm96T3lqd3FWM240WnFJUU8yRzNiakUtRG5aRW9HRndCYTc4R2ZVNFNWcnFXX3RXd08wSXpELVBJc3dHN2ZXSkFkTDVrTVBUYnJrUnY0ODdLSXRWOUtuN1drejBSZFBXVGRrQ2NqRDExS2FFN0lWLUZlcnNWYkpWVnRiSDZiN0ljR2NDWW5QbUJuQmR6RzdvYXBobjB6VHAwanh5d21paEJZLVpRRmlSeGFOSDcydHRLTFJ3MEItVW80T1l2VmlmYnktR0USBBoCCAAa0wQSABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJArwQIJhAAGAAgACoPCghzb2Z0d2FyZRXcAHpAKgkKAmhyFRneYD8qDgoHdGVyYmFpaxXmQX9AMukBL2dvdG8_dXJsPUNBRVNvZ0VCNnpzd0ZUa3lVT0FrVXE5V3owNm96T3lqd3FWM240WnFJUU8yRzNiakUtRG5aRW9HRndCYTc4R2ZVNFNWcnFXX3RXd08wSXpELVBJc3dHN2ZXSkFkTDVrTVBUYnJrUnY0ODdLSXRWOUtuN1drejBSZFBXVGRrQ2NqRDExS2FFN0lWLUZlcnNWYkpWVnRiSDZiN0ljR2NDWW5QbUJuQmR6RzdvYXBobjB6VHAwanh5d21paEJZLVpRRmlSeGFOSDcydHRLTFJ3MEItVW80T1l2VmlmYnktR0U6SjYgQXBsaWthc2kgZGFuIDxiPlNvZnR3YXJlPC9iPiBIUklTIDxiPlRlcmJhaWs8L2I-IEdyYXRpcyBkYW4gQmVyYmF5YXIgLi4uQsABNiBBcGxpa2FzaSBkYW4gU29mdHdhcmUgSFJJUyBUZXJiYWlrIEdyYXRpcyBkYW4gQmVyYmF5YXIgdW50dWsgTWVtYmFudHUgSFJEICZtaWRkb3Q7IDxiPjEuIEhSRC5JRCDigJMgSFJJUyBCZXJiYXlhciBQYWxpbmcgVGVyamFuZ2thdSBkaSBJbmRvbmVzaWE8L2I-ICZtaWRkb3Q7IDIuIE9yYW5nZUhSTSAoQ29tbXVuaXR5Jm5ic3A7Li4uIgIQAUgAWABoAA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CukBL2dvdG8_dXJsPUNBRVNvZ0VCNnpzd0ZUa3lVT0FrVXE5V3owNm96T3lqd3FWM240WnFJUU8yRzNiakUtRG5aRW9HRndCYTc4R2ZVNFNWcnFXX3RXd08wSXpELVBJc3dHN2ZXSkFkTDVrTVBUYnJrUnY0ODdLSXRWOUtuN1drejBSZFBXVGRrQ2NqRDExS2FFN0lWLUZlcnNWYkpWVnRiSDZiN0ljR2NDWW5QbUJuQmR6RzdvYXBobjB6VHAwanh5d21paEJZLVpRRmlSeGFOSDcydHRLTFJ3MEItVW80T1l2VmlmYnktR0USBBoCCAAa0wQSABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJArwQIJhAAGAAgACoPCghzb2Z0d2FyZRXcAHpAKgkKAmhyFRneYD8qDgoHdGVyYmFpaxXmQX9AMukBL2dvdG8_dXJsPUNBRVNvZ0VCNnpzd0ZUa3lVT0FrVXE5V3owNm96T3lqd3FWM240WnFJUU8yRzNiakUtRG5aRW9HRndCYTc4R2ZVNFNWcnFXX3RXd08wSXpELVBJc3dHN2ZXSkFkTDVrTVBUYnJrUnY0ODdLSXRWOUtuN1drejBSZFBXVGRrQ2NqRDExS2FFN0lWLUZlcnNWYkpWVnRiSDZiN0ljR2NDWW5QbUJuQmR6RzdvYXBobjB6VHAwanh5d21paEJZLVpRRmlSeGFOSDcydHRLTFJ3MEItVW80T1l2VmlmYnktR0U6SjYgQXBsaWthc2kgZGFuIDxiPlNvZnR3YXJlPC9iPiBIUklTIDxiPlRlcmJhaWs8L2I-IEdyYXRpcyBkYW4gQmVyYmF5YXIgLi4uQsABNiBBcGxpa2FzaSBkYW4gU29mdHdhcmUgSFJJUyBUZXJiYWlrIEdyYXRpcyBkYW4gQmVyYmF5YXIgdW50dWsgTWVtYmFudHUgSFJEICZtaWRkb3Q7IDxiPjEuIEhSRC5JRCDigJMgSFJJUyBCZXJiYXlhciBQYWxpbmcgVGVyamFuZ2thdSBkaSBJbmRvbmVzaWE8L2I-ICZtaWRkb3Q7IDIuIE9yYW5nZUhSTSAoQ29tbXVuaXR5Jm5ic3A7Li4uIgIQAUgAWABoAA",
+      "source": "HRD.id"
+    },
+    {
+      "position": 8,
+      "title": "20 Aplikasi HR Terbaik untuk Perusahaan Indonesia di 2026",
+      "link": "https://www.weefer.co.id/id/blog/20-aplikasi-hr-terbaik-untuk-perusahaan-indonesia/",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESjgEB6zswFQC2lKVz-htdrkc63AHcsPji9y5Yh7QFnpeu1g0yAXH1drK4n_sTp5UHICP0wbD8_Z6JxbLF4gNKPp4ZR8rGYhaYt3tcjVPLjWpT9vfdiKG8H1L4-fWARmAAE0v8GwQ0_LGbVhHrRzd_BO4WtaDtFvf2lVCD913_oOfDxnhowSkJC1kvqTLcfeHk&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQFnoECEEQAQ&uoh=1",
+      "displayed_link": "https://www.weefer.co.id › Beranda Weefer › Blog – ID",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAOVBMVEUAAABHcEwAAAAAAAAAAAAAAAAAAAAAAAAAAADYmxwRDQKQZxP1sCDsqh_wrR-idBVtTg43JwfAihmxo5-tAAAACXRSTlMBAE6Uzu7_GaUVfX-wAAAA7ElEQVR4AYWTCRaEIAhARZOGAlzuf9h51Gsv_e3x3cVtADgfhogYh-Dt6wrA-MMTv_GqAAS8Ec4GjBEfxBGOOL4yQju-GQARP4hgxq1_t542GtgagWX8RISIkz1WZqLZ5gOcQ4NFTGBRXEnKJqBz_kvQRfAutIXghrYwuNgWosO2gH3h1gTfm7h1kvO9k9dhSklUbsP0aJBoRcRSWcQqySprZX6d6imzKOUsKiKcSrJPNJwtljGzCKuIkoqybvEf7Ms9L2HNSGwKTfue2jZMSbUm-51rrXnbMP0t19-0RnvbG-3E6adeP3lb6f8HX6QZJczZlVsAAAAASUVORK5CYII.png",
+      "date": "13 Des 2023",
+      "snippet": "Rekomendasi 20 aplikasi HR terbaik di Indonesia, aplikasi HRIS merupakan software berbasis cloud yang digunakan HR untuk mengelola karyawan.",
+      "snippet_highlighted_words": [
+        "aplikasi HRIS"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "Rekomendasi 20 aplikasi HR terbaik di Indonesia, aplikasi HRIS merupakan software berbasis cloud yang digunakan HR untuk mengelola karyawan.",
+          "source_info_link": "https://www.weefer.co.id/id/blog/20-aplikasi-hr-terbaik-untuk-perusahaan-indonesia/",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAOVBMVEUAAABHcEwAAAAAAAAAAAAAAAAAAAAAAAAAAADYmxwRDQKQZxP1sCDsqh_wrR-idBVtTg43JwfAihmxo5-tAAAACXRSTlMBAE6Uzu7_GaUVfX-wAAAA7ElEQVR4AYWTCRaEIAhARZOGAlzuf9h51Gsv_e3x3cVtADgfhogYh-Dt6wrA-MMTv_GqAAS8Ec4GjBEfxBGOOL4yQju-GQARP4hgxq1_t542GtgagWX8RISIkz1WZqLZ5gOcQ4NFTGBRXEnKJqBz_kvQRfAutIXghrYwuNgWosO2gH3h1gTfm7h1kvO9k9dhSklUbsP0aJBoRcRSWcQqySprZX6d6imzKOUsKiKcSrJPNJwtljGzCKuIkoqybvEf7Ms9L2HNSGwKTfue2jZMSbUm-51rrXnbMP0t19-0RnvbG-3E6adeP3lb6f8HX6QZJczZlVsAAAAASUVORK5CYII.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=Cs4BL2dvdG8_dXJsPUNBRVNqZ0VCNnpzd0ZhOVladzBpTjdjd2JTc3VJUEFpaXFObXdNOFlhVjhveXk0NF81Qm52eGRJektxSzM3el9OT2VnYzJxSkRQSWNjSWZIUldJZEwzR2NrbXRrdHFXN1hVVFMxZ2xkQXJnVFBBV0ZPRVBPSWtVOGtCRVJDVlItcUhCV0Fqb0xMTnltY3hYZ2ZRYmdsbjFidGVBNG85OUpyZG9keVllbnFrUWxZS0NxMXFvQjlTS2IzbjBKVG8xSUt4MG0SBBoCCAAagQQSABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJA3QMIJhAAGAAgACoPCghzb2Z0d2FyZRVrwr4_KgkKAmhyFTXviEAqDgoHdGVyYmFpaxXu51pAMs4BL2dvdG8_dXJsPUNBRVNqZ0VCNnpzd0ZhOVladzBpTjdjd2JTc3VJUEFpaXFObXdNOFlhVjhveXk0NF81Qm52eGRJektxSzM3el9OT2VnYzJxSkRQSWNjSWZIUldJZEwzR2NrbXRrdHFXN1hVVFMxZ2xkQXJnVFBBV0ZPRVBPSWtVOGtCRVJDVlItcUhCV0Fqb0xMTnltY3hYZ2ZRYmdsbjFidGVBNG85OUpyZG9keVllbnFrUWxZS0NxMXFvQjlTS2IzbjBKVG8xSUt4MG06QDIwIEFwbGlrYXNpIDxiPkhSIFRlcmJhaWs8L2I-IHVudHVrIFBlcnVzYWhhYW4gSW5kb25lc2lhIGRpIDIwMjZCkwFSZWtvbWVuZGFzaSAyMCBhcGxpa2FzaSBIUiB0ZXJiYWlrIGRpIEluZG9uZXNpYSwgPGI-YXBsaWthc2kgSFJJUzwvYj4gbWVydXBha2FuIHNvZnR3YXJlIGJlcmJhc2lzIGNsb3VkIHlhbmcgZGlndW5ha2FuIEhSIHVudHVrIG1lbmdlbG9sYSBrYXJ5YXdhbi4iAhABSABYAGgA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=Cs4BL2dvdG8_dXJsPUNBRVNqZ0VCNnpzd0ZhOVladzBpTjdjd2JTc3VJUEFpaXFObXdNOFlhVjhveXk0NF81Qm52eGRJektxSzM3el9OT2VnYzJxSkRQSWNjSWZIUldJZEwzR2NrbXRrdHFXN1hVVFMxZ2xkQXJnVFBBV0ZPRVBPSWtVOGtCRVJDVlItcUhCV0Fqb0xMTnltY3hYZ2ZRYmdsbjFidGVBNG85OUpyZG9keVllbnFrUWxZS0NxMXFvQjlTS2IzbjBKVG8xSUt4MG0SBBoCCAAagQQSABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJA3QMIJhAAGAAgACoPCghzb2Z0d2FyZRVrwr4_KgkKAmhyFTXviEAqDgoHdGVyYmFpaxXu51pAMs4BL2dvdG8_dXJsPUNBRVNqZ0VCNnpzd0ZhOVladzBpTjdjd2JTc3VJUEFpaXFObXdNOFlhVjhveXk0NF81Qm52eGRJektxSzM3el9OT2VnYzJxSkRQSWNjSWZIUldJZEwzR2NrbXRrdHFXN1hVVFMxZ2xkQXJnVFBBV0ZPRVBPSWtVOGtCRVJDVlItcUhCV0Fqb0xMTnltY3hYZ2ZRYmdsbjFidGVBNG85OUpyZG9keVllbnFrUWxZS0NxMXFvQjlTS2IzbjBKVG8xSUt4MG06QDIwIEFwbGlrYXNpIDxiPkhSIFRlcmJhaWs8L2I-IHVudHVrIFBlcnVzYWhhYW4gSW5kb25lc2lhIGRpIDIwMjZCkwFSZWtvbWVuZGFzaSAyMCBhcGxpa2FzaSBIUiB0ZXJiYWlrIGRpIEluZG9uZXNpYSwgPGI-YXBsaWthc2kgSFJJUzwvYj4gbWVydXBha2FuIHNvZnR3YXJlIGJlcmJhc2lzIGNsb3VkIHlhbmcgZGlndW5ha2FuIEhSIHVudHVrIG1lbmdlbG9sYSBrYXJ5YXdhbi4iAhABSABYAGgA",
+      "source": "Weefer"
+    },
+    {
+      "position": 9,
+      "title": "Software HRIS Indonesia: Panduan & Top 10 Terbaik 2026",
+      "link": "https://www.bolto.com/blog/software-hris-indonesia-panduan-dan-pilihan-terbaik",
+      "redirect_link": "https://www.google.co.id/url?sa=t&source=web&rct=j&opi=89978449&url=CAESiQEB6zswFWwpInko1x2IZOm7eq_9dQYEnQMYgL46v8CFklX6p5g04AfbgMwGu4JZ6ReJkTpaEFykTkeaLhxPw15g4BXou12KYhq2ClZZQbsYaA-gCzY3BI6-cZtLnZsuWPByqYGj4j5kgydtTvrnr7O6ycpqfwraueU44_dlCueF_AFyelcli2mrVA&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQFnoECEMQAQ&uoh=1",
+      "displayed_link": "https://www.bolto.com › blog › software-hris-indonesia...",
+      "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAM1BMVEUXFxcXFxcQEBABAQEpKSkzMzOGhob____k5OT8_Pzq6urx8fF4eHhBQUHCwsKYmJheXl4QPTqmAAAAAXRSTlOp7-zDKgAAAHRJREFUeAHEz0ECwBAMRFEBAO5_23bUBsm6f_sgUYrEYHL_o57xaCxyLBofUDQ3wlJKr-kbl2XYicuKhh1o6mdk7mkxC_KuteZOrKiHWdPns2gEvGy5VQgYMmkScG3CY4QJCBNQPxNgYsIdZUyDIw2Rl-QZAJMuBfHAbZTdAAAAAElFTkSuQmCC.png",
+      "date": "5 Mar 2026",
+      "snippet": "Software hris indonesia yang tepat membantu tim HR mengurangi pekerjaan manual, mengurangi risiko kesalahan pajak, dan menjaga kepatuhan.",
+      "snippet_highlighted_words": [
+        "Software",
+        "HR"
+      ],
+      "about_this_result": {
+        "source": {
+          "description": "Software hris indonesia yang tepat membantu tim HR mengurangi pekerjaan manual, mengurangi risiko kesalahan pajak, dan menjaga kepatuhan.",
+          "source_info_link": "https://www.bolto.com/blog/software-hris-indonesia-panduan-dan-pilihan-terbaik",
+          "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAM1BMVEUXFxcXFxcQEBABAQEpKSkzMzOGhob____k5OT8_Pzq6urx8fF4eHhBQUHCwsKYmJheXl4QPTqmAAAAAXRSTlOp7-zDKgAAAHRJREFUeAHEz0ECwBAMRFEBAO5_23bUBsm6f_sgUYrEYHL_o57xaCxyLBofUDQ3wlJKr-kbl2XYicuKhh1o6mdk7mkxC_KuteZOrKiHWdPns2gEvGy5VQgYMmkScG3CY4QJCBNQPxNgYsIdZUyDIw2Rl-QZAJMuBfHAbZTdAAAAAElFTkSuQmCC.png"
+        },
+        "languages": [
+          "id"
+        ],
+        "regions": [
+          "ID"
+        ]
+      },
+      "about_page_link": "https://www.google.co.id/search/about-this-result?origin=www.google.com&req=CsgBL2dvdG8_dXJsPUNBRVNpUUVCNnpzd0ZRZmxSeWx3VHBkNmJFemx1ZUJ6WlFjall0X0taUG82UEs1VmUxR3BKU3hrazRKYVdtckJFSVVFckF6UVpHdzlWX25TRy0yX21OY0pFYWtPcFhPUE1tV3RtaDE0WjgzU3NiSEw4X3JBQUVPRnJJVGdHa1lJc2Q4QjhiNGhnLVlPTjRyZ1FLWUE1dDdWNFNtY1lIYW1nY1lGZjRtSGFtQ0tDWEd5WExmMjhvLXFMYXZzbEESBBoCCAAahwQSABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJA4wMIJhAAGAAgACoPCghzb2Z0d2FyZRUj22ZAKgkKAmhyFZEHsD8qDgoHdGVyYmFpaxWB_0BAMsgBL2dvdG8_dXJsPUNBRVNpUUVCNnpzd0ZRZmxSeWx3VHBkNmJFemx1ZUJ6WlFjall0X0taUG82UEs1VmUxR3BKU3hrazRKYVdtckJFSVVFckF6UVpHdzlWX25TRy0yX21OY0pFYWtPcFhPUE1tV3RtaDE0WjgzU3NiSEw4X3JBQUVPRnJJVGdHa1lJc2Q4QjhiNGhnLVlPTjRyZ1FLWUE1dDdWNFNtY1lIYW1nY1lGZjRtSGFtQ0tDWEd5WExmMjhvLXFMYXZzbEE6SDxiPlNvZnR3YXJlPC9iPiBIUklTIEluZG9uZXNpYTogUGFuZHVhbiAmYW1wOyBUb3AgMTAgPGI-VGVyYmFpazwvYj4gMjAyNkKXATxiPlNvZnR3YXJlPC9iPiBocmlzIGluZG9uZXNpYSB5YW5nIHRlcGF0IG1lbWJhbnR1IHRpbSA8Yj5IUjwvYj4gbWVuZ3VyYW5naSBwZWtlcmphYW4gbWFudWFsLCBtZW5ndXJhbmdpIHJpc2lrbyBrZXNhbGFoYW4gcGFqYWssIGRhbiBtZW5qYWdhIGtlcGF0dWhhbi4iAhABSABYAGgA",
+      "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.co.id&req_token=CsgBL2dvdG8_dXJsPUNBRVNpUUVCNnpzd0ZRZmxSeWx3VHBkNmJFemx1ZUJ6WlFjall0X0taUG82UEs1VmUxR3BKU3hrazRKYVdtckJFSVVFckF6UVpHdzlWX25TRy0yX21OY0pFYWtPcFhPUE1tV3RtaDE0WjgzU3NiSEw4X3JBQUVPRnJJVGdHa1lJc2Q4QjhiNGhnLVlPTjRyZ1FLWUE1dDdWNFNtY1lIYW1nY1lGZjRtSGFtQ0tDWEd5WExmMjhvLXFMYXZzbEESBBoCCAAahwQSABoAIgAqADIGCAESAmlkOgBCBAgBECZKAFoAcgB6AIJA4wMIJhAAGAAgACoPCghzb2Z0d2FyZRUj22ZAKgkKAmhyFZEHsD8qDgoHdGVyYmFpaxWB_0BAMsgBL2dvdG8_dXJsPUNBRVNpUUVCNnpzd0ZRZmxSeWx3VHBkNmJFemx1ZUJ6WlFjall0X0taUG82UEs1VmUxR3BKU3hrazRKYVdtckJFSVVFckF6UVpHdzlWX25TRy0yX21OY0pFYWtPcFhPUE1tV3RtaDE0WjgzU3NiSEw4X3JBQUVPRnJJVGdHa1lJc2Q4QjhiNGhnLVlPTjRyZ1FLWUE1dDdWNFNtY1lIYW1nY1lGZjRtSGFtQ0tDWEd5WExmMjhvLXFMYXZzbEE6SDxiPlNvZnR3YXJlPC9iPiBIUklTIEluZG9uZXNpYTogUGFuZHVhbiAmYW1wOyBUb3AgMTAgPGI-VGVyYmFpazwvYj4gMjAyNkKXATxiPlNvZnR3YXJlPC9iPiBocmlzIGluZG9uZXNpYSB5YW5nIHRlcGF0IG1lbWJhbnR1IHRpbSA8Yj5IUjwvYj4gbWVuZ3VyYW5naSBwZWtlcmphYW4gbWFudWFsLCBtZW5ndXJhbmdpIHJpc2lrbyBrZXNhbGFoYW4gcGFqYWssIGRhbiBtZW5qYWdhIGtlcGF0dWhhbi4iAhABSABYAGgA",
+      "source": "bolto.com"
+    }
+  ],
+  "related_searches": [
+    {
+      "block_position": 1,
+      "query": "Software akuntansi hashmicro",
+      "link": "https://www.google.co.id/search?sca_esv=7d06b508f29bacac&gl=id&hl=id&sxsrf=AKL5yDjTFatOrsgx-ZwoQiOLPp6eGOB0Kw:1793627868647&q=Software+akuntansi+hashmicro&sa=X&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQ1QJ6BAg6EAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=Software+akuntansi+hashmicro"
+    },
+    {
+      "block_position": 1,
+      "query": "Eva hr hashmicro",
+      "link": "https://www.google.co.id/search?sca_esv=7d06b508f29bacac&gl=id&hl=id&sxsrf=AKL5yDjTFatOrsgx-ZwoQiOLPp6eGOB0Kw:1793627868647&q=Eva+hr+hashmicro&sa=X&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQ1QJ6BAg8EAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=Eva+hr+hashmicro"
+    },
+    {
+      "block_position": 1,
+      "query": "Hashmicro inventory",
+      "link": "https://www.google.co.id/search?sca_esv=7d06b508f29bacac&gl=id&hl=id&sxsrf=AKL5yDjTFatOrsgx-ZwoQiOLPp6eGOB0Kw:1793627868647&q=Hashmicro+inventory&sa=X&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQ1QJ6BAg7EAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=Hashmicro+inventory"
+    }
+  ],
+  "pagination": {
+    "current": 1,
+    "next": "https://www.google.co.id/search?q=software+hr+terbaik&sca_esv=7d06b508f29bacac&gl=id&hl=id&sxsrf=AKL5yDjTFatOrsgx-ZwoQiOLPp6eGOB0Kw:1793627868647&ei=3JboapqOJ_TT5NoPm_XQ0QY&start=10&sa=N&sstk=AS6-VmISOBESA1h7zbPY21HoCyjFrehRv_yXOJvwuM9yROrNcskdkmnIdyYPWS-e5aUujCG5qfPMJcbKFzjVAVEjX3k_RX9r2fyI9g&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQ8NMDegQINxAW",
+    "other_pages": {
+      "2": "https://www.google.co.id/search?q=software+hr+terbaik&sca_esv=7d06b508f29bacac&gl=id&hl=id&sxsrf=AKL5yDjTFatOrsgx-ZwoQiOLPp6eGOB0Kw:1793627868647&ei=3JboapqOJ_TT5NoPm_XQ0QY&start=10&sa=N&sstk=AS6-VmISOBESA1h7zbPY21HoCyjFrehRv_yXOJvwuM9yROrNcskdkmnIdyYPWS-e5aUujCG5qfPMJcbKFzjVAVEjX3k_RX9r2fyI9g&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQ8tMDegQINxAE",
+      "3": "https://www.google.co.id/search?q=software+hr+terbaik&sca_esv=7d06b508f29bacac&gl=id&hl=id&sxsrf=AKL5yDjTFatOrsgx-ZwoQiOLPp6eGOB0Kw:1793627868647&ei=3JboapqOJ_TT5NoPm_XQ0QY&start=20&sa=N&sstk=AS6-VmISOBESA1h7zbPY21HoCyjFrehRv_yXOJvwuM9yROrNcskdkmnIdyYPWS-e5aUujCG5qfPMJcbKFzjVAVEjX3k_RX9r2fyI9g&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQ8tMDegQINxAG",
+      "4": "https://www.google.co.id/search?q=software+hr+terbaik&sca_esv=7d06b508f29bacac&gl=id&hl=id&sxsrf=AKL5yDjTFatOrsgx-ZwoQiOLPp6eGOB0Kw:1793627868647&ei=3JboapqOJ_TT5NoPm_XQ0QY&start=30&sa=N&sstk=AS6-VmISOBESA1h7zbPY21HoCyjFrehRv_yXOJvwuM9yROrNcskdkmnIdyYPWS-e5aUujCG5qfPMJcbKFzjVAVEjX3k_RX9r2fyI9g&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQ8tMDegQINxAI",
+      "5": "https://www.google.co.id/search?q=software+hr+terbaik&sca_esv=7d06b508f29bacac&gl=id&hl=id&sxsrf=AKL5yDjTFatOrsgx-ZwoQiOLPp6eGOB0Kw:1793627868647&ei=3JboapqOJ_TT5NoPm_XQ0QY&start=40&sa=N&sstk=AS6-VmISOBESA1h7zbPY21HoCyjFrehRv_yXOJvwuM9yROrNcskdkmnIdyYPWS-e5aUujCG5qfPMJcbKFzjVAVEjX3k_RX9r2fyI9g&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQ8tMDegQINxAK",
+      "6": "https://www.google.co.id/search?q=software+hr+terbaik&sca_esv=7d06b508f29bacac&gl=id&hl=id&sxsrf=AKL5yDjTFatOrsgx-ZwoQiOLPp6eGOB0Kw:1793627868647&ei=3JboapqOJ_TT5NoPm_XQ0QY&start=50&sa=N&sstk=AS6-VmISOBESA1h7zbPY21HoCyjFrehRv_yXOJvwuM9yROrNcskdkmnIdyYPWS-e5aUujCG5qfPMJcbKFzjVAVEjX3k_RX9r2fyI9g&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQ8tMDegQINxAM",
+      "7": "https://www.google.co.id/search?q=software+hr+terbaik&sca_esv=7d06b508f29bacac&gl=id&hl=id&sxsrf=AKL5yDjTFatOrsgx-ZwoQiOLPp6eGOB0Kw:1793627868647&ei=3JboapqOJ_TT5NoPm_XQ0QY&start=60&sa=N&sstk=AS6-VmISOBESA1h7zbPY21HoCyjFrehRv_yXOJvwuM9yROrNcskdkmnIdyYPWS-e5aUujCG5qfPMJcbKFzjVAVEjX3k_RX9r2fyI9g&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQ8tMDegQINxAO",
+      "8": "https://www.google.co.id/search?q=software+hr+terbaik&sca_esv=7d06b508f29bacac&gl=id&hl=id&sxsrf=AKL5yDjTFatOrsgx-ZwoQiOLPp6eGOB0Kw:1793627868647&ei=3JboapqOJ_TT5NoPm_XQ0QY&start=70&sa=N&sstk=AS6-VmISOBESA1h7zbPY21HoCyjFrehRv_yXOJvwuM9yROrNcskdkmnIdyYPWS-e5aUujCG5qfPMJcbKFzjVAVEjX3k_RX9r2fyI9g&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQ8tMDegQINxAQ",
+      "9": "https://www.google.co.id/search?q=software+hr+terbaik&sca_esv=7d06b508f29bacac&gl=id&hl=id&sxsrf=AKL5yDjTFatOrsgx-ZwoQiOLPp6eGOB0Kw:1793627868647&ei=3JboapqOJ_TT5NoPm_XQ0QY&start=80&sa=N&sstk=AS6-VmISOBESA1h7zbPY21HoCyjFrehRv_yXOJvwuM9yROrNcskdkmnIdyYPWS-e5aUujCG5qfPMJcbKFzjVAVEjX3k_RX9r2fyI9g&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQ8tMDegQINxAS",
+      "10": "https://www.google.co.id/search?q=software+hr+terbaik&sca_esv=7d06b508f29bacac&gl=id&hl=id&sxsrf=AKL5yDjTFatOrsgx-ZwoQiOLPp6eGOB0Kw:1793627868647&ei=3JboapqOJ_TT5NoPm_XQ0QY&start=90&sa=N&sstk=AS6-VmISOBESA1h7zbPY21HoCyjFrehRv_yXOJvwuM9yROrNcskdkmnIdyYPWS-e5aUujCG5qfPMJcbKFzjVAVEjX3k_RX9r2fyI9g&ved=2ahUKEwia7OC_uOmXAxX0KVkFHZs6NGoQ8tMDegQINxAU"
+    }
+  },
+  "serpapi_pagination": {
+    "current": 1,
+    "next_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=software+hr+terbaik&start=10",
+    "next": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=software+hr+terbaik&start=10",
+    "other_pages": {
+      "2": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=software+hr+terbaik&start=10",
+      "3": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=software+hr+terbaik&start=20",
+      "4": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=software+hr+terbaik&start=30",
+      "5": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=software+hr+terbaik&start=40",
+      "6": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=software+hr+terbaik&start=50",
+      "7": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=software+hr+terbaik&start=60",
+      "8": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=software+hr+terbaik&start=70",
+      "9": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=software+hr+terbaik&start=80",
+      "10": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=software+hr+terbaik&start=90"
+    }
+  },
+  "serpapi_calls_count": 1,
+  "sources_total": 7,
+  "sources_resolved": 7
+}

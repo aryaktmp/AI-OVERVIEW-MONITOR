@@ -250,6 +250,15 @@ export function compactSerpApiRawForStorage(
     ...(typeof sanitized.sources_total === "number"
       ? { sources_total: sanitized.sources_total }
       : {}),
+    ...(typeof sanitized.link_kind_direct === "number"
+      ? { link_kind_direct: sanitized.link_kind_direct }
+      : {}),
+    ...(typeof sanitized.link_kind_token === "number"
+      ? { link_kind_token: sanitized.link_kind_token }
+      : {}),
+    ...(typeof sanitized.link_kind_google_internal === "number"
+      ? { link_kind_google_internal: sanitized.link_kind_google_internal }
+      : {}),
     ...(typeof sanitized.parser_warning === "string"
       ? { parser_warning: sanitized.parser_warning }
       : {}),
@@ -1249,6 +1258,9 @@ export async function processQueue(
         dry_run: itemIsDryRun,
         sources_resolved: serpResult.parsed.sources_resolved,
         sources_total: serpResult.parsed.sources_total,
+        link_kind_direct: serpResult.parsed.link_kind_direct,
+        link_kind_token: serpResult.parsed.link_kind_token,
+        link_kind_google_internal: serpResult.parsed.link_kind_google_internal,
         ...(serpResult.parsed.parser_warning
           ? { parser_warning: serpResult.parsed.parser_warning }
           : {}),

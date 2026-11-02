@@ -2,13 +2,9 @@
   "search_metadata": {
     "id": "6ae31286e140f06eee6ec47d",
     "status": "Success",
-    "json_endpoint": "https://serpapi.com/searches/rlWF91PrPHKmCO0nBbmeC8fDxA2ZsQpP8M6jN_T9_Mo/6ae31286e140f06eee6ec47d.json",
-    "markdown_endpoint": "https://serpapi.com/searches/rlWF91PrPHKmCO0nBbmeC8fDxA2ZsQpP8M6jN_T9_Mo/6ae31286e140f06eee6ec47d.md",
-    "pixel_position_endpoint": "https://serpapi.com/searches/rlWF91PrPHKmCO0nBbmeC8fDxA2ZsQpP8M6jN_T9_Mo/6ae31286e140f06eee6ec47d.json_with_pixel_position",
     "created_at": "2026-10-29 09:31:50 UTC",
     "processed_at": "2026-10-29 09:31:50 UTC",
     "google_url": "https://www.google.co.id/search?q=Linovhr&oq=Linovhr&uule=w+CAIQICIJSW5kb25lc2lh&hl=id&gl=id&sourceid=chrome&ie=UTF-8",
-    "raw_html_file": "https://serpapi.com/searches/rlWF91PrPHKmCO0nBbmeC8fDxA2ZsQpP8M6jN_T9_Mo/6ae31286e140f06eee6ec47d.html",
     "total_time_taken": 2.33
   },
   "search_parameters": {
@@ -38,7 +34,7 @@
     "website": "https://www.linovhr.com/",
     "directions": "https://maps.google.co.id/maps?uule=w+CAIQICIJSW5kb25lc2lh&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIGCAEQRRg7MgYIAhBFGDwyBggDEEUYPDIGCAQQRRg8MgYIBRBFGDwyBggGEEUYPDIGCAcQRRg80gEIMTY2MmowajeoAgCwAgA&hl=id&gl=id&um=1&ie=UTF-8&fb=1&sa=X&geocode=KYOLmNby82kuMXQRGVaUsAED&daddr=Pakuwon+Tower,+Jl.+Raya+Casablanca+No.Kav+88+22nd+floor,+RT.3/RW.14,+Menteng+Dalam,+Kec.+Tebet,+Kota+Jakarta+Selatan,+Daerah+Khusus+Ibukota+Jakarta+12870",
     "local_map": {
-      "image": "https://serpapi.com/searches/6ae31286e140f06eee6ec47d/images/q8iNTH4pUABeYl6fbrj0EfCvQ6xgs6qWaomimOqzo54.webp",
+      "image": "",
       "link": "https://www.google.co.id/maps/place/LinovHR+-+Software+HRD+%26+Payroll+Terbaik+di+Indonesia/data=!4m2!3m1!1s0x0:0x301b09456191174?sa=X&ved=2ahUKEwjQx7HM9d6XAxXbnSYFHXAKPVEQ_BJ6BAgTEAA&hl=id&gl=id"
     },
     "rating": 4.8,
@@ -159,7 +155,7 @@
         "user": {
           "name": "Sahira hir",
           "link": "https://www.google.com/maps/contrib/107022795682962903855?hl=id-ID&ved=1t:31296&ictx=111",
-          "thumbnail": "https://serpapi.com/searches/6ae31286e140f06eee6ec47d/images/q8iNTH4pUABeYl6fbrj0Ed3NuL4OOIccD8khdzBB0sGkzSNBPnGndPB1oUQE7qGH.png"
+          "thumbnail": ""
         }
       },
       {
@@ -169,7 +165,7 @@
         "user": {
           "name": "Toni Abdulah",
           "link": "https://www.google.com/maps/contrib/106595927853984775524?hl=id-ID&ved=1t:31296&ictx=111",
-          "thumbnail": "https://serpapi.com/searches/6ae31286e140f06eee6ec47d/images/q8iNTH4pUABeYl6fbrj0EVmyM-7cV1_w8sRb9qjmJl2fGhAhttB6SJrq-eoqFAH4.png"
+          "thumbnail": ""
         }
       },
       {
@@ -179,7 +175,7 @@
         "user": {
           "name": "Uun Nih",
           "link": "https://www.google.com/maps/contrib/114709924536813536681?hl=id-ID&ved=1t:31296&ictx=111",
-          "thumbnail": "https://serpapi.com/searches/6ae31286e140f06eee6ec47d/images/q8iNTH4pUABeYl6fbrj0EfrQEt-pBkC4OXXdCgQX7uJBjOtwtRT4-A3oVL-cnpPg.png"
+          "thumbnail": ""
         }
       }
     ],
@@ -195,19 +191,19 @@
         "name": "TikTok",
         "link": "https://www.tiktok.com/@linovhr1",
         "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=Linovhr",
-        "image": "https://serpapi.com/searches/6ae31286e140f06eee6ec47d/images/q8iNTH4pUABeYl6fbrj0Efj_HAY-x3N0wjdRb0UV83o.png"
+        "image": ""
       },
       {
         "name": "Instagram",
         "link": "https://www.instagram.com/lyrcomercialsrl/",
         "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=Linovhr",
-        "image": "https://serpapi.com/searches/6ae31286e140f06eee6ec47d/images/q8iNTH4pUABeYl6fbrj0EV66HlrOItf0XQ_2xNqsEUg.png"
+        "image": ""
       },
       {
         "name": "LinkedIn",
         "link": "https://id.linkedin.com/company/linovhr-indonesia",
         "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=id&google_domain=google.co.id&hl=id&location=Indonesia&q=Linovhr",
-        "image": "https://serpapi.com/searches/6ae31286e140f06eee6ec47d/images/q8iNTH4pUABeYl6fbrj0Ed7gqDJE48yqAldwEn34PbY.png"
+        "image": ""
       }
     ],
     "orang_lain_juga_menelusuri": [
@@ -471,7 +467,7 @@
       "link": "https://www.youtube.com/watch?v=wuWhqczwR2w",
       "displayed_link": "6,4 rb+ penayangan",
       "date": "4 tahun yang lalu",
-      "thumbnail": "https://serpapi.com/searches/6ae31286e140f06eee6ec47d/images/M2SvURWJP96eiu9tl58sA6DlM_cwpoK5rZ5TcvCzmU0.jpeg",
+      "thumbnail": "",
       "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8_9hAAAAhUlEQVR4AWNwL_ChCFPHgP8MxqxA7ArEKVBcCcUNIAznI-RdQXrABgAZpv8ZjP6Tg0F6QQbsosCAXSADHmGVVPIC0jKEDHgAMuAbmgRE445D___feYzXIJBeBigH04BVW_9DAcgwqEGYaik2gGIvUByIlEbjDooTEiwps5GRlNmolpkowgBVP9wMSzSKGAAAAABJRU5ErkJggg.png",
       "snippet": "LinovHR memudahkan pengelolaan data karyawan, payroll, dan pengajuan cuti dengan sistem berbasis cloud yang aman dan efisien.",
       "duration": "1:42",

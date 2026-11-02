@@ -33,6 +33,9 @@ export interface ParsedAiOverview {
   uniqueSourcesCount?: number;
   sources_total?: number;
   sources_resolved?: number;
+  link_kind_direct?: number;
+  link_kind_token?: number;
+  link_kind_google_internal?: number;
   parser_warning?: "low_resolution" | null;
 }
 
@@ -81,6 +84,9 @@ export interface SerpApiRawResponse {
   dry_run?: boolean;
   sources_total?: number;
   sources_resolved?: number;
+  link_kind_direct?: number;
+  link_kind_token?: number;
+  link_kind_google_internal?: number;
   parser_warning?: string | null;
   third_party_skipped_origin_only?: number;
   [key: string]: unknown;
@@ -451,6 +457,9 @@ export function parseSerpApiResponse(raw: unknown): ParsedAiOverview {
       uniqueSourcesCount: 0,
       sources_total: 0,
       sources_resolved: 0,
+      link_kind_direct: 0,
+      link_kind_token: 0,
+      link_kind_google_internal: 0,
       parser_warning: null,
     };
   }
@@ -470,9 +479,34 @@ export function parseSerpApiResponse(raw: unknown): ParsedAiOverview {
   const seenDedupKeys = new Set<string>();
   let sourcesResolvedCount = 0;
   let sourcesTotalCount = 0;
+  let linkKindDirectCount = 0;
+  let linkKindTokenCount = 0;
+  let linkKindGoogleInternalCount = 0;
 
   if (Array.isArray(aiOverview.references)) {
     sourcesTotalCount = aiOverview.references.length;
+
+    // Klasifikasi jenis tautan untuk tiap referensi mentah
+    for (const ref of aiOverview.references) {
+      if (!ref || typeof ref !== "object") continue;
+      const rawLink =
+        (typeof ref.link === "string" && ref.link.trim()) ||
+        (typeof (ref as Record<string, unknown>).url === "string" &&
+          ((ref as Record<string, unknown>).url as string).trim()) ||
+        "";
+
+      if (rawLink.includes("goto?url=") || rawLink.includes("/goto?")) {
+        linkKindTokenCount++;
+      } else {
+        const unwrapped = unwrapGoogleUrl(rawLink);
+        const unwrappedDomain = extractDomainFromUrl(unwrapped);
+        if (unwrappedDomain && !isGoogleDomain(unwrappedDomain)) {
+          linkKindDirectCount++;
+        } else if (unwrappedDomain && isGoogleDomain(unwrappedDomain)) {
+          linkKindGoogleInternalCount++;
+        }
+      }
+    }
 
     aiOverview.references.forEach((ref, idx) => {
       if (!ref || typeof ref !== "object") return;
@@ -541,6 +575,9 @@ export function parseSerpApiResponse(raw: unknown): ParsedAiOverview {
     uniqueSourcesCount: sources.length,
     sources_total: sourcesTotalCount,
     sources_resolved: sourcesResolvedCount,
+    link_kind_direct: linkKindDirectCount,
+    link_kind_token: linkKindTokenCount,
+    link_kind_google_internal: linkKindGoogleInternalCount,
     parser_warning,
   };
 }
@@ -549,6 +586,7 @@ export interface SerpApiClientOptions {
   apiKey?: string;
   fetchFn?: typeof fetch;
   dryRun?: boolean;
+  extraParams?: Record<string, string>;
 }
 
 export interface SerpApiCheckResult {
@@ -638,6 +676,9 @@ function simulateDryRunKeyword(keyword: string): SerpApiCheckResult {
   const parsed = parseSerpApiResponse(mergedRaw);
   mergedRaw.sources_total = parsed.sources_total;
   mergedRaw.sources_resolved = parsed.sources_resolved;
+  mergedRaw.link_kind_direct = parsed.link_kind_direct;
+  mergedRaw.link_kind_token = parsed.link_kind_token;
+  mergedRaw.link_kind_google_internal = parsed.link_kind_google_internal;
   if (parsed.parser_warning) mergedRaw.parser_warning = parsed.parser_warning;
 
   return {
@@ -684,6 +725,15 @@ export async function fetchKeywordAiOverview(
   searchUrl.searchParams.set("gl", params.gl);
   searchUrl.searchParams.set("hl", params.hl);
   searchUrl.searchParams.set("location", params.location);
+
+  if (options.extraParams) {
+    for (const [k, v] of Object.entries(options.extraParams)) {
+      if (k.toLowerCase() !== "api_key" && k.toLowerCase() !== "apikey") {
+        searchUrl.searchParams.set(k, v);
+      }
+    }
+  }
+
   searchUrl.searchParams.set("api_key", apiKey);
 
   const firstRes = await fetchImpl(searchUrl.toString());
@@ -705,6 +755,9 @@ export async function fetchKeywordAiOverview(
   const firstParsed = parseSerpApiResponse(firstRaw);
   firstRaw.sources_total = firstParsed.sources_total;
   firstRaw.sources_resolved = firstParsed.sources_resolved;
+  firstRaw.link_kind_direct = firstParsed.link_kind_direct;
+  firstRaw.link_kind_token = firstParsed.link_kind_token;
+  firstRaw.link_kind_google_internal = firstParsed.link_kind_google_internal;
   if (firstParsed.parser_warning) {
     firstRaw.parser_warning = firstParsed.parser_warning;
   }
@@ -725,6 +778,9 @@ export async function fetchKeywordAiOverview(
   const followUpUrl = new URL("https://serpapi.com/search.json");
   followUpUrl.searchParams.set("engine", "google_ai_overview");
   followUpUrl.searchParams.set("page_token", firstParsed.pageToken);
+  if (options.extraParams?.no_cache) {
+    followUpUrl.searchParams.set("no_cache", options.extraParams.no_cache);
+  }
   followUpUrl.searchParams.set("api_key", apiKey);
 
   const secondRes = await fetchImpl(followUpUrl.toString());
@@ -771,6 +827,9 @@ export async function fetchKeywordAiOverview(
   const secondParsed = parseSerpApiResponse(mergedRaw);
   mergedRaw.sources_total = secondParsed.sources_total;
   mergedRaw.sources_resolved = secondParsed.sources_resolved;
+  mergedRaw.link_kind_direct = secondParsed.link_kind_direct;
+  mergedRaw.link_kind_token = secondParsed.link_kind_token;
+  mergedRaw.link_kind_google_internal = secondParsed.link_kind_google_internal;
   if (secondParsed.parser_warning) {
     mergedRaw.parser_warning = secondParsed.parser_warning;
   }

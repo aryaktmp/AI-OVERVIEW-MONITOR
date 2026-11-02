@@ -2,13 +2,9 @@
   "search_metadata": {
     "id": "6ae313143107b80503330cc6",
     "status": "Success",
-    "json_endpoint": "https://serpapi.com/searches/X_wcrLEuLzODAlCj8qCYnYEUy9vXzo9-LNIqiWLKCS8/6ae313143107b80503330cc6.json",
-    "markdown_endpoint": "https://serpapi.com/searches/X_wcrLEuLzODAlCj8qCYnYEUy9vXzo9-LNIqiWLKCS8/6ae313143107b80503330cc6.md",
-    "pixel_position_endpoint": "https://serpapi.com/searches/X_wcrLEuLzODAlCj8qCYnYEUy9vXzo9-LNIqiWLKCS8/6ae313143107b80503330cc6.json_with_pixel_position",
     "created_at": "2026-10-29 09:34:12 UTC",
     "processed_at": "2026-10-29 09:34:12 UTC",
     "google_url": "https://www.google.co.id/search?q=succession+planning+system&oq=succession+planning+system&uule=w+CAIQICIJSW5kb25lc2lh&hl=id&gl=id&sourceid=chrome&ie=UTF-8",
-    "raw_html_file": "https://serpapi.com/searches/X_wcrLEuLzODAlCj8qCYnYEUy9vXzo9-LNIqiWLKCS8/6ae313143107b80503330cc6.html",
     "total_time_taken": 0.37
   },
   "search_parameters": {
@@ -30,21 +26,21 @@
   "inline_images": [
     {
       "source": "https://www.rasmussen.edu/degrees/business/blog/what-is-succession-planning/",
-      "thumbnail": "https://serpapi.com/searches/6ae313143107b80503330cc6/images/B0ZOr592MC6sNdo6rIBc3ENrCFqzApnxcPiRN6is6mA.jpeg",
+      "thumbnail": "",
       "original": "https://www.rasmussen.edu/images/rasmussenlibraries/blogs/what-is-succession-planningd33b12a6-aef5-46fd-a5e3-0532a590a50e.jpg",
       "title": "What Is Succession Planning? Exploring this Element of HR ...",
       "source_name": "Rasmussen University"
     },
     {
       "source": "https://cezannehr.com/hr-systems/career-succession-planning/",
-      "thumbnail": "https://serpapi.com/searches/6ae313143107b80503330cc6/images/-0BP8pC495KA921aYglOWW0xqHqp3Y9vye3bNUg8vSw.jpeg",
+      "thumbnail": "",
       "original": "https://cezannehr.com/wp-content/uploads/2022/07/Career-Succession-planning-banner@1.5x-2.png",
       "title": "Career & Succession Planning Software | Prepare for the Future",
       "source_name": "Cezanne HR"
     },
     {
       "source": "https://www.aihr.com/blog/succession-planning-tools/",
-      "thumbnail": "https://serpapi.com/searches/6ae313143107b80503330cc6/images/-berShAYxKQnygUNtJ-7Y59U0ChnujC2lAzcuSxbIw8.jpeg",
+      "thumbnail": "",
       "original": "https://www.aihr.com/wp-content/uploads/Simple-succession-planning-template-preview-1024x638.png",
       "title": "19 Succession Planning Tools and Software [2026 Edition] - AIHR",
       "source_name": "AIHR"

@@ -354,6 +354,9 @@ describe("Fase 2: Parser & Klien SerpApi dengan Fixture Asli", () => {
     expect(parsed.sources).toHaveLength(7);
     expect(parsed.sources_total).toBe(7);
     expect(parsed.sources_resolved).toBe(7);
+    expect(parsed.link_kind_token).toBe(7);
+    expect(parsed.link_kind_direct).toBe(0);
+    expect(parsed.link_kind_google_internal).toBe(0);
     expect(parsed.parser_warning).toBeNull();
 
     // Sumber hasil source_icon & platform media memiliki penanda url_is_origin_only
@@ -399,6 +402,9 @@ describe("Fase 2: Parser & Klien SerpApi dengan Fixture Asli", () => {
     expect(parsed.sources).toHaveLength(12);
     expect(parsed.sources_total).toBe(12);
     expect(parsed.sources_resolved).toBe(11);
+    expect(parsed.link_kind_token).toBe(12);
+    expect(parsed.link_kind_direct).toBe(0);
+    expect(parsed.link_kind_google_internal).toBe(0);
     expect(parsed.parser_warning).toBeNull();
 
     const domains = new Set(parsed.sources.map((s) => s.domain));
@@ -426,6 +432,79 @@ describe("Fase 2: Parser & Klien SerpApi dengan Fixture Asli", () => {
 
     // Google internal tidak dianggap is_own
     expect(evaluation.detected_domain).toBe(false);
+  });
+
+  it("mengurai fixture asli software-hr-terbaik-A.json (direct links) dengan URL lengkap dan url_is_origin_only=false", () => {
+    const raw = loadFixture("software-hr-terbaik-A.json");
+    const parsed = parseSerpApiResponse(raw);
+
+    expect(parsed.hasAiOverview).toBe(true);
+    expect(parsed.sources).toHaveLength(7);
+    expect(parsed.sources_total).toBe(7);
+    expect(parsed.sources_resolved).toBe(7);
+    expect(parsed.link_kind_direct).toBe(7);
+    expect(parsed.link_kind_token).toBe(0);
+    expect(parsed.link_kind_google_internal).toBe(0);
+    expect(parsed.parser_warning).toBeNull();
+
+    // Semua sumber direct link memiliki url_is_origin_only = false
+    for (const s of parsed.sources) {
+      expect(s.url_is_origin_only).toBe(false);
+    }
+
+    const linovSource = parsed.sources.find((s) => s.domain === "www.linovhr.com");
+    expect(linovSource).toBeDefined();
+    expect(linovSource?.url).toBe(
+      "https://www.linovhr.com/blog/software-hris-manufaktur-sistem-shift/"
+    );
+    expect(linovSource?.url_is_origin_only).toBe(false);
+
+    const talentaSource = parsed.sources.find((s) => s.domain === "www.talenta.co");
+    expect(talentaSource).toBeDefined();
+    expect(talentaSource?.url).toBe("https://www.talenta.co/solusi/hris/");
+
+    const evaluation = evaluateAiOverviewDetection(parsed, {
+      brandDomain: "linovhr.com",
+      competitorDomains: ["talenta.co", "hashmicro.com"],
+    });
+
+    expect(evaluation.status).toBe("detected");
+    expect(evaluation.detected_domain).toBe(true);
+    expect(evaluation.detected_text).toBe(true);
+    expect(evaluation.matched_terms).toContain("LinovHR");
+
+    const evalLinov = evaluation.sources.find((s) => s.domain === "www.linovhr.com");
+    expect(evalLinov?.is_own).toBe(true);
+
+    const evalTalenta = evaluation.sources.find((s) => s.domain === "www.talenta.co");
+    expect(evalTalenta?.is_competitor).toBe(true);
+  });
+
+  it("mengurai fixture asli software-hr-terbaik-B.json dan software-hr-terbaik-C.json dengan URL langsung yang konsisten", () => {
+    for (const fixtureName of [
+      "software-hr-terbaik-B.json",
+      "software-hr-terbaik-C.json",
+    ]) {
+      const raw = loadFixture(fixtureName);
+      const parsed = parseSerpApiResponse(raw);
+
+      expect(parsed.hasAiOverview).toBe(true);
+      expect(parsed.sources).toHaveLength(7);
+      expect(parsed.link_kind_direct).toBe(7);
+      expect(parsed.link_kind_token).toBe(0);
+      expect(parsed.link_kind_google_internal).toBe(0);
+
+      for (const s of parsed.sources) {
+        expect(s.url_is_origin_only).toBe(false);
+      }
+
+      const linovSource = parsed.sources.find(
+        (s) => s.domain === "www.linovhr.com"
+      );
+      expect(linovSource?.url).toBe(
+        "https://www.linovhr.com/blog/software-hris-manufaktur-sistem-shift/"
+      );
+    }
   });
 
   it("mempertahankan dua referensi dengan domain sama jika judulnya berbeda (dedup url + judul), dan menggabungkannya jika judul sama", () => {

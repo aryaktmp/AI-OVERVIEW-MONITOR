@@ -818,6 +818,9 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
       ai_overview_followup: {
         text_blocks: [{ type: "paragraph", snippet: "LinovHR adalah HRIS." }],
       },
+      link_kind_direct: 1,
+      link_kind_token: 0,
+      link_kind_google_internal: 0,
     };
 
     const compact = compactSerpApiRawForStorage(fullRaw, 2);
@@ -825,6 +828,9 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
     expect(compact.ai_overview).toBeDefined();
     expect(compact.serpapi_calls_count).toBe(2);
     expect(compact.used_followup_page_token).toBe(true);
+    expect(compact.link_kind_direct).toBe(1);
+    expect(compact.link_kind_token).toBe(0);
+    expect(compact.link_kind_google_internal).toBe(0);
     expect(compact.search_metadata).toEqual({
       id: "search-123",
       status: "Success",

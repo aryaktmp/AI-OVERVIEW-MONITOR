@@ -40,10 +40,12 @@ function parseArgs(argv: string[]): {
   saveFixtureName: string | null;
   dryRun: boolean | null;
   replayPath: string | null;
+  extraParams: Record<string, string>;
 } {
   let saveFixtureName: string | null = null;
   let dryRun: boolean | null = null;
   let replayPath: string | null = null;
+  const extraParams: Record<string, string> = {};
   const positional: string[] = [];
 
   for (let i = 0; i < argv.length; i++) {
@@ -61,6 +63,24 @@ function parseArgs(argv: string[]): {
       i++;
     } else if (arg.startsWith("--replay=")) {
       replayPath = arg.slice("--replay=".length).trim();
+    } else if (arg === "--param") {
+      const next = argv[i + 1];
+      if (!next || next.startsWith("--")) {
+        throw new Error("Option --param requires a <key=value> argument.");
+      }
+      const eqIdx = next.indexOf("=");
+      if (eqIdx !== -1) {
+        extraParams[next.slice(0, eqIdx).trim()] = next.slice(eqIdx + 1).trim();
+      }
+      i++;
+    } else if (arg.startsWith("--param=")) {
+      const paramStr = arg.slice("--param=".length).trim();
+      const eqIdx = paramStr.indexOf("=");
+      if (eqIdx !== -1) {
+        extraParams[paramStr.slice(0, eqIdx).trim()] = paramStr
+          .slice(eqIdx + 1)
+          .trim();
+      }
     } else if (arg === "--save-fixture") {
       const next = argv[i + 1];
       if (!next || next.startsWith("--")) {
@@ -81,18 +101,61 @@ function parseArgs(argv: string[]): {
   const keyword = positional.join(" ").trim();
   if (!keyword && !replayPath) {
     throw new Error(
-      'Usage: tsx scripts/try-keyword.ts "<keyword>" [--dry-run|--live] [--save-fixture <name>] [--replay <path>]'
+      'Usage: tsx scripts/try-keyword.ts "<keyword>" [--dry-run|--live] [--save-fixture <name>] [--replay <path>] [--param key=value]'
     );
   }
 
-  return { keyword, saveFixtureName, dryRun, replayPath };
+  return { keyword, saveFixtureName, dryRun, replayPath, extraParams };
+}
+
+function cleanFixtureForSaving(rawInput: unknown): unknown {
+  const sanitized = sanitizeSerpApiRaw(rawInput);
+  if (!sanitized || typeof sanitized !== "object") return sanitized;
+
+  function recursiveClean(obj: unknown): unknown {
+    if (typeof obj === "string") {
+      let str = obj;
+      if (str.includes("serpapi.com/searches/")) {
+        str = "";
+      }
+      return str;
+    }
+    if (Array.isArray(obj)) {
+      return obj.map(recursiveClean);
+    }
+    if (obj && typeof obj === "object") {
+      const out: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+        if (
+          k === "search_metadata" ||
+          k === "raw_html_file" ||
+          k === "json_endpoint" ||
+          k === "markdown_endpoint" ||
+          k === "pixel_position_endpoint" ||
+          k.toLowerCase() === "api_key" ||
+          k.toLowerCase() === "apikey"
+        ) {
+          continue;
+        }
+        out[k] = recursiveClean(v);
+      }
+      return out;
+    }
+    return obj;
+  }
+
+  return recursiveClean(sanitized);
 }
 
 async function main() {
   loadEnvLocal();
-  const { keyword, saveFixtureName, dryRun: cliDryRun, replayPath } = parseArgs(
-    process.argv.slice(2)
-  );
+  const {
+    keyword,
+    saveFixtureName,
+    dryRun: cliDryRun,
+    replayPath,
+    extraParams,
+  } = parseArgs(process.argv.slice(2));
 
   let parsed: ParsedAiOverview;
   let apiCallsCount: number;
@@ -131,6 +194,7 @@ async function main() {
 
     const result = await fetchKeywordAiOverview(keyword, {
       dryRun: effectiveDryRun,
+      extraParams,
     });
     parsed = result.parsed;
     apiCallsCount = result.apiCallsCount;
@@ -161,6 +225,9 @@ async function main() {
     totalSources > 0 ? Math.round((resolvedSources / totalSources) * 100) : 0;
   console.log(
     `Tingkat resolusi sumber        : ${resolvedSources}/${totalSources} (${resolutionPct}%)`
+  );
+  console.log(
+    `Klasifikasi tautan             : ${parsed.link_kind_direct ?? 0} direct, ${parsed.link_kind_token ?? 0} token, ${parsed.link_kind_google_internal ?? 0} google_internal`
   );
   console.log(`Jumlah total sumber unik       : ${parsed.sources.length}`);
 
@@ -224,10 +291,10 @@ async function main() {
     const fixturesDir = path.join(process.cwd(), "tests", "fixtures");
     fs.mkdirSync(fixturesDir, { recursive: true });
 
-    const safeBaseName = path.basename(saveFixtureName);
+    const safeBaseName = path.basename(saveFixtureName).replace(/\.json$/, "");
     const primaryPath = path.join(fixturesDir, `${safeBaseName}.json`);
-    const sanitizedFirst = sanitizeSerpApiRaw(firstRawToSave);
-    let rawJsonStr = JSON.stringify(sanitizedFirst, null, 2);
+    const cleanedFirst = cleanFixtureForSaving(firstRawToSave);
+    let rawJsonStr = JSON.stringify(cleanedFirst, null, 2);
     const keyToRedact = process.env.SERPAPI_KEY;
     if (keyToRedact && keyToRedact.length >= 8) {
       rawJsonStr = rawJsonStr.split(keyToRedact).join("[REDACTED]");
@@ -243,8 +310,8 @@ async function main() {
     if (usedFollowUpPageToken && secondRawToSave) {
       const followUpName = `${safeBaseName}-followup.json`;
       const followUpPath = path.join(fixturesDir, followUpName);
-      const sanitizedSecond = sanitizeSerpApiRaw(secondRawToSave);
-      let secondJsonStr = JSON.stringify(sanitizedSecond, null, 2);
+      const cleanedSecond = cleanFixtureForSaving(secondRawToSave);
+      let secondJsonStr = JSON.stringify(cleanedSecond, null, 2);
       if (keyToRedact && keyToRedact.length >= 8) {
         secondJsonStr = secondJsonStr.split(keyToRedact).join("[REDACTED]");
       }

@@ -2,13 +2,9 @@
   "search_metadata": {
     "id": "6ae311d02cd7a1550952f8ca",
     "status": "Success",
-    "json_endpoint": "https://serpapi.com/searches/kCp3kPnsUXmfYqVQaHMhAb5VOw4CNYcxdWSmI8t3L5I/6ae311d02cd7a1550952f8ca.json",
-    "markdown_endpoint": "https://serpapi.com/searches/kCp3kPnsUXmfYqVQaHMhAb5VOw4CNYcxdWSmI8t3L5I/6ae311d02cd7a1550952f8ca.md",
-    "pixel_position_endpoint": "https://serpapi.com/searches/kCp3kPnsUXmfYqVQaHMhAb5VOw4CNYcxdWSmI8t3L5I/6ae311d02cd7a1550952f8ca.json_with_pixel_position",
     "created_at": "2026-10-29 09:28:48 UTC",
     "processed_at": "2026-10-29 09:28:48 UTC",
     "google_url": "https://www.google.co.id/search?q=HR+Software+Indonesia&oq=HR+Software+Indonesia&uule=w+CAIQICIJSW5kb25lc2lh&hl=id&gl=id&sourceid=chrome&ie=UTF-8",
-    "raw_html_file": "https://serpapi.com/searches/kCp3kPnsUXmfYqVQaHMhAb5VOw4CNYcxdWSmI8t3L5I/6ae311d02cd7a1550952f8ca.html",
     "total_time_taken": 1.31
   },
   "search_parameters": {
@@ -29,7 +25,7 @@
   },
   "local_map": {
     "link": "https://www.google.co.id/search?q=HR+Software+Indonesia&sca_esv=353cea88b42a76a3&hl=id&gl=id&sxsrf=AKL5yDgnlN3K1XlS_BNvkowJje6pELGzgQ:1793266128606&udm=local&lsack=0BHjavDPJIGqur8PqPCuyAU&sa=X&ved=2ahUKEwjw99T09N6XAxUBle4BHSi4C1kQtgN6BAgmEAM",
-    "image": "https://serpapi.com/searches/6ae311d02cd7a1550952f8ca/images/Q_MWcG7l0FivdaKUit3uDA.png",
+    "image": "",
     "gps_coordinates": {
       "latitude": -6.229299114609273,
       "longitude": 106.78436279296875
@@ -340,7 +336,7 @@
         "link": "https://www.instagram.com/reel/DVYJ8G2jZYA/",
         "snippet": "Jadi HR masih ribet? Sekarang tinggal pakai satu aplikasi! 🚀 EATS bantu perusahaan kelola absensi, cuti, lembur, gaji sampai KPI dalam satu sistem. ✔️ Face recogn",
         "source": "Instagram",
-        "source_icon": "https://serpapi.com/searches/6ae311d02cd7a1550952f8ca/images/9yKMAevn2yooYzZ95LiltYmucAm8W-s_14sMYry5-6jPE3XfI8b2ka1Ru7A1ihWp.png",
+        "source_icon": "",
         "thumbnail": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQA8lSAKLixCBPBr1xJ5spJ1y0Ofg0A2dIxsHZwjpQZHWIUS2nBu1OXNq36cu1QzY23aga2kDmAr96iBqr2myYEXameDUfhKnHyxbsijVXGJotbifQRsUbIkv7mFSg0r1pat-MTj0s8Gjcn1NWH3goTST8"
       },
       {
