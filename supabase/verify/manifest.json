@@ -9,7 +9,8 @@
     "20261029050000_phase5_third_party_default.sql",
     "20261029060000_predeploy_hardening.sql",
     "20261029070000_function_search_path.sql",
-    "20261102000000_single_running_run.sql"
+    "20261102000000_single_running_run.sql",
+    "20261102010000_keyword_batches.sql"
   ],
   "perFileSummary": [
     {
@@ -608,6 +609,51 @@
       "functionsCreatedOrReplaced": [],
       "permissionOps": [],
       "seedUpdates": []
+    },
+    {
+      "fileName": "20261102010000_keyword_batches.sql",
+      "extensionsCreated": [],
+      "tablesCreated": [
+        "keyword_batches",
+        "batch_schedule_settings",
+        "batch_audit_logs"
+      ],
+      "columnsAdded": [
+        {
+          "table": "keywords",
+          "column": "batch_id",
+          "dataType": "uuid"
+        }
+      ],
+      "indexesCreated": [
+        "keyword_batches_single_active_idx",
+        "keywords_batch_id_idx",
+        "keywords_batch_id_active_idx",
+        "batch_audit_logs_created_at_idx"
+      ],
+      "rlsEnabledTables": [
+        "keyword_batches",
+        "batch_schedule_settings",
+        "batch_audit_logs"
+      ],
+      "policiesCreated": [
+        {
+          "name": "Pengguna login dapat membaca keyword_batches",
+          "table": "keyword_batches"
+        },
+        {
+          "name": "Pengguna login dapat membaca batch_schedule_settings",
+          "table": "batch_schedule_settings"
+        },
+        {
+          "name": "Pengguna login dapat membaca batch_audit_logs",
+          "table": "batch_audit_logs"
+        }
+      ],
+      "viewsCreatedOrReplaced": [],
+      "functionsCreatedOrReplaced": [],
+      "permissionOps": [],
+      "seedUpdates": []
     }
   ],
   "finalState": {
@@ -681,7 +727,8 @@
         "sourceMigration": "20261029000000_init_schema.sql",
         "modifiedByMigrations": [
           "20261029000000_init_schema.sql",
-          "20261029040000_phase4_fixes.sql"
+          "20261029040000_phase4_fixes.sql",
+          "20261102010000_keyword_batches.sql"
         ],
         "rlsEnabled": true,
         "rlsSourceMigration": "20261029000000_init_schema.sql",
@@ -745,6 +792,16 @@
             "isPrimaryKey": false,
             "isUnique": false,
             "sourceMigration": "20261029040000_phase4_fixes.sql"
+          },
+          {
+            "name": "batch_id",
+            "dataType": "uuid",
+            "normalizedType": "uuid",
+            "nullable": true,
+            "defaultExpr": null,
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
           }
         ],
         "constraints": [
@@ -771,6 +828,16 @@
             "referencesColumn": "id",
             "onDelete": "SET NULL",
             "sourceMigration": "20261029000000_init_schema.sql"
+          },
+          {
+            "type": "FOREIGN KEY",
+            "columns": [
+              "batch_id"
+            ],
+            "referencesTable": "keyword_batches",
+            "referencesColumn": "id",
+            "onDelete": "SET NULL",
+            "sourceMigration": "20261102010000_keyword_batches.sql"
           }
         ]
       },
@@ -1491,6 +1558,293 @@
             "sourceMigration": "20261029030000_phase4_settings_and_views.sql"
           }
         ]
+      },
+      "keyword_batches": {
+        "name": "keyword_batches",
+        "sourceMigration": "20261102010000_keyword_batches.sql",
+        "modifiedByMigrations": [
+          "20261102010000_keyword_batches.sql"
+        ],
+        "rlsEnabled": true,
+        "rlsSourceMigration": "20261102010000_keyword_batches.sql",
+        "columns": [
+          {
+            "name": "id",
+            "dataType": "uuid",
+            "normalizedType": "uuid",
+            "nullable": false,
+            "defaultExpr": "gen_random_uuid()",
+            "isPrimaryKey": true,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "name": "name",
+            "dataType": "text",
+            "normalizedType": "text",
+            "nullable": false,
+            "defaultExpr": null,
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "name": "description",
+            "dataType": "text",
+            "normalizedType": "text",
+            "nullable": true,
+            "defaultExpr": null,
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "name": "order_index",
+            "dataType": "int",
+            "normalizedType": "integer",
+            "nullable": false,
+            "defaultExpr": null,
+            "isPrimaryKey": false,
+            "isUnique": true,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "name": "is_active",
+            "dataType": "boolean",
+            "normalizedType": "boolean",
+            "nullable": false,
+            "defaultExpr": "false",
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "name": "is_enabled",
+            "dataType": "boolean",
+            "normalizedType": "boolean",
+            "nullable": false,
+            "defaultExpr": "true",
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "name": "is_demo",
+            "dataType": "boolean",
+            "normalizedType": "boolean",
+            "nullable": false,
+            "defaultExpr": "false",
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "name": "created_at",
+            "dataType": "timestamptz",
+            "normalizedType": "timestamp with time zone",
+            "nullable": false,
+            "defaultExpr": "now()",
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "name": "updated_at",
+            "dataType": "timestamptz",
+            "normalizedType": "timestamp with time zone",
+            "nullable": false,
+            "defaultExpr": "now()",
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          }
+        ],
+        "constraints": [
+          {
+            "type": "PRIMARY KEY",
+            "columns": [
+              "id"
+            ],
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "type": "UNIQUE",
+            "columns": [
+              "order_index"
+            ],
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          }
+        ]
+      },
+      "batch_schedule_settings": {
+        "name": "batch_schedule_settings",
+        "sourceMigration": "20261102010000_keyword_batches.sql",
+        "modifiedByMigrations": [
+          "20261102010000_keyword_batches.sql"
+        ],
+        "rlsEnabled": true,
+        "rlsSourceMigration": "20261102010000_keyword_batches.sql",
+        "columns": [
+          {
+            "name": "id",
+            "dataType": "int",
+            "normalizedType": "integer",
+            "nullable": false,
+            "defaultExpr": "1",
+            "isPrimaryKey": true,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "name": "mode",
+            "dataType": "text",
+            "normalizedType": "text",
+            "nullable": false,
+            "defaultExpr": "'auto'",
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "name": "override_until",
+            "dataType": "timestamptz",
+            "normalizedType": "timestamp with time zone",
+            "nullable": true,
+            "defaultExpr": null,
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "name": "updated_at",
+            "dataType": "timestamptz",
+            "normalizedType": "timestamp with time zone",
+            "nullable": false,
+            "defaultExpr": "now()",
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          }
+        ],
+        "constraints": [
+          {
+            "type": "PRIMARY KEY",
+            "columns": [
+              "id"
+            ],
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          }
+        ]
+      },
+      "batch_audit_logs": {
+        "name": "batch_audit_logs",
+        "sourceMigration": "20261102010000_keyword_batches.sql",
+        "modifiedByMigrations": [
+          "20261102010000_keyword_batches.sql"
+        ],
+        "rlsEnabled": true,
+        "rlsSourceMigration": "20261102010000_keyword_batches.sql",
+        "columns": [
+          {
+            "name": "id",
+            "dataType": "uuid",
+            "normalizedType": "uuid",
+            "nullable": false,
+            "defaultExpr": "gen_random_uuid()",
+            "isPrimaryKey": true,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "name": "previous_batch_id",
+            "dataType": "uuid",
+            "normalizedType": "uuid",
+            "nullable": true,
+            "defaultExpr": null,
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "name": "new_batch_id",
+            "dataType": "uuid",
+            "normalizedType": "uuid",
+            "nullable": true,
+            "defaultExpr": null,
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "name": "trigger_type",
+            "dataType": "text",
+            "normalizedType": "text",
+            "nullable": false,
+            "defaultExpr": null,
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "name": "actor_id",
+            "dataType": "text",
+            "normalizedType": "text",
+            "nullable": false,
+            "defaultExpr": "'system'",
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "name": "notes",
+            "dataType": "text",
+            "normalizedType": "text",
+            "nullable": true,
+            "defaultExpr": null,
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "name": "created_at",
+            "dataType": "timestamptz",
+            "normalizedType": "timestamp with time zone",
+            "nullable": false,
+            "defaultExpr": "now()",
+            "isPrimaryKey": false,
+            "isUnique": false,
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          }
+        ],
+        "constraints": [
+          {
+            "type": "PRIMARY KEY",
+            "columns": [
+              "id"
+            ],
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "type": "FOREIGN KEY",
+            "columns": [
+              "previous_batch_id"
+            ],
+            "referencesTable": "keyword_batches",
+            "referencesColumn": "id",
+            "onDelete": "SET NULL",
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          },
+          {
+            "type": "FOREIGN KEY",
+            "columns": [
+              "new_batch_id"
+            ],
+            "referencesTable": "keyword_batches",
+            "referencesColumn": "id",
+            "onDelete": "SET NULL",
+            "sourceMigration": "20261102010000_keyword_batches.sql"
+          }
+        ]
       }
     },
     "indexes": [
@@ -1554,6 +1908,63 @@
         "unique": true,
         "whereExpr": "status = 'running'",
         "sourceMigration": "20261102000000_single_running_run.sql"
+      },
+      {
+        "name": "keyword_batches_single_active_idx",
+        "table": "keyword_batches",
+        "columnsExpr": "is_active",
+        "columns": [
+          {
+            "name": "is_active",
+            "order": "ASC"
+          }
+        ],
+        "unique": true,
+        "whereExpr": "is_active = true",
+        "sourceMigration": "20261102010000_keyword_batches.sql"
+      },
+      {
+        "name": "keywords_batch_id_idx",
+        "table": "keywords",
+        "columnsExpr": "batch_id",
+        "columns": [
+          {
+            "name": "batch_id",
+            "order": "ASC"
+          }
+        ],
+        "unique": false,
+        "sourceMigration": "20261102010000_keyword_batches.sql"
+      },
+      {
+        "name": "keywords_batch_id_active_idx",
+        "table": "keywords",
+        "columnsExpr": "batch_id, active",
+        "columns": [
+          {
+            "name": "batch_id",
+            "order": "ASC"
+          },
+          {
+            "name": "active",
+            "order": "ASC"
+          }
+        ],
+        "unique": false,
+        "sourceMigration": "20261102010000_keyword_batches.sql"
+      },
+      {
+        "name": "batch_audit_logs_created_at_idx",
+        "table": "batch_audit_logs",
+        "columnsExpr": "created_at desc",
+        "columns": [
+          {
+            "name": "created_at",
+            "order": "DESC"
+          }
+        ],
+        "unique": false,
+        "sourceMigration": "20261102010000_keyword_batches.sql"
       }
     ],
     "policies": [
@@ -1666,6 +2077,39 @@
         "usingExpr": "true",
         "withCheckExpr": null,
         "sourceMigration": "20261029030000_phase4_settings_and_views.sql"
+      },
+      {
+        "name": "Pengguna login dapat membaca keyword_batches",
+        "table": "keyword_batches",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ],
+        "usingExpr": "true",
+        "withCheckExpr": null,
+        "sourceMigration": "20261102010000_keyword_batches.sql"
+      },
+      {
+        "name": "Pengguna login dapat membaca batch_schedule_settings",
+        "table": "batch_schedule_settings",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ],
+        "usingExpr": "true",
+        "withCheckExpr": null,
+        "sourceMigration": "20261102010000_keyword_batches.sql"
+      },
+      {
+        "name": "Pengguna login dapat membaca batch_audit_logs",
+        "table": "batch_audit_logs",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ],
+        "usingExpr": "true",
+        "withCheckExpr": null,
+        "sourceMigration": "20261102010000_keyword_batches.sql"
       }
     ],
     "views": {

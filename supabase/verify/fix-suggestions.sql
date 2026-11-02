@@ -10,6 +10,7 @@
 -- file migrasi berikut di Supabase SQL Editor (tanpa perlu UPDATE ad hoc):
 -- =============================================================================
 
+-- -> Jalankan file: supabase/migrations/20261029000000_init_schema.sql
 -- -> Jalankan file: supabase/migrations/20261029070000_function_search_path.sql
 
 -- =============================================================================
@@ -21,7 +22,7 @@
 -- =============================================================================
 
 -- Cabut seluruh hak tabel dari role anon (karena dasbor mewajibkan login):
--- REVOKE ALL ON TABLE keyword_groups, keywords, brand_terms, competitors, check_runs, run_items, checks, check_sources, page_cache, settings FROM anon;
+-- REVOKE ALL ON TABLE keyword_groups, keywords, brand_terms, competitors, check_runs, run_items, checks, check_sources, page_cache, settings, keyword_batches, batch_schedule_settings, batch_audit_logs FROM anon;
 
 -- Cabut hak tulis tabel dari role authenticated (penulisan hanya via service_role di server):
--- REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE keyword_groups, keywords, brand_terms, competitors, check_runs, run_items, checks, check_sources, page_cache, settings FROM authenticated;
+-- REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE keyword_groups, keywords, brand_terms, competitors, check_runs, run_items, checks, check_sources, page_cache, settings, keyword_batches, batch_schedule_settings, batch_audit_logs FROM authenticated;
