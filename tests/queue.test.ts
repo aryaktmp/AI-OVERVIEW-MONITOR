@@ -342,6 +342,51 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
     expect(runs).toHaveLength(2);
   });
 
+  it("tidak menutup run lama dan tidak membuat run baru bila masih ada item berstatus processing", async () => {
+    const { store, runs } = createInMemoryQueueStore({
+      keywords: [
+        { id: "kw-real", text: "keyword nyata", active: true, is_demo: false },
+      ],
+      items: [
+        {
+          id: "item-proc",
+          run_id: "run-processing",
+          keyword_id: "kw-real",
+          state: "processing",
+          attempts: 0,
+          error: null,
+          updated_at: "2026-10-29T07:55:00Z",
+        },
+      ],
+    });
+
+    runs.push({
+      id: "run-processing",
+      started_at: "2026-10-29T07:50:00Z",
+      finished_at: null,
+      status: "running",
+      total: 1,
+      done: 0,
+      is_demo: false,
+    });
+
+    const res = await startCheckRun(
+      store,
+      new Date("2026-10-29T08:00:00Z"),
+      { isDemo: false }
+    );
+
+    // Run yang memiliki item processing tidak boleh ditutup
+    const runningRun = runs.find((r) => r.id === "run-processing");
+    expect(runningRun?.status).toBe("running");
+    expect(runningRun?.finished_at).toBeNull();
+
+    // startCheckRun mengembalikan run yang sedang berjalan (idempoten) dan tidak membuat run baru
+    expect(res.isExisting).toBe(true);
+    expect(res.runId).toBe("run-processing");
+    expect(runs).toHaveLength(1);
+  });
+
   it("mengklaim item pending secara atomik sehingga dua pekerja paralel tidak memproses item yang sama", async () => {
     const { store, items } = createInMemoryQueueStore();
     await startCheckRun(store, new Date("2026-10-29T08:00:00Z"), {
