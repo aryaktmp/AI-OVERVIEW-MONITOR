@@ -83,10 +83,6 @@ Dokumen ini mencatat keputusan teknis yang diambil ketika spesifikasi di `SPEC.m
    - Karena Vercel Hobby hanya mengizinkan cron maksimal sekali sehari, `vercel.json` hanya mendaftarkan 2 cron: `/api/cron/start-run` (`0 1 * * 1`, Senin 01:00 UTC / 08:00 WIB, yang sekaligus membersihkan `checks.raw` > 90 hari) dan `/api/cron/process` (`0 2 * * *`, harian 02:00 UTC).
    - Pengurasan antrean mingguan dijalankan oleh `.github/workflows/process-queue.yml` setiap jam pada hari Senin dan Selasa (`0 * * * 1,2`), yang memanggil `/api/cron/process` berulang kali dengan jeda 20 detik hingga `pending = 0`, `stoppedReason = "rate_limit"`, atau 10 menit habis. Saat pindah ke VPS, workflow ini langsung digantikan oleh `crontab` sistem di VPS.
 
-
-
-
-
 ## Standar UI: Komponen shadcn/ui untuk Konsistensi Visual dan Tampilan Terpoles
 
 1. **Integrasi Primitif Radix UI & Desain Tema**:
@@ -99,7 +95,6 @@ Dokumen ini mencatat keputusan teknis yang diambil ketika spesifikasi di `SPEC.m
    - **Tab & Formulir Masuk**: Mengganti toggle tombol ad-hoc di `/login` dengan shadcn `Tabs`, `TabsList`, `TabsTrigger`, serta menggunakan `Label` dan `Alert` berikon.
    - **Switch & Progress**: Mengganti checkbox sumber pihak ketiga dengan shadcn `Switch` dan `Label`, serta mengganti bar progres pemrosesan dan kuota penyimpanan basis data dengan shadcn `Progress`.
    - **Statistik & Kartu**: Membungkus ringkasan metrik dan kontainer daftar kompetitor menggunakan shadcn `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`.
-
 
 ## 8. Standarisasi Teks Antarmuka Berbahasa Inggris (Keputusan Pemilik Proyek - 30 Oktober 2026)
 
@@ -120,12 +115,13 @@ Berdasarkan keputusan langsung dari pemilik proyek pada tanggal 30 Oktober 2026,
 
 ## 9. Proteksi Kondisi Balapan Konkuren pada Antrean Check Runs (2 November 2026)
 
-Untuk mencegah kondisi balapan (*race condition*) saat dua pemanggilan `/api/cron/start-run` datang bersamaan ketika tidak ada run yang sedang berjalan:
+Untuk mencegah kondisi balapan (_race condition_) saat dua pemanggilan `/api/cron/start-run` datang bersamaan ketika tidak ada run yang sedang berjalan:
+
 1. **Indeks Unik Parsial Database (`supabase/migrations/20261102000000_single_running_run.sql`)**:
    - Menambahkan indeks `CREATE UNIQUE INDEX IF NOT EXISTS check_runs_single_running_idx ON public.check_runs (status) WHERE status = 'running';`
    - Migrasi terlebih dahulu menutup run duplikat lama berstatus `running` (jika ada) menjadi `failed` sebelum membuat indeks agar eksekusi migrasi di database eksisting dijamin berhasil tanpa galat keunikan.
 2. **Penanganan Idempoten & Penutupan Otomatis (`lib/queue.ts`)**:
-   - `createSupabaseQueueStore.createCheckRun`: menangkap galat Postgres berkode `23505` (*unique_violation*), lalu memanggil `getRunningCheckRun()` dan mengembalikan run yang ada dengan `isExisting: true`. Galat selain `23505` tetap dilempar ke atas.
+   - `createSupabaseQueueStore.createCheckRun`: menangkap galat Postgres berkode `23505` (_unique_violation_), lalu memanggil `getRunningCheckRun()` dan mengembalikan run yang ada dengan `isExisting: true`. Galat selain `23505` tetap dilempar ke atas.
    - `startCheckRun`: hanya pemenang pembuatan run yang berhak mengisi `run_items`. Pemanggil yang kalah (`isExisting: true`) langsung mengembalikan run tersebut tanpa memasukkan item duplikat.
    - Jika pengisian `run_items` gagal setelah run dibuat, run tersebut segera ditutup dengan `status = 'failed'` lewat `store.markCheckRunFailed()` agar tidak menggantung dan memblokir antrean run berikutnya.
 
@@ -148,6 +144,7 @@ Berdasarkan investigasi respons langsung Google SerpApi pada kueri nyata ("softw
 ## 11. Implementasi Fase Data: Sistem Batch Keyword & Penjadwalan Mingguan (2 November 2026)
 
 Untuk mendukung pemantauan berkala dan rotasi keyword mingguan:
+
 1. **Entitas `keyword_batches`**:
    - Kolom: `id` (uuid PK), `name` (text), `description` (text), `order_index` (int unique), `is_active` (boolean), `is_enabled` (boolean), `is_demo` (boolean), `created_at`, `updated_at`.
    - **Indeks Unik Parsial**: `CREATE UNIQUE INDEX keyword_batches_single_active_idx ON public.keyword_batches (is_active) WHERE is_active = true;` menjamin di level basis data bahwa maksimal hanya ada SATU batch berstatus aktif secara bersamaan.
@@ -160,14 +157,15 @@ Untuk mendukung pemantauan berkala dan rotasi keyword mingguan:
 4. **Row Level Security (RLS)**:
    - Ketiga tabel baru dilengkapi RLS dan kebijakan izin baca (`SELECT`) untuk role `authenticated`.
 5. **Inisialisasi Data Migrasi**:
-   - Menginisialisasi Batch 1 (aktif), Batch 2, dan Batch 3, serta memigrasikan seluruh keyword eksisting yang belum memiliki batch ke Batch 1 agar sistem tetap berfungsi penuh (*zero-downtime & backward-compatible*).
+   - Menginisialisasi Batch 1 (aktif), Batch 2, dan Batch 3, serta memigrasikan seluruh keyword eksisting yang belum memiliki batch ke Batch 1 agar sistem tetap berfungsi penuh (_zero-downtime & backward-compatible_).
 
 ## 12. Implementasi Fase Logika: Rotasi Otomatis, Kontrol Manual, & Search Filtering (2 November 2026)
 
 Menerapkan aturan bisnis dan orkestrasi pemrosesan batch keyword:
+
 1. **Rotasi Batch Otomatis (`rotateActiveKeywordBatch`)**:
-   - Berjalan secara *sequential round-robin* (`Batch 1 -> Batch 2 -> Batch 3 -> Batch 1`) berdasarkan `order_index ASC`.
-   - **Penanganan Edge Case Batch Kosong (*Skip Empty Batch*)**: Sistem otomatis menyaring batch yang memiliki `activeKeywords > 0`. Jika sebuah batch kosong, rotasi melompat ke batch valid berikutnya. Jika semua batch kosong, sistem mempertahankan batch aktif saat ini dan mencatat peringatan di audit log.
+   - Berjalan secara _sequential round-robin_ (`Batch 1 -> Batch 2 -> Batch 3 -> Batch 1`) berdasarkan `order_index ASC`.
+   - **Penanganan Edge Case Batch Kosong (_Skip Empty Batch_)**: Sistem otomatis menyaring batch yang memiliki `activeKeywords > 0`. Jika sebuah batch kosong, rotasi melompat ke batch valid berikutnya. Jika semua batch kosong, sistem mempertahankan batch aktif saat ini dan mencatat peringatan di audit log.
    - **Penanganan Edge Case Overlap Jadwal**: Sebelum merotasi, sistem memeriksa apakah ada run berstatus `running` di `check_runs`. Jika masih berjalan, rotasi ditunda (`skipped_running_run`) guna mencegah tumpang tindih data.
    - **Mode Manual Frozen & Override Until**: Jika mode `manual_frozen` aktif, rotasi rutin dilewati (kecuali dipaksa dengan flag `force: true`). Jika terdapat `override_until` yang telah kedaluwarsa, pengaturan otomatis dinormalisasi kembali ke mode `auto`.
 2. **Kontrol Manual Admin (`overrideActiveKeywordBatch` & `setBatchScheduleMode`)**:
@@ -175,8 +173,8 @@ Menerapkan aturan bisnis dan orkestrasi pemrosesan batch keyword:
    - Pergantian batch aktif dilakukan secara transaksional dengan audit trail lengkap (`trigger_type: 'admin_override'`).
    - Mendukung opsi pembekuan mode (`freezeMode: true`) atau override sementara dengan batas waktu (`overrideUntil`).
 3. **Filter Antrean Search Berbasis Batch Aktif (`lib/queue.ts`)**:
-   - `createSupabaseQueueStore.getActiveKeywords`: secara bawaan mengambil keyword aktif dari batch yang sedang `is_active = true`. Jika tidak ada batch aktif, sistem menyediakan fallback ke seluruh keyword aktif untuk menjaga kompatibilitas.
-   - Menyediakan cache in-memory jangka pendek dengan invalidasi instan (`invalidateActiveKeywordBatchCache`) setiap kali terjadi pergantian batch untuk menjamin *zero-downtime switch*.
+   - `createSupabaseQueueStore.getActiveKeywords`: secara bawaan mengambil keyword aktif dari batch yang sedang `is_active = true`. Jika tidak ada batch aktif, sistem mengembalikan array kosong sebagai gagal aman (dilarang fallback ke seluruh keyword aktif).
+   - Menyediakan cache in-memory jangka pendek dengan invalidasi instan (`invalidateActiveKeywordBatchCache`) setiap kali terjadi pergantian batch untuk menjamin _zero-downtime switch_.
 4. **Integrasi Endpoint Cron Mingguan**:
    - `app/api/cron/start-run/route.ts`: secara otomatis memicu rotasi batch sebelum memulai pemindaian mingguan hari Senin (`?rotate=false` untuk melewatinya).
    - Menambahkan rute terdedikasi `app/api/cron/rotate-batch/route.ts` untuk pemanggilan rotasi independen via webhook/cron.
@@ -184,16 +182,17 @@ Menerapkan aturan bisnis dan orkestrasi pemrosesan batch keyword:
 ## 13. Implementasi Fase UI: Antarmuka Penjadwalan Batch & Manajemen Keyword (2 November 2026)
 
 Menerapkan komponen antarmuka pengguna untuk manajemen batch dan pemantauan rotasi:
+
 1. **Kartu Penjadwal Batch pada Halaman Pengaturan (`components/batch-scheduler-card.tsx`)**:
    - Menampilkan status batch yang sedang aktif beserta jumlah keyword aktifnya.
-   - Menyediakan sakelar mode penjadwalan (*Automatic Rotation* vs *Manual Frozen*).
+   - Menyediakan sakelar mode penjadwalan (_Automatic Rotation_ vs _Manual Frozen_).
    - Dialog override manual untuk memindahkan batch aktif sewaktu-waktu dengan opsi pembekuan mode.
-   - Tombol pengujian rotasi seketika (*Rotate Next Now*) dengan umpan balik pesan alert.
-   - Tabel konfigurasi batch dengan tombol penonaktifan keikutsertaan rotasi (*is_enabled*) dan modal penambahan batch baru.
-   - Tabel riwayat audit trail (*Batch Rotation & Override Audit Trail*) dengan zona waktu Asia/Jakarta (WIB).
+   - Tombol pengujian rotasi seketika (_Rotate Next Now_) dengan umpan balik pesan alert.
+   - Tabel konfigurasi batch dengan tombol penonaktifan keikutsertaan rotasi (_is_enabled_) dan modal penambahan batch baru.
+   - Tabel riwayat audit trail (_Batch Rotation & Override Audit Trail_) dengan zona waktu Asia/Jakarta (WIB).
 2. **Integrasi Kolom & Filter Batch pada Halaman Keyword (`app/(dashboard)/keyword/`)**:
-   - Kolom tabel baru *Batch* dengan lencana (*badge*) status aktif.
-   - Dropdown filter multi-pilihan berdasarkan batch (*All batches*, opsi per batch, dan *Unassigned*).
+   - Kolom tabel baru _Batch_ dengan lencana (_badge_) status aktif.
+   - Dropdown filter multi-pilihan berdasarkan batch (_All batches_, opsi per batch, dan _Unassigned_).
    - Opsi penetapan batch pada formulir penambahan keyword baru.
 3. **Server Actions Terpadu (`app/(dashboard)/actions.ts`)**:
    - `rotateBatchNowAction`, `overrideActiveBatchAction`, `updateBatchScheduleModeAction`, `updateKeywordBatchAction`, `toggleBatchEnabledAction`, dan `createBatchAction` yang secara otomatis memicu `revalidateAllDashboardRoutes()`.
@@ -201,6 +200,7 @@ Menerapkan komponen antarmuka pengguna untuk manajemen batch dan pemantauan rota
 ## 14. Fase Data: Sistem Slot Penjadwalan Bulanan (4 Slot Minggu) (2 November 2026)
 
 Menerapkan skema relasi dan tabel slot penjadwalan 4 minggu bulanan (`supabase/migrations/20261102020000_batch_schedule_slots.sql`):
+
 1. **Tabel `batch_schedule_slots`**:
    - Menyediakan 4 slot mingguan (`week_number` 1 s/d 4) dengan batasan `CHECK (week_number BETWEEN 1 AND 4)` dan `UNIQUE (week_number)`.
    - Menghubungkan setiap slot ke `keyword_batches(id)` dengan relasi `ON DELETE SET NULL`.
@@ -216,6 +216,7 @@ Menerapkan skema relasi dan tabel slot penjadwalan 4 minggu bulanan (`supabase/m
 ## 15. Fase Logika: Penjadwalan Rotasi Slot 4 Minggu & Batas Eksekusi Bulanan (2 November 2026)
 
 Menerapkan logika penjadwalan rotasi bulanan berbasis 4 slot mingguan (`lib/keyword-batches.ts`):
+
 1. **Penentuan Minggu Kalender (`getActiveWeekOfMonth`)**:
    - Memetakan hari tanggal kalender: Hari 1–7 (Week 1), 8–14 (Week 2), 15–21 (Week 3), dan 22–28 (Week 4).
    - Hari ke 29–31 dialokasikan ke Week 4 sebagai periode penyelesaian/penyangga, menjamin nilai minggu berada dalam rentang valid 1 s/d 4.
@@ -235,6 +236,7 @@ Menerapkan logika penjadwalan rotasi bulanan berbasis 4 slot mingguan (`lib/keyw
 ## 16. Fase UI: Hub Terpadu 3-Tab & Kalender Visual Monitoring Rotasi (3 November 2026)
 
 Menerapkan antarmuka pengguna optimal untuk manajemen batch dan pemantauan kalender:
+
 1. **Navigasi Hub Terpadu 3-Tab (`app/(dashboard)/keyword/keyword-manager-client.tsx`)**:
    - Menyederhanakan UX dengan menggabungkan Keyword, Penjadwalan Slot Batch, dan Grup Produk ke dalam satu halaman hub menggunakan `Tabs` (`components/ui/tabs.tsx`).
    - Tab 1 (**Keywords**): Tabel data kata kunci lengkap dengan filter status, grup, batch, tombol impor/ekspor CSV, dan formulir penambahan kata kunci terintegrasi pemilihan batch.
@@ -251,10 +253,11 @@ Menerapkan antarmuka pengguna optimal untuk manajemen batch dan pemantauan kalen
 ## 17. Fase UI: Peningkatan Halaman Overview & Paginasi Heatmap 8 Minggu (4 November 2026)
 
 Mengoptimalkan tata letak halaman Overview untuk mengatasi kendala penskalaan keyword (140+ keyword) dan meningkatkan keterbacaan data eksekutif:
+
 1. **Penyempurnaan Kartu Matriks 8 Minggu (`components/overview-heatmap-card.tsx`)**:
    - **Mengatasi Masalah Panjang Halaman**: Mengganti render seluruh 140+ baris sekaligus dengan sistem paginasi standar (bawaan 15 baris per halaman, opsi 10, 15, 25, 50) sehingga tinggi kartu tetap kompak dan terkendali (~500px).
-   - **Toolbar Pencarian & Filter**: Menyediakan pencarian teks keyword *real-time*, filter per grup modul produk, dan filter status sitasi (*LinovHR Cited*, *AI Overview Uncited*, *No AI Overview*, *Ever Cited*).
-   - **Mode Tampilan Ganda**: Mendukung beralih antara *Table View* (terpaginasi) dan *By Group Accordion View* (accordion per modul produk yang dapat dibuka/tutup dengan metrik sitasi minggu ini).
+   - **Toolbar Pencarian & Filter**: Menyediakan pencarian teks keyword _real-time_, filter per grup modul produk, dan filter status sitasi (_LinovHR Cited_, _AI Overview Uncited_, _No AI Overview_, _Ever Cited_).
+   - **Mode Tampilan Ganda**: Mendukung beralih antara _Table View_ (terpaginasi) dan _By Group Accordion View_ (accordion per modul produk yang dapat dibuka/tutup dengan metrik sitasi minggu ini).
 2. **Widget Status Batch Mingguan & Quota Monitor (`components/overview-active-batch-widget.tsx`)**:
    - Menampilkan kartu visual 4 slot minggu dengan sorotan pada minggu aktif kalender, status mode rotasi (Otomatis vs Override Manual), dan bilah progres kuota eksekusi bulanan SerpApi.
 3. **Dua Chart Tren Interaktif Berdampingan (`WeeklyTrendChart` & `GroupCitationBarChart`)**:
@@ -263,8 +266,9 @@ Mengoptimalkan tata letak halaman Overview untuk mengatasi kendala penskalaan ke
 ## 18. Engine Ekspor Excel Terstruktur Multi-Sheet Menggunakan `exceljs` (4 November 2026)
 
 Memperbarui sistem ekspor dari file CSV polos menjadi format Microsoft Excel (`.xlsx`) bertemplate profesional:
+
 1. **Pemilihan Library `exceljs`**:
-   - Dipilih karena merupakan solusi *open-source* gratis yang mendukung penuh styling sel (warna latar, font tebal, border sel, tinggi baris), *freeze panes*, dan *auto-filter* secara native tanpa biaya lisensi komersial (berbeda dengan SheetJS/xlsx versi gratis yang mengunci fitur styling).
+   - Dipilih karena merupakan solusi _open-source_ gratis yang mendukung penuh styling sel (warna latar, font tebal, border sel, tinggi baris), _freeze panes_, dan _auto-filter_ secara native tanpa biaya lisensi komersial (berbeda dengan SheetJS/xlsx versi gratis yang mengunci fitur styling).
 2. **Struktur File 2 Sheet**:
    - **Sheet 1 (`Data Pantauan`)**: Menampilkan 9 kolom tabel data utama dengan header berwarna Slate-800 (`#1E293B`), teks putih tebal, border tipis `#E2E8F0`, freeze row pada baris 4 (`ySplit: 4`), auto-filter aktif (`A4:I4`), format tanggal native Excel (`yyyy-mm-dd hh:mm:ss`), dan auto-fit lebar kolom dinamis (maksimal 60 karakter).
    - **Sheet 2 (`Ringkasan & Metadata`)**: Ringkasan eksekutif berisi parameter ekspor (waktu, rentang tanggal, mode) dan tabel KPI kinerja (Total Keyword, AI Overview Muncul, LinovHR Tersitasi, dan Detection Rate bertipe numerik/persentase native `0.0%`).
@@ -274,7 +278,8 @@ Memperbarui sistem ekspor dari file CSV polos menjadi format Microsoft Excel (`.
 
 ## 19. Standarisasi Loading State & Komunikasi Backend (Zero Silent BE Operations) (4 November 2026)
 
-Menegakkan aturan bahwa seluruh komunikasi backend dan proses asinkron wajib memiliki umpan balik visual (*loading behavior*):
+Menegakkan aturan bahwa seluruh komunikasi backend dan proses asinkron wajib memiliki umpan balik visual (_loading behavior_):
+
 1. **Mutasi Data & Server Actions**:
    - Pemanggilan Server Action dari Client Component wajib dibungkus dalam `useTransition` (`isPending, startTransition`) atau `useActionState`.
    - Tombol pemicu menampilkan spinner `<Loader2 className="animate-spin" />`, teks aktif ("Saving...", "Adding..."), dan dinonaktifkan (`disabled={isPending}`) untuk mencegah submit ganda. Input formulir terkait juga dinonaktifkan selama proses.
@@ -289,7 +294,8 @@ Menegakkan aturan bahwa seluruh komunikasi backend dan proses asinkron wajib mem
 ## 20. Keputusan Arsitektur Manajemen Pengguna & Allowed Emails (4 November 2026)
 
 Berdasarkan analisis keamanan dan kebutuhan operasional untuk tim inti beranggotakan 2 orang:
+
 1. **Mempertahankan Whitelist di `process.env.ALLOWED_EMAILS`**:
-   - Tidak memindahkan manajemen user ke antarmuka basis data/settings guna menjaga prinsip *Zero Attack Surface*: tidak ada endpoint atau form antarmuka yang dapat dieksploitasi pihak luar untuk eskalasi hak akses (*privilege escalation*).
-   - Menghilangkan risiko *self-lockout* dan meniadakan beban pemeliharaan tabel otorisasi atau RLS tambahan.
+   - Tidak memindahkan manajemen user ke antarmuka basis data/settings guna menjaga prinsip _Zero Attack Surface_: tidak ada endpoint atau form antarmuka yang dapat dieksploitasi pihak luar untuk eskalasi hak akses (_privilege escalation_).
+   - Menghilangkan risiko _self-lockout_ dan meniadakan beban pemeliharaan tabel otorisasi atau RLS tambahan.
    - Evaluasi otorisasi tetap berjalan ketat di level server via `isEmailAllowed()` di `lib/auth.ts`, Server Actions, dan Middleware.

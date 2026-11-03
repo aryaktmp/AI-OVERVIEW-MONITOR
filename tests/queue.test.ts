@@ -41,7 +41,12 @@ function createInMemoryQueueStore(initial?: {
   keywords?: KeywordRecord[];
   items?: RunItemRecord[];
   hourlyCalls?: number;
+  activeBatchId?: string | null;
 }) {
+  const activeBatchId =
+    initial?.activeBatchId !== undefined
+      ? initial.activeBatchId
+      : "default-batch";
   const keywords: KeywordRecord[] = initial?.keywords ?? [
     { id: "kw-1", text: "software hr terbaik", active: true },
     { id: "kw-2", text: "aplikasi payroll indonesia", active: true },
@@ -56,8 +61,17 @@ function createInMemoryQueueStore(initial?: {
     async getRunningCheckRun() {
       return runs.find((r) => r.status === "running") ?? null;
     },
-    async getActiveKeywords() {
-      return keywords.filter((k) => k.active);
+    async getActiveBatchId() {
+      return activeBatchId;
+    },
+    async getActiveKeywords(batchId?: string) {
+      const targetBatchId = batchId ?? activeBatchId;
+      if (!targetBatchId) {
+        return [];
+      }
+      return keywords.filter(
+        (k) => k.active && (!k.batch_id || k.batch_id === targetBatchId)
+      );
     },
     async createCheckRun(total, nowIso, isDemo = false) {
       const run: CheckRunRecord = {
@@ -1043,6 +1057,50 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
     expect(res4.succeededCount).toBe(1);
     expect(res4.stoppedReason).toBe("queue_empty");
     expect(ctx4.items[0]?.state).toBe("done");
+  });
+
+  it("gagal aman tanpa batch aktif: getActiveKeywords kosong dan startCheckRun mengembalikan skipped 'no_active_batch'", async () => {
+    // 1. Tanpa batch aktif (activeBatchId: null)
+    const storeCtx = createInMemoryQueueStore({
+      keywords: [
+        { id: "kw-1", text: "software hr", active: true, batch_id: null },
+        {
+          id: "kw-2",
+          text: "payroll online",
+          active: true,
+          batch_id: "batch-1",
+        },
+      ],
+      activeBatchId: null,
+    });
+
+    // getActiveKeywords tidak boleh jatuh ke semua keyword aktif
+    const activeKeywords = await storeCtx.store.getActiveKeywords();
+    expect(activeKeywords).toEqual([]);
+
+    // startCheckRun mengembalikan skipped: "no_active_batch" tanpa membuat check_run
+    const runResult = await startCheckRun(storeCtx.store);
+    expect(runResult.skipped).toBe("no_active_batch");
+    expect(runResult.total).toBe(0);
+    expect(storeCtx.runs).toHaveLength(0);
+
+    // 2. Dengan batch aktif tetapi batch tersebut memiliki 0 keyword aktif -> skipped: "no_active_keywords"
+    const emptyBatchStoreCtx = createInMemoryQueueStore({
+      keywords: [
+        {
+          id: "kw-1",
+          text: "software hr",
+          active: false,
+          batch_id: "batch-empty",
+        },
+      ],
+      activeBatchId: "batch-empty",
+    });
+    const emptyActiveKw = await emptyBatchStoreCtx.store.getActiveKeywords();
+    expect(emptyActiveKw).toEqual([]);
+    const emptyRunResult = await startCheckRun(emptyBatchStoreCtx.store);
+    expect(emptyRunResult.skipped).toBe("no_active_keywords");
+    expect(emptyBatchStoreCtx.runs).toHaveLength(0);
   });
 
   it("memakai MAX_DURATION_MS dari env (bawaan 50000), mengembalikan pending/stoppedReason/runStatus dengan cepat saat kosong, dan memvalidasi jadwal Hobby & VPS", async () => {

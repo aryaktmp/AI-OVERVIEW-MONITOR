@@ -12,7 +12,6 @@ import {
   type SerpApiCheckResult,
   type SerpApiRawResponse,
 } from "./serpapi.ts";
-import { isKnownDemoKeywordText } from "./demo-data.ts";
 import {
   createSupabasePageCacheStore,
   evaluateThirdPartySourcesForCheck,
@@ -55,6 +54,7 @@ export interface KeywordRecord {
   id: string;
   text: string;
   active: boolean;
+  batch_id?: string | null;
   is_demo?: boolean;
 }
 
@@ -85,6 +85,7 @@ export interface RunSummary {
 
 export interface QueueStore {
   getRunningCheckRun(): Promise<CheckRunRecord | null>;
+  getActiveBatchId?(): Promise<string | null>;
   getActiveKeywords(batchId?: string): Promise<KeywordRecord[]>;
   createCheckRun(
     total: number,
@@ -297,6 +298,20 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
       return data[0] as CheckRunRecord;
     },
 
+    async getActiveBatchId(): Promise<string | null> {
+      try {
+        const { data: activeBatch } = await supabase
+          .from("keyword_batches")
+          .select("id")
+          .eq("is_active", true)
+          .maybeSingle();
+
+        return activeBatch?.id ?? null;
+      } catch {
+        return null;
+      }
+    },
+
     async getActiveKeywords(batchId?: string): Promise<KeywordRecord[]> {
       let activeBatchId = batchId;
       if (!activeBatchId) {
@@ -315,38 +330,24 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
         }
       }
 
-      let query = supabase
+      // Gagal aman: getActiveKeywords tidak boleh jatuh ke semua keyword aktif.
+      // Tanpa batch aktif, hasilnya kosong.
+      if (!activeBatchId) {
+        return [];
+      }
+
+      const { data, error } = await supabase
         .from("keywords")
         .select("id, text, active, is_demo, batch_id")
-        .eq("active", true);
-
-      if (activeBatchId) {
-        query = query.eq("batch_id", activeBatchId);
-      }
-
-      const { data, error } = await query.order("created_at", {
-        ascending: true,
-      });
-
-      if (!error && data) {
-        return data as KeywordRecord[];
-      }
-
-      const { data: fallbackData, error: fallbackError } = await supabase
-        .from("keywords")
-        .select("id, text, active")
         .eq("active", true)
+        .eq("batch_id", activeBatchId)
         .order("created_at", { ascending: true });
 
-      if (fallbackError) {
-        throw new Error(
-          `Gagal membaca keywords aktif: ${fallbackError.message}`
-        );
+      if (error || !data) {
+        return [];
       }
-      return ((fallbackData ?? []) as KeywordRecord[]).map((kw) => ({
-        ...kw,
-        is_demo: isKnownDemoKeywordText(kw.text),
-      }));
+
+      return data as KeywordRecord[];
     },
 
     async createCheckRun(
@@ -885,7 +886,7 @@ export type StartRunResult =
       status?: undefined;
       isExisting: false;
       isDemo: boolean;
-      skipped: "no_active_keywords";
+      skipped: "no_active_keywords" | "no_active_batch";
     };
 
 /**
@@ -931,7 +932,29 @@ export async function startCheckRun(
 
   const isDemo = options.isDemo ?? isDryRun();
 
-  const allActiveKeywords = await store.getActiveKeywords(options.batchId);
+  let targetBatchId = options.batchId;
+  if (!targetBatchId && store.getActiveBatchId) {
+    targetBatchId = (await store.getActiveBatchId()) ?? undefined;
+    if (!targetBatchId) {
+      return {
+        total: 0,
+        isExisting: false,
+        isDemo,
+        skipped: "no_active_batch",
+      };
+    }
+  }
+
+  const allActiveKeywords = await store.getActiveKeywords(targetBatchId);
+  if (!targetBatchId && allActiveKeywords.length === 0) {
+    return {
+      total: 0,
+      isExisting: false,
+      isDemo,
+      skipped: "no_active_batch",
+    };
+  }
+
   // Saat SERPAPI_DRY_RUN=false (isDemo === false), abaikan keyword dengan is_demo = true
   const activeKeywords = isDemo
     ? allActiveKeywords

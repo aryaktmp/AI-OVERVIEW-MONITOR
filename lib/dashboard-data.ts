@@ -60,6 +60,7 @@ export async function getDashboardOverviewData(): Promise<{
   scheduleSettings: BatchScheduleSettingsRecord;
   monthlyRunCount: number;
   auditLogs: Array<BatchAuditLogRecord>;
+  unbatchedActiveKeywordsCount: number;
 }> {
   const supabase = createSupabaseAdminClient();
 
@@ -81,7 +82,9 @@ export async function getDashboardOverviewData(): Promise<{
     supabase.from("keyword_groups").select("id, name").order("name"),
     supabase
       .from("keywords")
-      .select("id, text, active, group_id, batch_id, keyword_groups(name), keyword_batches(name)")
+      .select(
+        "id, text, active, group_id, batch_id, keyword_groups(name), keyword_batches(name)"
+      )
       .order("created_at", { ascending: true }),
     // Hanya ambil kolom agregasi dari 8 minggu terakhir (tanpa menarik answer_text atau raw penuh ke memori/browser)
     supabase
@@ -95,8 +98,12 @@ export async function getDashboardOverviewData(): Promise<{
       .from("check_runs")
       .select("id, started_at, status, total, done")
       .gte("started_at", eightWeeksAgoIso),
-    listKeywordBatchesWithCounts(supabase).catch(() => [] as BatchWithKeywordsCount[]),
-    getBatchScheduleSlots(supabase).catch(() => [] as BatchScheduleSlotWithBatch[]),
+    listKeywordBatchesWithCounts(supabase).catch(
+      () => [] as BatchWithKeywordsCount[]
+    ),
+    getBatchScheduleSlots(supabase).catch(
+      () => [] as BatchScheduleSlotWithBatch[]
+    ),
     getBatchScheduleSettings(supabase).catch(() => ({
       id: 1,
       mode: "auto" as const,
@@ -189,6 +196,10 @@ export async function getDashboardOverviewData(): Promise<{
     analytics.hasDemoData = true;
   }
 
+  const unbatchedActiveKeywordsCount = keywords.filter(
+    (k) => k.active && !k.batchId
+  ).length;
+
   return {
     analytics,
     groups: (groupsData ?? []) as Array<{ id: string; name: string }>,
@@ -197,6 +208,7 @@ export async function getDashboardOverviewData(): Promise<{
     scheduleSettings: scheduleSettingsData as BatchScheduleSettingsRecord,
     monthlyRunCount: monthlyRunCountData ?? 0,
     auditLogs: (auditLogsData ?? []) as BatchAuditLogRecord[],
+    unbatchedActiveKeywordsCount,
   };
 }
 
@@ -354,17 +366,19 @@ export async function getCompetitorPageData(): Promise<{
   const supabase = createSupabaseAdminClient();
   const ownDomain = process.env.BRAND_DOMAIN ?? "linovhr.com";
 
-  const [{ data: compRows, error: compErr }, { data: recentChecks, error: chkErr }] =
-    await Promise.all([
-      supabase.from("competitors").select("id, name, domain").order("name"),
-      supabase
-        .from("checks")
-        .select(
-          "id, keyword_id, checked_at, raw->dry_run, check_sources(domain, url)"
-        )
-        .order("checked_at", { ascending: false })
-        .limit(300),
-    ]);
+  const [
+    { data: compRows, error: compErr },
+    { data: recentChecks, error: chkErr },
+  ] = await Promise.all([
+    supabase.from("competitors").select("id, name, domain").order("name"),
+    supabase
+      .from("checks")
+      .select(
+        "id, keyword_id, checked_at, raw->dry_run, check_sources(domain, url)"
+      )
+      .order("checked_at", { ascending: false })
+      .limit(300),
+  ]);
 
   if (compErr) {
     throw new Error(`Failed to load competitors list: ${compErr.message}`);
@@ -616,13 +630,9 @@ export async function getSettingsPageData(): Promise<{
       : baseOverheadBytes + estimatedRowsBytes;
   const quotaMb = 500;
   const usedMb = Math.round((usedBytes / (1024 * 1024)) * 100) / 100;
-  const percentUsed = Math.min(
-    100,
-    Math.round((usedMb / quotaMb) * 1000) / 10
-  );
+  const percentUsed = Math.min(100, Math.round((usedMb / quotaMb) * 1000) / 10);
 
-  const runningRun =
-    recentRuns.find((r) => r.status === "running") ?? null;
+  const runningRun = recentRuns.find((r) => r.status === "running") ?? null;
 
   return {
     brandTerms: (termsData ?? []) as Array<{

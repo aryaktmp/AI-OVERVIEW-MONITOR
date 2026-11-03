@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  AlertTriangle,
   Layers,
   Search,
   Sparkles,
@@ -7,6 +8,7 @@ import {
 } from "lucide-react";
 import { getDashboardOverviewData } from "@/lib/dashboard-data";
 import { DemoDataBanner } from "@/components/demo-banner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ExportDataDialog } from "@/components/export-csv-button";
 import { WeeklyTrendChart } from "@/components/weekly-trend-chart";
 import { GroupCitationBarChart } from "@/components/group-citation-bar-chart";
@@ -52,6 +54,7 @@ export default async function OverviewPage() {
     slots,
     scheduleSettings,
     monthlyRunCount,
+    unbatchedActiveKeywordsCount,
   } = await getDashboardOverviewData();
 
   if (analytics.totalKeywords === 0) {
@@ -60,8 +63,8 @@ export default async function OverviewPage() {
         <CardHeader>
           <CardTitle>No monitored keywords yet</CardTitle>
           <CardDescription>
-            Add keywords first to start monitoring LinovHR citations in Google AI
-            Overview.
+            Add keywords first to start monitoring LinovHR citations in Google
+            AI Overview.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
@@ -88,7 +91,8 @@ export default async function OverviewPage() {
             Executive Overview
           </h1>
           <p className="mt-0.5 text-xs text-[var(--muted)]">
-            AI Overview citation performance, weekly batch schedule status, and trend analytics for LinovHR.
+            AI Overview citation performance, weekly batch schedule status, and
+            trend analytics for LinovHR.
           </p>
         </div>
 
@@ -103,6 +107,28 @@ export default async function OverviewPage() {
       </div>
 
       <DemoDataBanner visible={analytics.hasDemoData} />
+
+      {unbatchedActiveKeywordsCount > 0 && (
+        <Alert variant="warning" className="mb-4">
+          <AlertTriangle className="h-4 w-4" />
+          <div className="flex flex-wrap items-center justify-between gap-2 w-full">
+            <AlertDescription className="font-medium">
+              <strong>Unassigned keywords warning:</strong>{" "}
+              {unbatchedActiveKeywordsCount} active{" "}
+              {unbatchedActiveKeywordsCount === 1
+                ? "keyword has"
+                : "keywords have"}{" "}
+              no assigned batch and will not be checked.
+            </AlertDescription>
+            <Link
+              href="/keywords"
+              className="text-xs font-bold underline hover:opacity-80"
+            >
+              Assign to a batch →
+            </Link>
+          </div>
+        </Alert>
+      )}
 
       {/* Row 1: 4 Kartu Statistik Kunci */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -171,7 +197,9 @@ export default async function OverviewPage() {
         {/* Card 4: LinovHR Detection Rate */}
         <Card className="p-4 shadow-xs">
           <div className="flex items-center justify-between text-[var(--muted)]">
-            <span className="text-xs font-semibold">LinovHR Detection Rate</span>
+            <span className="text-xs font-semibold">
+              LinovHR Detection Rate
+            </span>
             <TrendingUp className="h-4 w-4 text-[var(--cite)]" />
           </div>
           <div className="mt-2 flex items-baseline justify-between">
@@ -205,7 +233,8 @@ export default async function OverviewPage() {
                   Weekly Detection Rate Trend
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Percentage of AI Overview citations for LinovHR over the last 8 weeks.
+                  Percentage of AI Overview citations for LinovHR over the last
+                  8 weeks.
                 </CardDescription>
               </div>
             </div>
@@ -224,7 +253,8 @@ export default async function OverviewPage() {
                   Citations by Keyword Group
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  LinovHR detected vs AI Overview present per LinovHR product module.
+                  LinovHR detected vs AI Overview present per LinovHR product
+                  module.
                 </CardDescription>
               </div>
             </div>
