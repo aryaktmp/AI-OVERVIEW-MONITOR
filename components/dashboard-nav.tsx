@@ -45,7 +45,7 @@ export function DashboardNav() {
   return (
     <nav
       aria-label="Main navigation"
-      className="mt-2.5 flex gap-1 overflow-x-auto -mb-[1px]"
+      className="mt-2.5 flex gap-1 overflow-x-auto -mb-[1px] no-scrollbar md:custom-scrollbar"
     >
       {navItems.map((item) => {
         const isActive =

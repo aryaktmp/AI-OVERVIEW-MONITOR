@@ -234,7 +234,7 @@ export function GroupCitationBarChart({ rows }: GroupCitationBarChartProps) {
 
       {/* Chart Container */}
       <div
-        className="w-full overflow-x-auto pb-1"
+        className="w-full overflow-x-auto pb-1 custom-scrollbar"
         tabIndex={0}
         role="region"
         aria-label="Keyword group citation chart container"

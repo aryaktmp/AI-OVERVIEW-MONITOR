@@ -51,6 +51,7 @@ Sumber kebenaran desain UI. Token berasal dari `app/globals.css`; komponen dari 
 - Layering Z-Index: Modals/Dialogs (`z-50`) > Top Nav Header (`z-40`) > Sub-Tab Hub Header (`z-30`) > Frozen Table Headers (`z-20`) > Frozen Table Body Cells (`z-10`).
 - Ritme vertikal: `space-y-5` antar blok; grid KPI `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3`; padding kartu KPI `p-4`.
 - Mobile-first; tabel lebar dibungkus `overflow-auto`.
+- Scrollbar Halus & Non-Intrusif: Seluruh scrollbar elemen horizontal/vertikal (termasuk tabel, grafik, kartu analitik, dropdown, modal) menggunakan styling custom yang ramping (`scrollbar-width: thin`, tinggi/lebar 5–6px, sudut bulat penuh, background track transparan, dan thumb berbasis `var(--muted)` yang menyatu dengan latar belakang). Tersedia utility `.custom-scrollbar` untuk kartu/tabel analitik dan `.no-scrollbar` untuk tab navigasi.
 
 ## 5. Komponen (`components/ui/*`)
 - **Button** (`cva`): varian `default` (aksen gelap), `primary` (teal, CTA utama), `secondary`/`outline`, `ghost`, `link`, `destructive`; ukuran `default h-9`, `sm h-8`, `lg h-10`, `icon`. Satu CTA `primary` per area; gunakan `asChild` + `Link` untuk navigasi.

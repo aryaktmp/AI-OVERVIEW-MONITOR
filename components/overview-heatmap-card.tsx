@@ -332,7 +332,7 @@ export function OverviewHeatmapCard({
             /* MODE A: PAGINATED TABLE VIEW (Default - Rapi & Compact)  */
             /* ========================================================= */
             <div className="space-y-3">
-              <div className="overflow-x-auto rounded-lg border border-[var(--line)]">
+              <div className="overflow-x-auto rounded-lg border border-[var(--line)] custom-scrollbar">
                 <div className="min-w-[640px]">
                   {/* Table Header: Keyword Name + 8 Week Buckets */}
                   <div className="grid grid-cols-[minmax(240px,2fr)_repeat(8,minmax(38px,1fr))] items-center gap-[3px] bg-[var(--surface-hover)] border-b border-[var(--line)] px-3 py-2 text-[11px] font-semibold text-[var(--muted)]">
@@ -584,7 +584,7 @@ export function OverviewHeatmapCard({
 
                     {/* Accordion Content */}
                     {isExpanded && (
-                      <div className="border-t border-[var(--line)] p-3 overflow-x-auto bg-[var(--surface)]">
+                      <div className="border-t border-[var(--line)] p-3 overflow-x-auto bg-[var(--surface)] custom-scrollbar">
                         <div className="grid min-w-[540px] grid-cols-[minmax(200px,2fr)_repeat(8,minmax(34px,1fr))] items-center gap-[3px]">
                           <div className="text-[11px] font-semibold text-[var(--muted)] pb-1">
                             Keyword
