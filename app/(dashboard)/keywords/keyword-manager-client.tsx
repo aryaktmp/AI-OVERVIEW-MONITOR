@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   AlertCircle,
+  AlertTriangle,
   Calendar as CalendarIcon,
   CheckCircle2,
   Download,
@@ -14,8 +15,9 @@ import {
   Key,
   Loader2,
   Plus,
-  Trash2,
   Power,
+  PowerOff,
+  Trash2,
   Upload,
 } from "lucide-react";
 import {
@@ -39,11 +41,22 @@ import {
 import {
   addKeywordAction,
   addKeywordGroupAction,
+  bulkAssignKeywordsBatchAction,
+  bulkDeleteKeywordsAction,
+  bulkToggleKeywordsActiveAction,
   deleteKeywordAction,
   deleteKeywordGroupAction,
   importKeywordsCsvAction,
   toggleKeywordActiveAction,
 } from "@/app/(dashboard)/actions";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ExportCsvButton } from "@/components/export-csv-button";
@@ -135,6 +148,8 @@ export function KeywordManagerClient({
   } | null>(null);
   const [isPending, startTransition] = useTransition();
   const [pendingActionId, setPendingActionId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
 
   useEffect(() => {
     if (tabParam === "schedule" || tabParam === "groups") {
@@ -245,8 +260,143 @@ export function KeywordManagerClient({
     });
   }, [rows, searchQuery, selectedGroup, selectedStatus, selectedBatch]);
 
+  const filteredRowIds = useMemo(
+    () => new Set(filteredRows.map((r) => r.id)),
+    [filteredRows]
+  );
+
+  const selectedFilteredCount = useMemo(() => {
+    let count = 0;
+    for (const id of selectedIds) {
+      if (filteredRowIds.has(id)) count++;
+    }
+    return count;
+  }, [selectedIds, filteredRowIds]);
+
+  const isAllFilteredSelected =
+    filteredRows.length > 0 && selectedFilteredCount === filteredRows.length;
+  const isSomeFilteredSelected =
+    selectedFilteredCount > 0 && selectedFilteredCount < filteredRows.length;
+
+  const toggleSelectAllFiltered = useCallback(() => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (isAllFilteredSelected) {
+        for (const r of filteredRows) {
+          next.delete(r.id);
+        }
+      } else {
+        for (const r of filteredRows) {
+          next.add(r.id);
+        }
+      }
+      return next;
+    });
+  }, [isAllFilteredSelected, filteredRows]);
+
+  const toggleSelectRow = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleBulkToggleActive = useCallback((active: boolean) => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    setPendingActionId(active ? "bulk-activate" : "bulk-deactivate");
+    startTransition(async () => {
+      try {
+        const res = await bulkToggleKeywordsActiveAction(ids, active);
+        setFeedback({
+          type: res.ok ? "success" : "error",
+          text: res.message ?? (res.ok ? `Updated ${ids.length} keyword(s).` : "Failed to update keywords."),
+        });
+      } finally {
+        setPendingActionId(null);
+      }
+    });
+  }, [selectedIds]);
+
+  const handleConfirmBulkDelete = useCallback(() => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    setPendingActionId("bulk-delete");
+    startTransition(async () => {
+      try {
+        const res = await bulkDeleteKeywordsAction(ids);
+        setFeedback({
+          type: res.ok ? "success" : "error",
+          text: res.message ?? (res.ok ? `Deleted ${ids.length} keyword(s).` : "Failed to delete keywords."),
+        });
+        if (res.ok) {
+          setSelectedIds(new Set());
+          setShowBulkDeleteDialog(false);
+        }
+      } finally {
+        setPendingActionId(null);
+      }
+    });
+  }, [selectedIds]);
+
+  const handleBulkAssignBatch = useCallback((batchId: string | null) => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    setPendingActionId(`bulk-assign-${batchId ?? "none"}`);
+    startTransition(async () => {
+      try {
+        const res = await bulkAssignKeywordsBatchAction(ids, batchId);
+        setFeedback({
+          type: res.ok ? "success" : "error",
+          text: res.message ?? (res.ok ? `Assigned ${ids.length} keyword(s).` : "Failed to assign batch."),
+        });
+      } finally {
+        setPendingActionId(null);
+      }
+    });
+  }, [selectedIds]);
+
   const columns = useMemo(
     () => [
+      columnHelper.display({
+        id: "select",
+        header: () => (
+          <div className="flex items-center justify-center">
+            <input
+              type="checkbox"
+              checked={isAllFilteredSelected}
+              ref={(input) => {
+                if (input) {
+                  input.indeterminate = isSomeFilteredSelected;
+                }
+              }}
+              onChange={toggleSelectAllFiltered}
+              className="h-4 w-4 rounded border-[var(--line)] accent-[var(--cite)] cursor-pointer focus:ring-2 focus:ring-[var(--cite)]"
+              aria-label="Select all visible keywords"
+            />
+          </div>
+        ),
+        cell: (info) => {
+          const row = info.row.original;
+          const isSelected = selectedIds.has(row.id);
+          return (
+            <div className="flex items-center justify-center">
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => toggleSelectRow(row.id)}
+                className="h-4 w-4 rounded border-[var(--line)] accent-[var(--cite)] cursor-pointer focus:ring-2 focus:ring-[var(--cite)]"
+                aria-label={`Select ${row.keyword}`}
+              />
+            </div>
+          );
+        },
+      }),
       columnHelper.accessor("keyword", {
         header: "Keyword",
         cell: (info) => {
@@ -417,7 +567,16 @@ export function KeywordManagerClient({
         },
       }),
     ],
-    [isPending, pendingActionId, batches]
+    [
+      isPending,
+      pendingActionId,
+      batches,
+      selectedIds,
+      isAllFilteredSelected,
+      isSomeFilteredSelected,
+      toggleSelectAllFiltered,
+      toggleSelectRow,
+    ]
   );
 
   const table = useReactTable({
@@ -847,12 +1006,113 @@ export function KeywordManagerClient({
             </select>
           </div>
 
+          {/* Bulk Action Toolbar */}
+          {selectedIds.size > 0 && (
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2.5 rounded-lg border border-[var(--cite)]/30 bg-[var(--cite-bg)]/20 p-2.5 sm:px-3 text-xs shadow-xs animate-in fade-in-50">
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant="outline"
+                  className="border-[var(--cite)]/40 bg-[var(--cite)]/10 text-[var(--cite)] font-semibold font-mono"
+                >
+                  {selectedIds.size} selected
+                </Badge>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedIds(new Set())}
+                  className="h-7 text-xs text-[var(--muted)] hover:text-[var(--ink)] cursor-pointer"
+                >
+                  Clear selection
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Bulk Activate */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isPending || pendingActionId === "bulk-activate"}
+                  onClick={() => handleBulkToggleActive(true)}
+                  className="h-7 text-xs gap-1.5 border-emerald-500/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer"
+                >
+                  {pendingActionId === "bulk-activate" ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Power className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                  )}
+                  Activate ({selectedIds.size})
+                </Button>
+
+                {/* Bulk Deactivate */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isPending || pendingActionId === "bulk-deactivate"}
+                  onClick={() => handleBulkToggleActive(false)}
+                  className="h-7 text-xs gap-1.5 text-[var(--muted)] hover:text-[var(--ink)] cursor-pointer"
+                >
+                  {pendingActionId === "bulk-deactivate" ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <PowerOff className="h-3 w-3" />
+                  )}
+                  Deactivate ({selectedIds.size})
+                </Button>
+
+                {/* Bulk Assign Batch */}
+                <div className="flex items-center gap-1.5">
+                  <select
+                    disabled={isPending || Boolean(pendingActionId?.startsWith("bulk-assign"))}
+                    value=""
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (!val) return;
+                      handleBulkAssignBatch(val === "unassigned" ? null : val);
+                    }}
+                    aria-label="Bulk assign batch"
+                    className="h-7 rounded-md border border-[var(--line)] bg-[var(--surface)] px-2 text-xs font-semibold text-[var(--ink)] cursor-pointer shadow-xs"
+                  >
+                    <option value="" disabled>
+                      Assign batch ({selectedIds.size})...
+                    </option>
+                    <option value="unassigned">Unassign (No batch)</option>
+                    {batches?.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        Assign to {b.name}
+                      </option>
+                    ))}
+                  </select>
+                  {pendingActionId?.startsWith("bulk-assign") && (
+                    <Loader2 className="h-3 w-3 animate-spin text-[var(--cite)]" />
+                  )}
+                </div>
+
+                {/* Bulk Delete */}
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  disabled={isPending || pendingActionId === "bulk-delete"}
+                  onClick={() => setShowBulkDeleteDialog(true)}
+                  className="h-7 text-xs gap-1.5 cursor-pointer"
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Delete ({selectedIds.size})
+                </Button>
+              </div>
+            </div>
+          )}
+
           <div className="relative w-full overflow-x-auto rounded-lg border border-[var(--line)] bg-[var(--surface)] shadow-xs">
             <Table className="min-w-[920px] border-separate border-spacing-0">
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => {
+                      const isSelect = header.column.id === "select";
                       const isWeeklyStates = header.column.id === "weeklyStates";
                       const isActions = header.column.id === "actions";
                       return (
@@ -860,11 +1120,13 @@ export function KeywordManagerClient({
                           key={header.id}
                           className={cn(
                             "whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-[var(--muted)] bg-[var(--surface)] border-b border-[var(--line)]",
+                            isSelect && "w-[44px] min-w-[44px] max-w-[44px] text-center px-2",
                             isWeeklyStates &&
                               "sticky right-[104px] z-20 w-[116px] min-w-[116px] border-l border-[var(--line)] shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]",
                             isActions &&
                               "sticky right-0 z-20 w-[104px] min-w-[104px] text-center shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.04)]",
-                            !isWeeklyStates &&
+                            !isSelect &&
+                              !isWeeklyStates &&
                               !isActions &&
                               (header.column.id === "keyword"
                                 ? "min-w-[220px]"
@@ -905,9 +1167,14 @@ export function KeywordManagerClient({
                   table.getRowModel().rows.map((row) => (
                     <TableRow
                       key={row.id}
-                      className="group border-b border-[var(--line)] hover:bg-[var(--none)]/30 transition-colors"
+                      className={cn(
+                        "group border-b border-[var(--line)] hover:bg-[var(--none)]/30 transition-colors",
+                        selectedIds.has(row.original.id) &&
+                          "bg-[var(--cite-bg)]/20 hover:bg-[var(--cite-bg)]/30"
+                      )}
                     >
                       {row.getVisibleCells().map((cell) => {
+                        const isSelect = cell.column.id === "select";
                         const isWeeklyStates = cell.column.id === "weeklyStates";
                         const isActions = cell.column.id === "actions";
                         return (
@@ -915,11 +1182,13 @@ export function KeywordManagerClient({
                             key={cell.id}
                             className={cn(
                               "whitespace-nowrap px-3 py-2 text-sm border-b border-[var(--line)]",
+                              isSelect && "w-[44px] min-w-[44px] max-w-[44px] text-center px-2",
                               isWeeklyStates &&
                                 "sticky right-[104px] z-10 w-[116px] min-w-[116px] bg-[var(--surface)] group-hover:bg-[var(--surface)] border-l border-[var(--line)] shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]",
                               isActions &&
                                 "sticky right-0 z-10 w-[104px] min-w-[104px] bg-[var(--surface)] group-hover:bg-[var(--surface)] shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.04)]",
-                              !isWeeklyStates &&
+                              !isSelect &&
+                                !isWeeklyStates &&
                                 !isActions &&
                                 (cell.column.id === "keyword"
                                   ? "min-w-[220px]"
@@ -1084,6 +1353,55 @@ export function KeywordManagerClient({
       </Card>
     </TabsContent>
   </Tabs>
+
+  {/* Bulk Delete Confirmation Dialog */}
+  <Dialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+    <DialogContent className="sm:max-w-[440px]">
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+          <AlertTriangle className="h-5 w-5" />
+          Delete {selectedIds.size} Keywords
+        </DialogTitle>
+        <DialogDescription>
+          Are you sure you want to permanently delete these{" "}
+          <strong className="text-[var(--ink)] font-mono">{selectedIds.size}</strong> selected keywords?
+          All check history, metrics, and SERP citations associated with them will also be removed.
+          This action cannot be undone.
+        </DialogDescription>
+      </DialogHeader>
+      <DialogFooter className="gap-2 sm:gap-0">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={isPending || pendingActionId === "bulk-delete"}
+          onClick={() => setShowBulkDeleteDialog(false)}
+        >
+          Cancel
+        </Button>
+        <Button
+          type="button"
+          variant="destructive"
+          size="sm"
+          disabled={isPending || pendingActionId === "bulk-delete"}
+          onClick={handleConfirmBulkDelete}
+          className="gap-1.5"
+        >
+          {pendingActionId === "bulk-delete" ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Deleting keywords...
+            </>
+          ) : (
+            <>
+              <Trash2 className="h-3.5 w-3.5" />
+              Yes, delete {selectedIds.size} keywords
+            </>
+          )}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </div>
 </TooltipProvider>
 );

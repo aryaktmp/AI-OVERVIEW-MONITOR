@@ -192,9 +192,9 @@ describe("Fase Data: Sistem Batch Keyword dan Penjadwalan Mingguan", () => {
     expect(slots.rows[2].week_number).toBe(3);
     expect(slots.rows[2].batch_name).toBe("Batch 3");
 
-    // Week 4 -> Batch 1 (looping kembali ke batch awal karena jumlah batch = 3 < 4)
+    // Week 4 -> Batch 4
     expect(slots.rows[3].week_number).toBe(4);
-    expect(slots.rows[3].batch_name).toBe("Batch 1");
+    expect(slots.rows[3].batch_name).toBe("Batch 4");
   });
 
   it("menegakkan batasan check week_number antara 1 dan 4 pada batch_schedule_slots", async () => {

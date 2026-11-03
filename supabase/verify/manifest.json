@@ -11,7 +11,8 @@
     "20261029070000_function_search_path.sql",
     "20261102000000_single_running_run.sql",
     "20261102010000_keyword_batches.sql",
-    "20261102020000_batch_schedule_slots.sql"
+    "20261102020000_batch_schedule_slots.sql",
+    "20261103000000_default_batch_4.sql"
   ],
   "perFileSummary": [
     {
@@ -687,6 +688,19 @@
           "table": "batch_schedule_slots"
         }
       ],
+      "viewsCreatedOrReplaced": [],
+      "functionsCreatedOrReplaced": [],
+      "permissionOps": [],
+      "seedUpdates": []
+    },
+    {
+      "fileName": "20261103000000_default_batch_4.sql",
+      "extensionsCreated": [],
+      "tablesCreated": [],
+      "columnsAdded": [],
+      "indexesCreated": [],
+      "rlsEnabledTables": [],
+      "policiesCreated": [],
       "viewsCreatedOrReplaced": [],
       "functionsCreatedOrReplaced": [],
       "permissionOps": [],

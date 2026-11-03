@@ -261,6 +261,75 @@ export async function deleteKeywordAction(keywordId: string) {
   return { ok: true };
 }
 
+export async function bulkToggleKeywordsActiveAction(
+  keywordIds: string[],
+  nextActive: boolean
+) {
+  await requireAllowedAdminUser();
+  const ids = z.array(uuidSchema).min(1, "At least one keyword must be selected").parse(keywordIds);
+  const active = z.boolean().parse(nextActive);
+
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase
+    .from("keywords")
+    .update({ active })
+    .in("id", ids);
+
+  if (error) {
+    return { ok: false, message: `Failed to update keywords: ${error.message}` };
+  }
+
+  revalidateAllDashboardRoutes();
+  return {
+    ok: true,
+    count: ids.length,
+    message: `Successfully ${active ? "activated" : "deactivated"} ${ids.length} keyword(s).`,
+  };
+}
+
+export async function bulkDeleteKeywordsAction(keywordIds: string[]) {
+  await requireAllowedAdminUser();
+  const ids = z.array(uuidSchema).min(1, "At least one keyword must be selected").parse(keywordIds);
+
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase
+    .from("keywords")
+    .delete()
+    .in("id", ids);
+
+  if (error) {
+    return { ok: false, message: `Failed to delete keywords: ${error.message}` };
+  }
+
+  revalidateAllDashboardRoutes();
+  return {
+    ok: true,
+    count: ids.length,
+    message: `Successfully deleted ${ids.length} keyword(s).`,
+  };
+}
+
+export async function bulkAssignKeywordsBatchAction(
+  keywordIds: string[],
+  batchId: string | null
+) {
+  await requireAllowedAdminUser();
+  const ids = z.array(uuidSchema).min(1, "At least one keyword must be selected").parse(keywordIds);
+  const targetBatchId = batchId ? uuidSchema.parse(batchId) : null;
+
+  const supabase = createSupabaseAdminClient();
+  await assignKeywordsToBatch(supabase, ids, targetBatchId);
+
+  revalidateAllDashboardRoutes();
+  return {
+    ok: true,
+    count: ids.length,
+    message: targetBatchId
+      ? `Successfully assigned ${ids.length} keyword(s) to batch.`
+      : `Successfully unassigned ${ids.length} keyword(s) from batch.`,
+  };
+}
+
 const groupSchema = z.object({
   name: z
     .string()

@@ -6,6 +6,7 @@ import {
   createKeywordBatch,
   listKeywordsForBatchSelection,
   parseKeywordsInput,
+  assignKeywordsToBatch,
   type KeywordBatchRecord,
   type BatchScheduleSettingsRecord,
   type BatchAuditLogRecord,
@@ -546,5 +547,19 @@ describe("Fase Logika: Rotasi, Kontrol Manual, & Search Filtering", () => {
     const kw6 = list.find((k) => k.id === "k-6");
     expect(kw6?.batch_id).toBeNull();
     expect(kw6?.batch_name).toBeNull();
+  });
+
+  it("13. assignKeywordsToBatch mendukung pembaruan batch massal (bulk assign & unassign)", async () => {
+    // Hubungkan k-6 dan k-1 ke b-2
+    await assignKeywordsToBatch(ctx.client, ["k-6", "k-1"], "b-2");
+
+    const k6 = ctx.keywords.find((k) => k.id === "k-6");
+    const k1 = ctx.keywords.find((k) => k.id === "k-1");
+    expect(k6?.batch_id).toBe("b-2");
+    expect(k1?.batch_id).toBe("b-2");
+
+    // Unassign k-6 (set batch_id ke null)
+    await assignKeywordsToBatch(ctx.client, ["k-6"], null);
+    expect(k6?.batch_id).toBeNull();
   });
 });
