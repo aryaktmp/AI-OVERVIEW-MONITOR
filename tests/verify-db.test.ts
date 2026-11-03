@@ -870,4 +870,78 @@ describe("Pemeriksa Konsistensi Migrasi & Database (verify:db)", () => {
       expect(failedConstraints).toEqual([]);
     }).not.toThrow();
   });
+
+  it("melaporkan perbedaan data seed pada tabel yang dapat diedit (brand_terms, settings) sebagai INFO 'berbeda dari seed awal', bukan FAIL, beserta isi aktual dan selisihnya", () => {
+    const manifest = buildManifestFromDirectory(migrationsDir);
+
+    const snapshotWithEditedSeeds: DbIntrospectionSnapshot = {
+      source: "pg",
+      extensions: ["pgcrypto"],
+      eventTriggers: ["ensure_rls"],
+      tables: Object.keys(manifest.finalState.tables).map((name) => ({
+        name,
+        rlsEnabled: true,
+      })),
+      columns: [],
+      constraints: [],
+      indexes: [],
+      policies: [],
+      tablePrivilegesSummary: null,
+      views: [],
+      functions: [],
+      seeds: {
+        brandTerms: [
+          // Term yang diedit pengguna: "Linov" diubah jadi enabled=true, dan term baru ditambahkan
+          { term: "LinovHR", enabled: true },
+          { term: "Linov HR", enabled: true },
+          { term: "linovhr.com", enabled: true },
+          { term: "Linov", enabled: true }, // di seed awal: false
+          { term: "Linov Payroll", enabled: true }, // baru
+        ],
+        settings: {
+          search_config: {
+            enable_third_party_check: true, // di seed awal: false
+            location: "Indonesia",
+            api_secret_key: "rahasia123", // wajib disamarkan
+          },
+        },
+      },
+      demoCounts: { check_runs: 0, keywords: 0, keyword_groups: 0, competitors: 0 },
+      schemaMigrations: null,
+      authUsers: null,
+    };
+
+    const evaluation = evaluateDatabaseAgainstManifest(manifest, snapshotWithEditedSeeds, []);
+
+    // 1. Cek item Seed brand_terms
+    const btItem = evaluation.items.find((i) => i.objectName === "Seed brand_terms");
+    expect(btItem).toBeDefined();
+    expect(btItem?.status).toBe("INFO");
+    expect(btItem?.detail).toContain("berbeda dari seed awal");
+    expect(btItem?.detail).toContain("Isi saat ini");
+    expect(btItem?.detail).toContain("Linov Payroll=true");
+    expect(btItem?.detail).toContain("Selisih dari seed repositori");
+    expect(btItem?.detail).toContain("+ term \"Linov Payroll\"");
+    expect(btItem?.detail).toContain("~ term \"Linov\"");
+
+    // 2. Cek item Seed settings(search_config)
+    const scItem = evaluation.items.find((i) =>
+      i.objectName.includes('Seed settings("search_config")')
+    );
+    expect(scItem).toBeDefined();
+    expect(scItem?.status).toBe("INFO");
+    expect(scItem?.detail).toContain("berbeda dari seed awal");
+    expect(scItem?.detail).toContain("Isi saat ini");
+    expect(scItem?.detail).toContain("Selisih dari seed repositori");
+    expect(scItem?.detail).toContain("enable_third_party_check");
+    // Pastikan tidak membocorkan rahasia
+    expect(scItem?.detail).toContain("[REDACTED]");
+    expect(scItem?.detail).not.toContain("rahasia123");
+
+    // 3. Pastikan tidak ada FAIL dari kategori seed 'h'
+    const seedFailures = evaluation.items.filter(
+      (i) => i.category === "h" && i.status === "FAIL"
+    );
+    expect(seedFailures).toHaveLength(0);
+  });
 });

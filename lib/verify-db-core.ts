@@ -774,13 +774,21 @@ SELECT * FROM (
            OR (term = 'Linov HR' AND enabled = true)
            OR (term = 'linovhr.com' AND enabled = true)
            OR (term = 'Linov' AND enabled = false)
-      ) = 4 THEN 'PASS'
-      ELSE 'FAIL'
+      ) = 4 AND (SELECT count(*) FROM public.brand_terms) = 4 THEN 'PASS'
+      ELSE 'INFO'
     END AS status,
-    (
-      SELECT COALESCE(string_agg(term || '=' || enabled::text, ', ' ORDER BY term), 'kosong')
-      FROM public.brand_terms
-    ) AS detail
+    CASE
+      WHEN (
+        SELECT count(*)
+        FROM public.brand_terms
+        WHERE (term = 'LinovHR' AND enabled = true)
+           OR (term = 'Linov HR' AND enabled = true)
+           OR (term = 'linovhr.com' AND enabled = true)
+           OR (term = 'Linov' AND enabled = false)
+      ) = 4 AND (SELECT count(*) FROM public.brand_terms) = 4
+        THEN 'Sesuai seed awal (' || (SELECT COALESCE(string_agg(term || '=' || enabled::text, ', ' ORDER BY term), 'kosong') FROM public.brand_terms) || ')'
+      ELSE 'berbeda dari seed awal | Isi saat ini: [' || (SELECT COALESCE(string_agg(term || '=' || enabled::text, ', ' ORDER BY term), 'kosong') FROM public.brand_terms) || '] | Seed repositori: [Linov=false, Linov HR=true, LinovHR=true, linovhr.com=true]'
+    END AS detail
 
   UNION ALL
 
@@ -793,12 +801,16 @@ SELECT * FROM (
         WHERE key = 'search_config'
           AND COALESCE((value->>'enable_third_party_check')::boolean, true) = false
       ) THEN 'PASS'
-      ELSE 'FAIL'
+      ELSE 'INFO'
     END AS status,
-    COALESCE(
-      (SELECT value::text FROM public.settings WHERE key = 'search_config' LIMIT 1),
-      'Baris search_config tidak ditemukan'
-    ) AS detail
+    CASE
+      WHEN EXISTS (
+        SELECT 1 FROM public.settings
+        WHERE key = 'search_config'
+          AND COALESCE((value->>'enable_third_party_check')::boolean, true) = false
+      ) THEN 'Sesuai seed awal (' || COALESCE((SELECT value::text FROM public.settings WHERE key = 'search_config' LIMIT 1), 'kosong') || ')'
+      ELSE 'berbeda dari seed awal | Isi saat ini: ' || COALESCE((SELECT value::text FROM public.settings WHERE key = 'search_config' LIMIT 1), 'kosong') || ' | Seed repositori: {"enable_third_party_check": false}'
+    END AS detail
 
   UNION ALL
 
@@ -1585,18 +1597,41 @@ export function evaluateDatabaseAgainstManifest(
   }
 
   // =========================================================================
-  // h. DATA SEED
+  // h. DATA SEED (Tabel yang dapat diedit pengguna: brand_terms & settings)
+  // Dilaporkan sebagai INFO "berbeda dari seed awal" jika data tidak identik, bukan FAIL.
   // =========================================================================
   const dbTermsMap = new Map(snapshot.seeds.brandTerms.map((t) => [t.term, t.enabled]));
-  let brandTermsAllMatch = true;
-  for (const expectedBt of manifest.finalState.seeds.brand_terms) {
-    const dbVal = dbTermsMap.get(expectedBt.term);
-    if (dbVal !== expectedBt.enabled) {
-      brandTermsAllMatch = false;
-      break;
+  const expectedTermsMap = new Map(
+    manifest.finalState.seeds.brand_terms.map((t) => [t.term, t.enabled])
+  );
+
+  const btDiffs: string[] = [];
+  for (const [term, enabled] of dbTermsMap.entries()) {
+    if (!expectedTermsMap.has(term)) {
+      btDiffs.push(`+ term "${term}" (${enabled ? "enabled" : "disabled"})`);
+    } else if (expectedTermsMap.get(term) !== enabled) {
+      btDiffs.push(
+        `~ term "${term}" (${expectedTermsMap.get(term) ? "enabled" : "disabled"} -> ${enabled ? "enabled" : "disabled"})`
+      );
     }
   }
-  recordMigrationObject("20261029000000_init_schema.sql", "seed brand_terms", brandTermsAllMatch);
+  for (const [term, enabled] of expectedTermsMap.entries()) {
+    if (!dbTermsMap.has(term)) {
+      btDiffs.push(`- term "${term}" (${enabled ? "enabled" : "disabled"})`);
+    }
+  }
+
+  const brandTermsAllMatch =
+    btDiffs.length === 0 &&
+    snapshot.seeds.brandTerms.length === manifest.finalState.seeds.brand_terms.length;
+  // Karena brand_terms dapat diedit pengguna, keberadaan tabel di DB menandakan migrasi sudah terpasang
+  const brandTermsTableExists = snapshot.tables.some((t) => t.name === "brand_terms");
+  recordMigrationObject("20261029000000_init_schema.sql", "seed brand_terms", brandTermsTableExists);
+
+  const currentBtStr =
+    snapshot.seeds.brandTerms.length > 0
+      ? snapshot.seeds.brandTerms.map((t) => `${t.term}=${t.enabled}`).join(", ")
+      : "kosong";
 
   if (brandTermsAllMatch) {
     items.push({
@@ -1604,49 +1639,88 @@ export function evaluateDatabaseAgainstManifest(
       objectName: "Seed brand_terms",
       status: "PASS",
       method: isDb ? "DB" : "API",
-      detail: `4 istilah merek terdaftar sesuai manifest`,
+      detail: `Sesuai seed awal (${currentBtStr})`,
       sourceMigration: "20261029000000_init_schema.sql",
     });
   } else {
     items.push({
       category: "h",
       objectName: "Seed brand_terms",
-      status: "FAIL",
+      status: "INFO",
       method: isDb ? "DB" : "API",
-      detail: `Data seed brand_terms tidak cocok dengan manifest`,
+      detail: `berbeda dari seed awal | Isi saat ini: [${currentBtStr}] | Selisih dari seed repositori: [${btDiffs.join("; ")}]`,
       sourceMigration: "20261029000000_init_schema.sql",
-      fixMigration: "supabase/migrations/20261029000000_init_schema.sql",
     });
   }
 
-  const searchConfigVal = snapshot.seeds.settings["search_config"] ?? {};
-  const currentEnableThirdParty = searchConfigVal.enable_third_party_check;
-  const expectedEnableThirdParty = manifest.finalState.seeds.settings["search_config"]?.value.enable_third_party_check;
+  const sanitizeConfigWithoutSecrets = (
+    config: Record<string, unknown>
+  ): Record<string, unknown> => {
+    const sanitized: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(config)) {
+      if (/key|secret|token|password|auth/i.test(k)) {
+        sanitized[k] = "[REDACTED]";
+      } else {
+        sanitized[k] = v;
+      }
+    }
+    return sanitized;
+  };
 
-  const isThirdPartyMatch = currentEnableThirdParty === expectedEnableThirdParty;
-  recordMigrationObject("20261029050000_phase5_third_party_default.sql", "settings.enable_third_party_check=false", isThirdPartyMatch);
-  recordMigrationObject("20261029060000_predeploy_hardening.sql", "settings.enable_third_party_check=false", isThirdPartyMatch);
+  const rawSearchConfig = snapshot.seeds.settings["search_config"] ?? {};
+  const expectedSearchConfig =
+    manifest.finalState.seeds.settings["search_config"]?.value ?? {
+      enable_third_party_check: false,
+    };
 
-  if (isThirdPartyMatch) {
+  const cleanCurrentSearchConfig = sanitizeConfigWithoutSecrets(rawSearchConfig);
+  const cleanExpectedSearchConfig = sanitizeConfigWithoutSecrets(expectedSearchConfig);
+
+  const scDiffs: string[] = [];
+  const allScKeys = new Set([
+    ...Object.keys(cleanCurrentSearchConfig),
+    ...Object.keys(cleanExpectedSearchConfig),
+  ]);
+  for (const k of allScKeys) {
+    const curVal = cleanCurrentSearchConfig[k];
+    const expVal = cleanExpectedSearchConfig[k];
+    if (curVal !== expVal) {
+      scDiffs.push(
+        `${k}: seed_awal=${JSON.stringify(expVal)}, saat_ini=${JSON.stringify(curVal)}`
+      );
+    }
+  }
+
+  const isSearchConfigMatch = scDiffs.length === 0;
+  const settingsTableExists = snapshot.tables.some((t) => t.name === "settings");
+  recordMigrationObject(
+    "20261029050000_phase5_third_party_default.sql",
+    "settings.enable_third_party_check=false",
+    settingsTableExists
+  );
+  recordMigrationObject(
+    "20261029060000_predeploy_hardening.sql",
+    "settings.enable_third_party_check=false",
+    settingsTableExists
+  );
+
+  if (isSearchConfigMatch) {
     items.push({
       category: "h",
-      objectName: `Seed settings("search_config").enable_third_party_check`,
+      objectName: `Seed settings("search_config")`,
       status: "PASS",
       method: isDb ? "DB" : "API",
-      detail: `Nilai enable_third_party_check terkonfigurasi ke ${expectedEnableThirdParty}`,
+      detail: `Sesuai seed awal (${JSON.stringify(cleanCurrentSearchConfig)})`,
       sourceMigration: "20261029060000_predeploy_hardening.sql",
     });
   } else {
     items.push({
       category: "h",
-      objectName: `Seed settings("search_config").enable_third_party_check`,
-      status: "FAIL",
+      objectName: `Seed settings("search_config")`,
+      status: "INFO",
       method: isDb ? "DB" : "API",
-      detail: `Nilai di database (${currentEnableThirdParty}) tidak sesuai manifest (${expectedEnableThirdParty})`,
-      expected: `enable_third_party_check = ${expectedEnableThirdParty}`,
-      found: `enable_third_party_check = ${currentEnableThirdParty}`,
+      detail: `berbeda dari seed awal | Isi saat ini: ${JSON.stringify(cleanCurrentSearchConfig)} | Selisih dari seed repositori: [${scDiffs.join("; ")}]`,
       sourceMigration: "20261029060000_predeploy_hardening.sql",
-      fixMigration: "supabase/migrations/20261029060000_predeploy_hardening.sql",
     });
   }
 
@@ -1879,7 +1953,7 @@ export function evaluateDatabaseAgainstManifest(
     for (const seed of step.seedUpdates) {
       total += 1;
       if (seed === "brand_terms") {
-        if (brandTermsAllMatch) {
+        if (brandTermsTableExists) {
           installed += 1;
         } else {
           missing.push("seed brand_terms");

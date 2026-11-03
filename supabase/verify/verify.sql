@@ -290,13 +290,21 @@ SELECT * FROM (
            OR (term = 'Linov HR' AND enabled = true)
            OR (term = 'linovhr.com' AND enabled = true)
            OR (term = 'Linov' AND enabled = false)
-      ) = 4 THEN 'PASS'
-      ELSE 'FAIL'
+      ) = 4 AND (SELECT count(*) FROM public.brand_terms) = 4 THEN 'PASS'
+      ELSE 'INFO'
     END AS status,
-    (
-      SELECT COALESCE(string_agg(term || '=' || enabled::text, ', ' ORDER BY term), 'kosong')
-      FROM public.brand_terms
-    ) AS detail
+    CASE
+      WHEN (
+        SELECT count(*)
+        FROM public.brand_terms
+        WHERE (term = 'LinovHR' AND enabled = true)
+           OR (term = 'Linov HR' AND enabled = true)
+           OR (term = 'linovhr.com' AND enabled = true)
+           OR (term = 'Linov' AND enabled = false)
+      ) = 4 AND (SELECT count(*) FROM public.brand_terms) = 4
+        THEN 'Sesuai seed awal (' || (SELECT COALESCE(string_agg(term || '=' || enabled::text, ', ' ORDER BY term), 'kosong') FROM public.brand_terms) || ')'
+      ELSE 'berbeda dari seed awal | Isi saat ini: [' || (SELECT COALESCE(string_agg(term || '=' || enabled::text, ', ' ORDER BY term), 'kosong') FROM public.brand_terms) || '] | Seed repositori: [Linov=false, Linov HR=true, LinovHR=true, linovhr.com=true]'
+    END AS detail
 
   UNION ALL
 
@@ -309,12 +317,16 @@ SELECT * FROM (
         WHERE key = 'search_config'
           AND COALESCE((value->>'enable_third_party_check')::boolean, true) = false
       ) THEN 'PASS'
-      ELSE 'FAIL'
+      ELSE 'INFO'
     END AS status,
-    COALESCE(
-      (SELECT value::text FROM public.settings WHERE key = 'search_config' LIMIT 1),
-      'Baris search_config tidak ditemukan'
-    ) AS detail
+    CASE
+      WHEN EXISTS (
+        SELECT 1 FROM public.settings
+        WHERE key = 'search_config'
+          AND COALESCE((value->>'enable_third_party_check')::boolean, true) = false
+      ) THEN 'Sesuai seed awal (' || COALESCE((SELECT value::text FROM public.settings WHERE key = 'search_config' LIMIT 1), 'kosong') || ')'
+      ELSE 'berbeda dari seed awal | Isi saat ini: ' || COALESCE((SELECT value::text FROM public.settings WHERE key = 'search_config' LIMIT 1), 'kosong') || ' | Seed repositori: {"enable_third_party_check": false}'
+    END AS detail
 
   UNION ALL
 

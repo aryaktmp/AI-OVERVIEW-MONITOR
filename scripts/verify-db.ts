@@ -688,17 +688,46 @@ function buildSnapshotFromSqlEditorItems(
         authenticatedCanExecute: authExec,
         serviceRoleCanExecute: svcExec,
       });
-    } else if (it.objectName === "h. Seed brand_terms" && it.status === "PASS") {
-      brandTerms.push(
-        { term: "LinovHR", enabled: true },
-        { term: "Linov HR", enabled: true },
-        { term: "linovhr.com", enabled: true },
-        { term: "Linov", enabled: false }
-      );
+    } else if (it.objectName === "h. Seed brand_terms") {
+      if (it.status === "PASS") {
+        brandTerms.push(
+          { term: "LinovHR", enabled: true },
+          { term: "Linov HR", enabled: true },
+          { term: "linovhr.com", enabled: true },
+          { term: "Linov", enabled: false }
+        );
+      } else {
+        const match = it.detail.match(/Isi saat ini:\s*\[(.*?)\]/);
+        if (match?.[1]) {
+          const pairs = match[1].split(",").map((p) => p.trim());
+          for (const pair of pairs) {
+            const eqIdx = pair.lastIndexOf("=");
+            if (eqIdx !== -1) {
+              brandTerms.push({
+                term: pair.slice(0, eqIdx).trim(),
+                enabled: pair.slice(eqIdx + 1).trim().toLowerCase() === "true",
+              });
+            }
+          }
+        }
+      }
     } else if (it.objectName === "h. Seed settings(search_config)") {
-      settings["search_config"] = {
-        enable_third_party_check: it.status === "PASS" ? false : true,
-      };
+      if (it.status === "PASS") {
+        settings["search_config"] = {
+          enable_third_party_check: false,
+        };
+      } else {
+        const match = it.detail.match(/Isi saat ini:\s*({.*?})/);
+        if (match?.[1]) {
+          try {
+            settings["search_config"] = JSON.parse(match[1]);
+          } catch {
+            settings["search_config"] = { enable_third_party_check: true };
+          }
+        } else {
+          settings["search_config"] = { enable_third_party_check: true };
+        }
+      }
     } else if (it.objectName === "l. Ekstensi: pgcrypto" && it.status === "PASS") {
       extensions.push("pgcrypto");
     } else if (it.objectName.includes("Event Trigger: ensure_rls") && it.detail.includes("aktif")) {
