@@ -1,12 +1,14 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   AlertCircle,
   Calendar as CalendarIcon,
   CheckCircle2,
   Download,
+  ExternalLink,
   FileSpreadsheet,
   FolderTree,
   Key,
@@ -66,6 +68,8 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BatchScheduleCalendar } from "@/components/batch-schedule-calendar";
+import { SimpleTooltip, TooltipProvider } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 const STATUS_LABELS: Record<HeatmapCellState, string> = {
   0: "No AI Overview",
@@ -102,11 +106,26 @@ export function KeywordManagerClient({
   monthlyRunCount?: number;
   auditLogs?: BatchAuditLogRecord[];
 }) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const tabParam = searchParams.get("tab");
+  const initialTab = useMemo(() => {
+    if (tabParam === "schedule") return "schedule";
+    if (tabParam === "groups") return "groups";
+    return "keywords";
+  }, [tabParam]);
+
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState(() => {
+    if (tabParam === "active") return "2";
+    if (tabParam === "archived") return "0";
+    return searchParams.get("status") ?? "";
+  });
   const [selectedBatch, setSelectedBatch] = useState("");
-  const [activeTab, setActiveTab] = useState("keywords");
   const [showCsvPanel, setShowCsvPanel] = useState(false);
   const [csvText, setCsvText] = useState("");
   const [csvFileName, setCsvFileName] = useState("");
@@ -116,6 +135,25 @@ export function KeywordManagerClient({
   } | null>(null);
   const [isPending, startTransition] = useTransition();
   const [pendingActionId, setPendingActionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (tabParam === "schedule" || tabParam === "groups") {
+      setActiveTab(tabParam);
+    } else {
+      setActiveTab("keywords");
+    }
+  }, [tabParam]);
+
+  const handleTabChange = useCallback(
+    (newTab: string) => {
+      setActiveTab(newTab);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("tab", newTab);
+      const query = params.toString();
+      router.replace(`${pathname}${query ? `?${query}` : ""}`, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
 
   const existingKeywords = useMemo(
     () => rows.map((r) => r.keyword),
@@ -281,78 +319,99 @@ export function KeywordManagerClient({
       }),
       columnHelper.display({
         id: "actions",
-        header: "Actions",
+        header: () => <span className="sr-only sm:not-sr-only">Actions</span>,
         cell: (info) => {
           const row = info.row.original;
           const isToggling = pendingActionId === `toggle-${row.id}`;
           const isDeleting = pendingActionId === `delete-${row.id}`;
           return (
-            <div className="flex items-center gap-1.5">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={isPending || isToggling}
-                onClick={() => {
-                  setPendingActionId(`toggle-${row.id}`);
-                  startTransition(async () => {
-                    try {
-                      const res = await toggleKeywordActiveAction(
-                        row.id,
-                        !row.active
-                      );
-                      if (!res.ok) {
-                        setFeedback({
-                          type: "error",
-                          text: res.message ?? "Failed to update keyword status.",
-                        });
+            <div className="flex items-center justify-end sm:justify-center gap-1">
+              <SimpleTooltip content={row.active ? "Deactivate keyword" : "Activate keyword"}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  aria-label={row.active ? "Deactivate keyword" : "Activate keyword"}
+                  disabled={isPending || isToggling}
+                  onClick={() => {
+                    setPendingActionId(`toggle-${row.id}`);
+                    startTransition(async () => {
+                      try {
+                        const res = await toggleKeywordActiveAction(
+                          row.id,
+                          !row.active
+                        );
+                        if (!res.ok) {
+                          setFeedback({
+                            type: "error",
+                            text: res.message ?? "Failed to update keyword status.",
+                          });
+                        }
+                      } finally {
+                        setPendingActionId(null);
                       }
-                    } finally {
-                      setPendingActionId(null);
-                    }
-                  });
-                }}
-              >
-                {isToggling ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
-                ) : (
-                  <Power className="h-3.5 w-3.5 mr-1" />
-                )}
-                {isToggling
-                  ? "Updating..."
-                  : row.active
-                  ? "Deactivate keyword"
-                  : "Activate keyword"}
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                size="sm"
-                disabled={isPending || isDeleting}
-                onClick={() => {
-                  setPendingActionId(`delete-${row.id}`);
-                  startTransition(async () => {
-                    try {
-                      const res = await deleteKeywordAction(row.id);
-                      if (!res.ok) {
-                        setFeedback({
-                          type: "error",
-                          text: res.message ?? "Failed to delete keyword.",
-                        });
+                    });
+                  }}
+                  className={cn(
+                    "h-7 w-7 p-0 inline-flex items-center justify-center rounded-md cursor-pointer transition-colors",
+                    row.active
+                      ? "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
+                      : "text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[var(--none)]"
+                  )}
+                >
+                  {isToggling ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Power className="h-3.5 w-3.5" />
+                  )}
+                </Button>
+              </SimpleTooltip>
+
+              <SimpleTooltip content="View keyword details & citations">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="h-7 w-7 p-0 inline-flex items-center justify-center rounded-md text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[var(--none)] cursor-pointer"
+                >
+                  <Link href={`/keyword/${row.id}`} aria-label="View keyword details">
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </Link>
+                </Button>
+              </SimpleTooltip>
+
+              <SimpleTooltip content="Delete keyword">
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  aria-label="Delete keyword"
+                  disabled={isPending || isDeleting}
+                  onClick={() => {
+                    setPendingActionId(`delete-${row.id}`);
+                    startTransition(async () => {
+                      try {
+                        const res = await deleteKeywordAction(row.id);
+                        if (!res.ok) {
+                          setFeedback({
+                            type: "error",
+                            text: res.message ?? "Failed to delete keyword.",
+                          });
+                        }
+                      } finally {
+                        setPendingActionId(null);
                       }
-                    } finally {
-                      setPendingActionId(null);
-                    }
-                  });
-                }}
-              >
-                {isDeleting ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
-                ) : (
-                  <Trash2 className="h-3.5 w-3.5 mr-1" />
-                )}
-                {isDeleting ? "Deleting..." : "Delete keyword"}
-              </Button>
+                    });
+                  }}
+                  className="h-7 w-7 p-0 inline-flex items-center justify-center rounded-md cursor-pointer hover:bg-red-600/90 text-white"
+                >
+                  {isDeleting ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-3.5 w-3.5" />
+                  )}
+                </Button>
+              </SimpleTooltip>
             </div>
           );
         },
@@ -376,23 +435,24 @@ export function KeywordManagerClient({
   }, [groups, rows]);
 
   return (
-    <div className="space-y-5">
-      {feedback && (
-        <Alert variant={feedback.type === "success" ? "success" : "destructive"}>
-          {feedback.type === "success" ? (
-            <CheckCircle2 className="h-4 w-4" />
-          ) : (
-            <AlertCircle className="h-4 w-4" />
-          )}
-          <AlertDescription>{feedback.text}</AlertDescription>
-        </Alert>
-      )}
+    <TooltipProvider delayDuration={150}>
+      <div className="space-y-5">
+        {feedback && (
+          <Alert variant={feedback.type === "success" ? "success" : "destructive"}>
+            {feedback.type === "success" ? (
+              <CheckCircle2 className="h-4 w-4" />
+            ) : (
+              <AlertCircle className="h-4 w-4" />
+            )}
+            <AlertDescription>{feedback.text}</AlertDescription>
+          </Alert>
+        )}
 
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="space-y-4"
-      >
+        <Tabs
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="space-y-4"
+        >
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--line)] pb-4">
           <div>
             <div className="flex items-center gap-2.5">
@@ -787,51 +847,104 @@ export function KeywordManagerClient({
             </select>
           </div>
 
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
+          <div className="relative w-full overflow-x-auto rounded-lg border border-[var(--line)] bg-[var(--surface)] shadow-xs">
+            <Table className="min-w-[920px] border-separate border-spacing-0">
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      const isWeeklyStates = header.column.id === "weeklyStates";
+                      const isActions = header.column.id === "actions";
+                      return (
+                        <TableHead
+                          key={header.id}
+                          className={cn(
+                            "whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-[var(--muted)] bg-[var(--surface)] border-b border-[var(--line)]",
+                            isWeeklyStates &&
+                              "sticky right-[104px] z-30 w-[116px] min-w-[116px] border-l border-[var(--line)] shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]",
+                            isActions &&
+                              "sticky right-0 z-30 w-[104px] min-w-[104px] text-center shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.04)]",
+                            !isWeeklyStates &&
+                              !isActions &&
+                              (header.column.id === "keyword"
+                                ? "min-w-[220px]"
+                                : header.column.id === "groupName"
+                                ? "min-w-[130px]"
+                                : header.column.id === "batchName"
+                                ? "min-w-[140px]"
+                                : header.column.id === "currentState"
+                                ? "min-w-[120px]"
+                                : "min-w-[130px]")
                           )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="py-8 text-center text-sm text-[var(--muted)]"
-                  >
-                    {rows.length === 0
-                      ? "No keywords saved yet. Use the form above to add your first keyword."
-                      : "No matching keywords found. Adjust your search or filters."}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </TableHead>
+                      );
+                    })}
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="py-8 text-center text-sm text-[var(--muted)]"
+                    >
+                      {rows.length === 0
+                        ? "No keywords saved yet. Use the form above to add your first keyword."
+                        : "No matching keywords found. Adjust your search or filters."}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      className="group border-b border-[var(--line)] hover:bg-[var(--none)]/30 transition-colors"
+                    >
+                      {row.getVisibleCells().map((cell) => {
+                        const isWeeklyStates = cell.column.id === "weeklyStates";
+                        const isActions = cell.column.id === "actions";
+                        return (
+                          <TableCell
+                            key={cell.id}
+                            className={cn(
+                              "whitespace-nowrap px-3 py-2 text-sm border-b border-[var(--line)]",
+                              isWeeklyStates &&
+                                "sticky right-[104px] z-20 w-[116px] min-w-[116px] bg-[var(--surface)] group-hover:bg-[var(--surface)] border-l border-[var(--line)] shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]",
+                              isActions &&
+                                "sticky right-0 z-20 w-[104px] min-w-[104px] bg-[var(--surface)] group-hover:bg-[var(--surface)] shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.04)]",
+                              !isWeeklyStates &&
+                                !isActions &&
+                                (cell.column.id === "keyword"
+                                  ? "min-w-[220px]"
+                                  : cell.column.id === "groupName"
+                                  ? "min-w-[130px]"
+                                  : cell.column.id === "batchName"
+                                  ? "min-w-[140px]"
+                                  : cell.column.id === "currentState"
+                                  ? "min-w-[120px]"
+                                  : "min-w-[130px]")
+                            )}
+                          >
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </TabsContent>
@@ -972,5 +1085,6 @@ export function KeywordManagerClient({
     </TabsContent>
   </Tabs>
 </div>
+</TooltipProvider>
 );
 }

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getDashboardOverviewData } from "@/lib/dashboard-data";
 import { DemoDataBanner } from "@/components/demo-banner";
 import { KeywordManagerClient } from "./keyword-manager-client";
@@ -18,15 +19,17 @@ export default async function KeywordPage() {
   return (
     <div>
       <DemoDataBanner visible={analytics.hasDemoData} />
-      <KeywordManagerClient
-        rows={analytics.keywordRows}
-        groups={groups}
-        batches={batches}
-        slots={slots}
-        scheduleSettings={scheduleSettings}
-        monthlyRunCount={monthlyRunCount}
-        auditLogs={auditLogs}
-      />
+      <Suspense fallback={<div className="p-8 text-center text-sm text-[var(--muted)]">Loading keyword hub...</div>}>
+        <KeywordManagerClient
+          rows={analytics.keywordRows}
+          groups={groups}
+          batches={batches}
+          slots={slots}
+          scheduleSettings={scheduleSettings}
+          monthlyRunCount={monthlyRunCount}
+          auditLogs={auditLogs}
+        />
+      </Suspense>
     </div>
   );
 }
