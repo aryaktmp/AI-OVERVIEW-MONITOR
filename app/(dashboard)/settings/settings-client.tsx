@@ -73,6 +73,8 @@ interface SettingsClientProps {
   estimatedCallsForNextRun: number;
   hourlyCallsUsed: number;
   maxPerHour: number;
+  monthlyCallsUsed: number;
+  monthlyBudget: number;
   isDryRunEnv: boolean;
   hasDemoData: boolean;
   brandDomain: string;
@@ -88,6 +90,8 @@ export function SettingsClient({
   estimatedCallsForNextRun,
   hourlyCallsUsed,
   maxPerHour,
+  monthlyCallsUsed,
+  monthlyBudget,
   isDryRunEnv,
   hasDemoData,
   brandDomain,
@@ -374,6 +378,16 @@ export function SettingsClient({
                 ({hourlyCallsUsed} used in the last 60 minutes)
               </div>
               <div>
+                • Monthly SerpApi budget:{" "}
+                <strong className="font-mono text-[var(--ink)]">
+                  {monthlyCallsUsed} / {monthlyBudget} calls
+                </strong>{" "}
+                (Asia/Jakarta calendar month)
+                <div className="mt-0.5 text-[11px] text-[var(--muted)]">
+                  Catatan: Panggilan di luar aplikasi (try:keyword, playground) tidak terhitung.
+                </div>
+              </div>
+              <div>
                 • Current mode:{" "}
                 <strong className="text-[var(--ink)]">
                   {isDryRunEnv
@@ -538,7 +552,7 @@ export function SettingsClient({
         </CardHeader>
 
         <CardContent>
-          <div className="grid grid-cols-1 gap-2.5 border-t border-[var(--line)] pt-3 text-xs sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2.5 border-t border-[var(--line)] pt-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <span className="text-[var(--muted)]">Active keywords: </span>
               <strong className="font-mono text-[var(--ink)]">
@@ -550,6 +564,15 @@ export function SettingsClient({
               <strong className="font-mono text-[var(--ink)]">
                 {hourlyCallsUsed} / {maxPerHour} calls
               </strong>
+            </div>
+            <div>
+              <span className="text-[var(--muted)]">Monthly budget: </span>
+              <strong className="font-mono text-[var(--ink)]">
+                {monthlyCallsUsed} / {monthlyBudget} calls
+              </strong>
+              <div className="mt-0.5 text-[10px] text-[var(--muted)]">
+                * Panggilan di luar aplikasi (try:keyword, playground) tidak terhitung.
+              </div>
             </div>
             <div>
               <span className="text-[var(--muted)]">SerpApi mode: </span>

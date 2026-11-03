@@ -18,6 +18,7 @@ import {
   type PageCacheStore,
 } from "./fetch-page.ts";
 import { isDryRun } from "./dry-run.ts";
+import { getJakartaMonthBoundaries } from "./timezone.ts";
 
 export const STUCK_PROCESSING_TIMEOUT_MS = 10 * 60 * 1000; // 10 menit
 export const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 60 menit
@@ -102,6 +103,7 @@ export interface QueueStore {
     nowIso: string
   ): Promise<string[]>;
   getHourlySerpApiCalls(sinceIso: string): Promise<number>;
+  getMonthlySerpApiCalls?(now?: Date): Promise<number>;
   listPendingCandidates(limit: number): Promise<RunItemRecord[]>;
   claimPendingItemAtomically(
     itemId: string,
@@ -519,6 +521,39 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
       return totalCalls;
     },
 
+    async getMonthlySerpApiCalls(now: Date = new Date()): Promise<number> {
+      const { startIso, endIso } = getJakartaMonthBoundaries(now);
+      const { data: runsData, error: runsErr } = await supabase
+        .from("check_runs")
+        .select("id")
+        .eq("is_demo", false)
+        .gte("started_at", startIso)
+        .lte("started_at", endIso);
+
+      if (runsErr || !runsData || runsData.length === 0) {
+        return 0;
+      }
+
+      const runIds = (runsData as Array<{ id: string }>).map((r) => r.id);
+      const { data: checksData, error: checksErr } = await supabase
+        .from("checks")
+        .select("raw")
+        .in("run_id", runIds);
+
+      if (checksErr || !checksData) {
+        return 0;
+      }
+
+      let totalCalls = 0;
+      for (const row of checksData) {
+        totalCalls += extractSerpApiCallsFromRaw((row as { raw: unknown }).raw, {
+          includeDryRun: false,
+        });
+      }
+
+      return totalCalls;
+    },
+
     async listPendingCandidates(limit: number): Promise<RunItemRecord[]> {
       const withDemoRes = await supabase
         .from("run_items")
@@ -886,7 +921,7 @@ export type StartRunResult =
       status?: undefined;
       isExisting: false;
       isDemo: boolean;
-      skipped: "no_active_keywords" | "no_active_batch";
+      skipped: "no_active_keywords" | "no_active_batch" | "monthly_budget";
     };
 
 /**
@@ -968,6 +1003,27 @@ export async function startCheckRun(
       isDemo,
       skipped: "no_active_keywords",
     };
+  }
+
+  // 3. Pagar kuota: Sebelum membuat run nyata (bukan demo), hitung panggilan yang sudah
+  // terpakai di bulan kalender Asia/Jakarta ditambah perkiraan run (jumlah keyword dikali 1,3).
+  // Jika melebihi SERPAPI_MONTHLY_BUDGET (bawaan 235), lewati dengan skipped: "monthly_budget".
+  if (!isDemo) {
+    const monthlyCallsUsed = store.getMonthlySerpApiCalls
+      ? await store.getMonthlySerpApiCalls(now)
+      : 0;
+    const estimatedRunCalls = activeKeywords.length * 1.3;
+    const monthlyBudget = Number(
+      process.env.SERPAPI_MONTHLY_BUDGET || 235
+    );
+    if (monthlyCallsUsed + estimatedRunCalls > monthlyBudget) {
+      return {
+        total: 0,
+        isExisting: false,
+        isDemo,
+        skipped: "monthly_budget",
+      };
+    }
   }
 
   const run = await store.createCheckRun(activeKeywords.length, nowIso, isDemo);

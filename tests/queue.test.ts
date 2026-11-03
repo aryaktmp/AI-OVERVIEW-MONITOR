@@ -41,6 +41,7 @@ function createInMemoryQueueStore(initial?: {
   keywords?: KeywordRecord[];
   items?: RunItemRecord[];
   hourlyCalls?: number;
+  monthlyCalls?: number;
   activeBatchId?: string | null;
 }) {
   const activeBatchId =
@@ -56,6 +57,7 @@ function createInMemoryQueueStore(initial?: {
   const items: RunItemRecord[] = [...(initial?.items ?? [])];
   const checks: CheckInsertPayload[] = [];
   const baseHourlyCalls = initial?.hourlyCalls ?? 0;
+  const baseMonthlyCalls = initial?.monthlyCalls ?? 0;
 
   const store: QueueStore = {
     async getRunningCheckRun() {
@@ -72,6 +74,9 @@ function createInMemoryQueueStore(initial?: {
       return keywords.filter(
         (k) => k.active && (!k.batch_id || k.batch_id === targetBatchId)
       );
+    },
+    async getMonthlySerpApiCalls() {
+      return baseMonthlyCalls;
     },
     async createCheckRun(total, nowIso, isDemo = false) {
       const run: CheckRunRecord = {
@@ -1110,14 +1115,28 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
     const mockSupabase = {
       from: (table: string) => {
         if (table === "check_runs") {
+          interface MockSelectChain {
+            eq: () => MockSelectChain;
+            gte: () => MockSelectChain;
+            lte: () => MockSelectChain;
+            order: () => MockSelectChain;
+            limit: () => Promise<{ data: unknown[]; error: null }>;
+            then: (resolve: (v: { data: unknown[]; error: null }) => unknown) => Promise<unknown>;
+          }
+          const makeSelectChain = (): MockSelectChain => {
+            const chain: MockSelectChain = {
+              eq: () => chain,
+              gte: () => chain,
+              lte: () => chain,
+              order: () => chain,
+              limit: () => Promise.resolve({ data: [], error: null }),
+              then: (resolve) =>
+                Promise.resolve({ data: [], error: null }).then(resolve),
+            };
+            return chain;
+          };
           return {
-            select: () => ({
-              eq: () => ({
-                order: () => ({
-                  limit: () => Promise.resolve({ data: [], error: null }),
-                }),
-              }),
-            }),
+            select: makeSelectChain,
             insert: () => ({
               select: () => ({
                 single: () =>
@@ -1275,5 +1294,48 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
     expect(workflowContent).toContain("concurrency:");
     expect(workflowContent).toContain("sleep 20");
     expect(workflowContent).toContain("VPS");
+  });
+
+  describe("Pagar Kuota Bulanan (SERPAPI_MONTHLY_BUDGET)", () => {
+    it("melewati run non-demo dengan skipped: 'monthly_budget' jika panggilan terpakai + estimasi > anggaran", async () => {
+      // 3 keyword, perkiraan = 3 * 1.3 = 3.9 calls
+      // Jika monthlyCalls = 232 dan budget = 235: 232 + 3.9 = 235.9 > 235 -> skipped
+      const ctx = createInMemoryQueueStore({ monthlyCalls: 232 });
+      const result = await startCheckRun(ctx.store, new Date(), {
+        isDemo: false,
+      });
+
+      expect(result.skipped).toBe("monthly_budget");
+      expect(result.total).toBe(0);
+      expect(result.isExisting).toBe(false);
+      expect(result.runId).toBeUndefined();
+      expect(ctx.runs).toHaveLength(0);
+    });
+
+    it("membuat run non-demo jika panggilan terpakai + estimasi <= anggaran", async () => {
+      // Jika monthlyCalls = 200 dan perkiraan = 3.9: 200 + 3.9 = 203.9 <= 235 -> lolos
+      const ctx = createInMemoryQueueStore({ monthlyCalls: 200 });
+      const result = await startCheckRun(ctx.store, new Date(), {
+        isDemo: false,
+      });
+
+      expect(result.skipped).toBeUndefined();
+      expect(result.total).toBe(3);
+      expect(result.runId).toBeDefined();
+      expect(ctx.runs).toHaveLength(1);
+    });
+
+    it("tidak memblokir run demo meskipun pemakaian bulanan melebihi anggaran", async () => {
+      // Run demo (isDemo: true) tidak memanggil SerpApi nyata sehingga aman dijalankan
+      const ctx = createInMemoryQueueStore({ monthlyCalls: 300 });
+      const result = await startCheckRun(ctx.store, new Date(), {
+        isDemo: true,
+      });
+
+      expect(result.skipped).toBeUndefined();
+      expect(result.isDemo).toBe(true);
+      expect(result.total).toBe(3);
+      expect(ctx.runs).toHaveLength(1);
+    });
   });
 });

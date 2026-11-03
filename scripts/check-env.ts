@@ -92,6 +92,7 @@ async function main() {
   const localEnv = parseEnvFile(envLocalPath);
 
   const optionalExampleKeys = new Set([
+    "SERPAPI_MONTHLY_BUDGET",
     "MAX_DURATION_MS",
     "APP_URL",
     "SITE_URL",
@@ -271,6 +272,31 @@ async function main() {
       "Format: SERPAPI_MAX_PER_HOUR",
       "FAIL",
       "SERPAPI_MAX_PER_HOUR harus berupa bilangan bulat positif (contoh: 50 atau 200)."
+    );
+  }
+
+  // 8b. Format: SERPAPI_MONTHLY_BUDGET berupa bilangan bulat positif (opsional, bawaan 235)
+  const monthlyBudgetRaw = localEnv["SERPAPI_MONTHLY_BUDGET"];
+  if (monthlyBudgetRaw !== undefined && monthlyBudgetRaw !== "") {
+    const monthlyBudget = Number(monthlyBudgetRaw);
+    if (/^\d+$/.test(monthlyBudgetRaw) && Number.isInteger(monthlyBudget) && monthlyBudget > 0) {
+      addResult(
+        "Format: SERPAPI_MONTHLY_BUDGET",
+        "PASS",
+        `terisi (${monthlyBudgetRaw.length} karakter), bilangan bulat positif (${monthlyBudget})`
+      );
+    } else {
+      addResult(
+        "Format: SERPAPI_MONTHLY_BUDGET",
+        "FAIL",
+        "SERPAPI_MONTHLY_BUDGET harus berupa bilangan bulat positif (contoh: 235)."
+      );
+    }
+  } else {
+    addResult(
+      "Format: SERPAPI_MONTHLY_BUDGET",
+      "PASS",
+      "opsional (menggunakan nilai bawaan 235)"
     );
   }
 

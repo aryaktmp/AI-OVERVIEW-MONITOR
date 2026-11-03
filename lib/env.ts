@@ -13,6 +13,7 @@ export const envSchema = z.object({
   CRON_SECRET: z.string().min(1, "CRON_SECRET wajib diisi"),
   BRAND_DOMAIN: z.string().min(1).default("linovhr.com"),
   SERPAPI_MAX_PER_HOUR: z.coerce.number().int().positive().default(50),
+  SERPAPI_MONTHLY_BUDGET: z.coerce.number().int().positive().default(235),
   SERPAPI_DRY_RUN: z
     .string()
     .optional()

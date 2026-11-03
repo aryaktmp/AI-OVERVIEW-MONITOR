@@ -463,6 +463,8 @@ export async function getSettingsPageData(): Promise<{
   estimatedCallsForNextRun: number;
   hourlyCallsUsed: number;
   maxPerHour: number;
+  monthlyCallsUsed: number;
+  monthlyBudget: number;
   isDryRunEnv: boolean;
   hasDemoData: boolean;
   databaseStorage: DatabaseStorageStats;
@@ -483,6 +485,7 @@ export async function getSettingsPageData(): Promise<{
     { count: totalChecksCount },
     { count: totalSourcesCount },
     hourlyCallsUsed,
+    monthlyCallsUsed,
     dbSizeRpc,
   ] = await Promise.all([
     supabase
@@ -506,6 +509,7 @@ export async function getSettingsPageData(): Promise<{
     supabase.from("checks").select("id", { count: "exact" }).limit(0),
     supabase.from("check_sources").select("id", { count: "exact" }).limit(0),
     store.getHourlySerpApiCalls(oneHourAgoIso),
+    store.getMonthlySerpApiCalls ? store.getMonthlySerpApiCalls() : Promise.resolve(0),
     supabase.rpc("get_database_size_bytes"),
   ]);
 
@@ -634,6 +638,11 @@ export async function getSettingsPageData(): Promise<{
 
   const runningRun = recentRuns.find((r) => r.status === "running") ?? null;
 
+  const monthlyBudget =
+    Number(process.env.SERPAPI_MONTHLY_BUDGET) > 0
+      ? Number(process.env.SERPAPI_MONTHLY_BUDGET)
+      : 235;
+
   return {
     brandTerms: (termsData ?? []) as Array<{
       id: string;
@@ -651,6 +660,8 @@ export async function getSettingsPageData(): Promise<{
     estimatedCallsForNextRun,
     hourlyCallsUsed,
     maxPerHour,
+    monthlyCallsUsed: monthlyCallsUsed ?? 0,
+    monthlyBudget,
     isDryRunEnv,
     hasDemoData,
     databaseStorage: {

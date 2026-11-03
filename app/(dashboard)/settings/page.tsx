@@ -29,6 +29,8 @@ export default async function PengaturanPage() {
         estimatedCallsForNextRun={data.estimatedCallsForNextRun}
         hourlyCallsUsed={data.hourlyCallsUsed}
         maxPerHour={data.maxPerHour}
+        monthlyCallsUsed={data.monthlyCallsUsed}
+        monthlyBudget={data.monthlyBudget}
         isDryRunEnv={data.isDryRunEnv}
         hasDemoData={data.hasDemoData}
         brandDomain={brandDomain}
