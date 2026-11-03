@@ -49,6 +49,8 @@ import {
 } from "@/app/(dashboard)/actions";
 import {
   getActiveWeekOfMonth,
+  getSlotWeekNumber,
+  getMondaysInMonth,
   getMondayOccurrenceOfMonth,
   type BatchWithKeywordsCount,
   type BatchScheduleSettingsRecord,
@@ -126,7 +128,7 @@ export function BatchScheduleCalendar({
   const currentYear = now.getFullYear();
   const currentMonthIdx = now.getMonth();
   const currentDay = now.getDate();
-  const currentActiveWeek = getActiveWeekOfMonth(now);
+  const currentActiveWeek = getSlotWeekNumber(now);
   const mondayInfo = useMemo(() => getMondayOccurrenceOfMonth(now), [now]);
 
   const activeBatch = batches.find((b) => b.is_active) ?? null;
@@ -153,9 +155,22 @@ export function BatchScheduleCalendar({
       const dateObj = new Date(currentYear, currentMonthIdx, d);
       const dayOfWeek = (dateObj.getDay() + 6) % 7; // 0 = Mon
       const weekNum = getActiveWeekOfMonth(dateObj);
-      const slot = slots.find((s) => s.week_number === weekNum);
-      const batchColor = slot?.batch?.color || "#6366f1";
-      const batchName = slot?.batch?.name || "Unassigned";
+
+      let slot: BatchScheduleSlotWithBatch | undefined;
+      let batchColor: string;
+      let batchName: string;
+
+      if (weekNum === 0) {
+        // Pra-siklus sebelum hari Senin pertama
+        slot = undefined;
+        batchColor = "var(--line)";
+        batchName = "Prior Cycle";
+      } else {
+        const slotWeek = weekNum > 4 ? ((weekNum - 1) % 4) + 1 : weekNum;
+        slot = slots.find((s) => s.week_number === slotWeek);
+        batchColor = slot?.batch?.color || "#6366f1";
+        batchName = slot?.batch?.name || "Unassigned";
+      }
 
       days.push({
         dayNumber: d,
@@ -380,13 +395,21 @@ export function BatchScheduleCalendar({
     });
   }
 
-  // Week date range helper
+  // Week date range helper: dihitung dari hari Senin s/d Minggu
   function getWeekDateRange(weekNum: number): string {
     const month = MONTH_NAMES[currentMonthIdx];
-    if (weekNum === 1) return `${month} 1 – 7`;
-    if (weekNum === 2) return `${month} 8 – 14`;
-    if (weekNum === 3) return `${month} 15 – 21`;
-    return `${month} 22 – ${calendarDays.daysInMonth}`;
+    const mondays = getMondaysInMonth(currentYear, currentMonthIdx);
+    if (weekNum < 1 || weekNum > mondays.length) {
+      return `${month} Week ${weekNum}`;
+    }
+    const startMon = mondays[weekNum - 1]!;
+    const endSun = startMon + 6;
+    const daysInMonth = calendarDays.daysInMonth;
+
+    if (endSun <= daysInMonth) {
+      return `${month} ${startMon} – ${endSun}`;
+    }
+    return `${month} ${startMon} – ${daysInMonth}`;
   }
 
   return (
@@ -645,17 +668,21 @@ export function BatchScheduleCalendar({
             {/* Days in Month */}
             {calendarDays.days.map((item) => {
               const isCurrentWeek = item.weekNumber === currentActiveWeek;
+              const isPreCycle = item.weekNumber === 0;
+
               return (
                 <div
                   key={`day-${item.dayNumber}`}
                   className={`relative h-16 rounded-md p-1.5 border transition-all flex flex-col justify-between ${
                     item.isToday
                       ? "border-[var(--cite)] ring-2 ring-[var(--cite)]/30 bg-[var(--surface)] shadow-xs"
+                      : isPreCycle
+                      ? "border-dashed border-[var(--line)] bg-[var(--surface)]/40 opacity-75"
                       : "border-[var(--line)] bg-[var(--surface)]/70 hover:border-[var(--muted)]"
                   }`}
                   style={{
                     borderLeftWidth: "4px",
-                    borderLeftColor: item.batchColor,
+                    borderLeftColor: isPreCycle ? "var(--line)" : item.batchColor,
                   }}
                 >
                   <div className="flex items-start justify-between">
@@ -663,6 +690,8 @@ export function BatchScheduleCalendar({
                       className={`text-xs font-semibold leading-none ${
                         item.isToday
                           ? "bg-[var(--cite)] text-white px-1.5 py-0.5 rounded-full font-bold"
+                          : isPreCycle
+                          ? "text-[var(--muted)]"
                           : "text-[var(--ink)]"
                       }`}
                     >
@@ -674,19 +703,25 @@ export function BatchScheduleCalendar({
                         Run
                       </span>
                     )}
+
+                    {isPreCycle && (
+                      <span className="inline-flex items-center rounded px-1 py-0.2 text-[8px] font-medium text-[var(--muted)] border border-[var(--line)]">
+                        Prior
+                      </span>
+                    )}
                   </div>
 
                   <div className="truncate text-[10px]">
                     <span
                       className="inline-block truncate max-w-full font-medium"
-                      style={{ color: item.batchColor }}
-                      title={`Week ${item.weekNumber}: ${item.batchName}`}
+                      style={{ color: isPreCycle ? "var(--muted)" : item.batchColor }}
+                      title={isPreCycle ? "Prior Cycle before 1st Monday" : `Week ${item.weekNumber}: ${item.batchName}`}
                     >
                       {item.batchName}
                     </span>
                   </div>
 
-                  {isCurrentWeek && (
+                  {isCurrentWeek && !isPreCycle && (
                     <span className="absolute bottom-0 right-0 h-1.5 w-1.5 rounded-full bg-emerald-500 m-1" />
                   )}
                 </div>

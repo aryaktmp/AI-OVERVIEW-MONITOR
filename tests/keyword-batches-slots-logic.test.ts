@@ -2,6 +2,7 @@ import { describe, expect, it, beforeEach } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   getActiveWeekOfMonth,
+  getSlotWeekNumber,
   getMondayOccurrenceOfMonth,
   getMonthlyRunCount,
   getBatchScheduleSlots,
@@ -270,18 +271,31 @@ describe("Fase Logika: Penjadwalan 4 Slot Mingguan & Batas 4 Eksekusi Bulanan", 
     ctx = createMockSupabaseForSlots();
   });
 
-  it("1. getActiveWeekOfMonth menghitung minggu 1 s/d 4 dan mengarahkan hari 29-31 ke Week 4", () => {
-    expect(getActiveWeekOfMonth(new Date("2026-11-01"))).toBe(1); // Day 1 -> Week 1
-    expect(getActiveWeekOfMonth(new Date("2026-11-07"))).toBe(1); // Day 7 -> Week 1
-    expect(getActiveWeekOfMonth(new Date("2026-11-08"))).toBe(2); // Day 8 -> Week 2
-    expect(getActiveWeekOfMonth(new Date("2026-11-14"))).toBe(2); // Day 14 -> Week 2
-    expect(getActiveWeekOfMonth(new Date("2026-11-15"))).toBe(3); // Day 15 -> Week 3
-    expect(getActiveWeekOfMonth(new Date("2026-11-21"))).toBe(3); // Day 21 -> Week 3
-    expect(getActiveWeekOfMonth(new Date("2026-11-22"))).toBe(4); // Day 22 -> Week 4
-    expect(getActiveWeekOfMonth(new Date("2026-11-28"))).toBe(4); // Day 28 -> Week 4
-    expect(getActiveWeekOfMonth(new Date("2026-11-29"))).toBe(4); // Day 29 -> Week 4 (Buffer)
-    expect(getActiveWeekOfMonth(new Date("2026-11-30"))).toBe(4); // Day 30 -> Week 4 (Buffer)
-    expect(getActiveWeekOfMonth(new Date("2026-10-31"))).toBe(4); // Day 31 -> Week 4 (Buffer)
+  it("1. getActiveWeekOfMonth menghitung minggu berbasis hari Senin dan mengarahkan hari sebelum Senin pertama ke Week 0", () => {
+    // 1 November 2026 adalah hari Minggu sebelum Senin pertama (pra-siklus)
+    expect(getActiveWeekOfMonth(new Date("2026-11-01"))).toBe(0);
+    expect(getSlotWeekNumber(new Date("2026-11-01"))).toBe(4);
+
+    // Week 1 dimulai pada Senin pertama (2 November 2026) s/d Minggu (8 November 2026)
+    expect(getActiveWeekOfMonth(new Date("2026-11-02"))).toBe(1); // Senin ke-1
+    expect(getActiveWeekOfMonth(new Date("2026-11-05"))).toBe(1); // Kamis
+    expect(getActiveWeekOfMonth(new Date("2026-11-08"))).toBe(1); // Minggu (masih Week 1, bukan Week 2!)
+
+    // Week 2 dimulai pada Senin kedua (9 November 2026) s/d Minggu (15 November 2026)
+    expect(getActiveWeekOfMonth(new Date("2026-11-09"))).toBe(2); // Senin ke-2
+    expect(getActiveWeekOfMonth(new Date("2026-11-15"))).toBe(2); // Minggu (masih Week 2, bukan Week 3!)
+
+    // Week 3 dimulai pada Senin ketiga (16 November 2026) s/d Minggu (22 November 2026)
+    expect(getActiveWeekOfMonth(new Date("2026-11-16"))).toBe(3);
+    expect(getActiveWeekOfMonth(new Date("2026-11-22"))).toBe(3);
+
+    // Week 4 dimulai pada Senin keempat (23 November 2026) s/d Minggu (29 November 2026)
+    expect(getActiveWeekOfMonth(new Date("2026-11-23"))).toBe(4);
+    expect(getActiveWeekOfMonth(new Date("2026-11-29"))).toBe(4);
+
+    // Senin ke-5 (30 November 2026)
+    expect(getActiveWeekOfMonth(new Date("2026-11-30"))).toBe(5);
+    expect(getSlotWeekNumber(new Date("2026-11-30"))).toBe(1); // Wrap-around ke Slot 1
   });
 
   it("2. syncDefaultScheduleSlots menerapkan pola rotasi: looping saat batch < 4", async () => {

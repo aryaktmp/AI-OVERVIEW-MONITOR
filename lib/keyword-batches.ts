@@ -627,7 +627,7 @@ export async function rotateActiveKeywordBatch(
   });
 
   // 8. Sinkronkan slot minggu kalender saat ini agar selaras (jika slot bukan override)
-  const currentWeek = getActiveWeekOfMonth(now);
+  const currentWeek = getSlotWeekNumber(now);
   try {
     await supabase
       .from("batch_schedule_slots")
@@ -742,15 +742,73 @@ export async function overrideActiveKeywordBatch(
 }
 
 /**
- * Menghitung minggu aktif dalam bulan (1 s/d 4) berdasarkan tanggal kalender.
- * Hari 1-7: Week 1, Hari 8-14: Week 2, Hari 15-21: Week 3, Hari 22-31: Week 4.
+ * Menghitung daftar tanggal hari Senin dalam bulan dan tahun tertentu.
+ */
+export function getMondaysInMonth(year: number, month: number): number[] {
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const mondays: number[] = [];
+  for (let d = 1; d <= daysInMonth; d++) {
+    const cur = new Date(year, month, d);
+    if (cur.getDay() === 1) {
+      // 1 = Senin
+      mondays.push(d);
+    }
+  }
+  return mondays;
+}
+
+/**
+ * Menghitung minggu aktif dalam bulan berdasarkan hari SENIN sebagai titik awal siklus:
+ * - Siklus resmi bulan berjalan dimulai pada hari Senin pertama di bulan tersebut (Week 1).
+ * - Setiap minggu berjalan utuh dari Senin s/d Minggu (Monday through Sunday).
+ * - Tanggal sebelum Senin pertama (jika ada, misal tgl 1 Nov 2026 yang jatuh pada hari Minggu)
+ *   merupakan pra-siklus (mengembalikan 0).
+ * - Hari Senin ke-1 s/d Minggu berikutnya adalah Week 1.
+ * - Hari Senin ke-2 s/d Minggu berikutnya adalah Week 2, dst.
  */
 export function getActiveWeekOfMonth(date: Date = new Date()): number {
+  const year = date.getFullYear();
+  const month = date.getMonth();
   const day = date.getDate();
-  if (day <= 7) return 1;
-  if (day <= 14) return 2;
-  if (day <= 21) return 3;
-  return 4; // Hari 22 s/d 31 masuk ke slot Week 4
+  const mondays = getMondaysInMonth(year, month);
+
+  if (mondays.length === 0) return 1;
+
+  const firstMonday = mondays[0]!;
+
+  // Jika tanggal berada sebelum hari Senin pertama di bulan berjalan (pra-siklus):
+  if (day < firstMonday) {
+    return 0;
+  }
+
+  for (let i = 0; i < mondays.length; i++) {
+    const startMon = mondays[i]!;
+    const nextMon = mondays[i + 1];
+    if (nextMon !== undefined) {
+      if (day >= startMon && day < nextMon) {
+        return i + 1; // 1, 2, 3, 4
+      }
+    } else {
+      if (day >= startMon) {
+        return i + 1; // 4 atau 5
+      }
+    }
+  }
+
+  return 1;
+}
+
+/**
+ * Memetakan nomor minggu aktif ke slot database 1 s/d 4.
+ * - Week 0 (hari sebelum Senin pertama) mengarah ke Slot 4 (siklus sebelumnya).
+ * - Week 1..4 mengarah ke Slot 1..4.
+ * - Week 5 (Senin ke-5) mengarah ke Slot 1 (wrap-around siklus baru).
+ */
+export function getSlotWeekNumber(date: Date = new Date()): number {
+  const week = getActiveWeekOfMonth(date);
+  if (week === 0) return 4;
+  if (week > 4) return ((week - 1) % 4) + 1;
+  return week;
 }
 
 export interface MondayOccurrenceInfo {
@@ -1014,7 +1072,7 @@ export async function assignBatchToSlot(
   });
 
   // Jika minggu ini sedang berjalan dan mode jadwal 'auto', langsung sinkronkan batch aktif
-  const currentWeek = getActiveWeekOfMonth(now);
+  const currentWeek = getSlotWeekNumber(now);
   const settings = await getBatchScheduleSettings(supabase).catch(() => null);
   if (currentWeek === weekNumber && targetBatch && settings?.mode !== "manual_frozen") {
     await overrideActiveKeywordBatch(supabase, targetBatch.id, {
@@ -1137,7 +1195,7 @@ export async function rotateActiveBatchBySlot(
   }
 
   // 4. Cari slot untuk minggu kalender saat ini
-  const currentWeek = getActiveWeekOfMonth(now);
+  const currentWeek = getSlotWeekNumber(now);
   let slots = await getBatchScheduleSlots(supabase);
   let currentSlot = slots.find((s) => s.week_number === currentWeek);
 
