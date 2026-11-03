@@ -73,6 +73,7 @@ export interface RotateBatchOptions {
   notes?: string;
   now?: Date;
   useSlotSchedule?: boolean;
+  enforceMonthlyLimit?: boolean;
 }
 
 export type RotateBatchStatus =
@@ -500,25 +501,24 @@ export async function rotateActiveKeywordBatch(
   // 3. Ambil seluruh batch beserta jumlah keyword
   const allBatches = await listKeywordBatchesWithCounts(supabase);
 
-  // Filter batch yang diaktifkan (is_enabled = true) DAN memiliki minimal 1 keyword aktif
-  // -> Menangani Edge Case: SKIP EMPTY BATCHES!
-  const eligibleCandidates = allBatches
-    .filter((b) => b.is_enabled && b.activeKeywords > 0)
+  // Filter batch yang diaktifkan (is_enabled = true)
+  const enabledBatches = allBatches
+    .filter((b) => b.is_enabled)
     .sort((a, b) => a.order_index - b.order_index);
 
-  if (eligibleCandidates.length === 0) {
+  if (enabledBatches.length === 0) {
     await supabase.from("batch_audit_logs").insert({
       previous_batch_id: null,
       new_batch_id: null,
       trigger_type: "warning",
       actor_id: actorId,
-      notes: "Peringatan: Rotasi gagal karena tidak ada batch yang memenuhi syarat (memiliki keyword aktif dan diaktifkan).",
+      notes: "Peringatan: Rotasi gagal karena tidak ada batch yang diaktifkan (is_enabled = true).",
       created_at: nowIso,
     });
 
     return {
       status: "no_candidates",
-      message: "Tidak ada batch yang memenuhi syarat (memiliki keyword aktif dan diaktifkan).",
+      message: "Tidak ada batch yang diaktifkan (is_enabled = true).",
     };
   }
 
@@ -526,19 +526,50 @@ export async function rotateActiveKeywordBatch(
   const currentBatch = allBatches.find((b) => b.is_active) ?? null;
 
   // 5. Tentukan batch berikutnya (Round-Robin berurutan)
-  let nextBatch: BatchWithKeywordsCount;
-
+  let candidateIndex = 0;
   if (currentBatch) {
-    // Cari kandidat dengan order_index lebih besar dari batch saat ini
-    const nextCandidate = eligibleCandidates.find(
+    const nextIdx = enabledBatches.findIndex(
       (b) => b.order_index > currentBatch.order_index
     );
+    candidateIndex = nextIdx !== -1 ? nextIdx : 0; // Wrap around ke batch pertama jika sudah di akhir
+  }
 
-    // Jika sudah di urutan terakhir, putar kembali ke awal (wrap-around)
-    nextBatch = nextCandidate ?? eligibleCandidates[0];
-  } else {
-    // Jika belum ada yang aktif, pilih kandidat pertama
-    nextBatch = eligibleCandidates[0];
+  let nextBatch = enabledBatches[candidateIndex]!;
+
+  // 5b. Deteksi & Penanganan Batch Kosong (0 active keywords)
+  if (nextBatch.activeKeywords === 0) {
+    const candidatesWithKeywords = enabledBatches.filter((b) => b.activeKeywords > 0);
+
+    if (candidatesWithKeywords.length === 0) {
+      await supabase.from("batch_audit_logs").insert({
+        previous_batch_id: currentBatch?.id ?? null,
+        new_batch_id: null,
+        trigger_type: "warning",
+        actor_id: actorId,
+        notes: "Peringatan: Seluruh batch yang aktif memiliki 0 keyword. Tidak ada batch yang dapat diaktifkan.",
+        created_at: nowIso,
+      });
+
+      return {
+        status: "no_candidates",
+        message: "Seluruh batch yang diaktifkan kosong (0 keyword aktif).",
+      };
+    }
+
+    // Ada kandidat lain yang memiliki keyword, catat log audit peringatan untuk batch yang dilewati
+    await supabase.from("batch_audit_logs").insert({
+      previous_batch_id: currentBatch?.id ?? null,
+      new_batch_id: nextBatch.id,
+      trigger_type: "empty_batch_warning",
+      actor_id: actorId,
+      notes: `Notifikasi: Batch '${nextBatch.name}' memiliki 0 keyword aktif. Rotasi otomatis melompati batch ini ke batch berikutnya yang valid.`,
+      created_at: nowIso,
+    });
+
+    const altCandidate = candidatesWithKeywords.find(
+      (b) => (currentBatch ? b.order_index > currentBatch.order_index : true)
+    );
+    nextBatch = altCandidate ?? candidatesWithKeywords[0]!;
   }
 
   // Jika kandidat berikutnya sama dengan yang aktif sekarang (misal hanya ada 1 batch valid)
@@ -581,6 +612,8 @@ export async function rotateActiveKeywordBatch(
     throw new Error(`Gagal mengaktifkan batch baru: ${activateError.message}`);
   }
 
+  const mondayInfo = getMondayOccurrenceOfMonth(now);
+
   // 7. Catat audit trail pergantian batch
   await supabase.from("batch_audit_logs").insert({
     previous_batch_id: currentBatch?.id ?? null,
@@ -589,11 +622,23 @@ export async function rotateActiveKeywordBatch(
     actor_id: actorId,
     notes:
       options.notes ??
-      `Rotasi mingguan otomatis dari ${currentBatch?.name ?? "Tidak ada"} ke ${nextBatch.name} (order ${nextBatch.order_index}, ${nextBatch.activeKeywords} keywords aktif)`,
+      `Rotasi mingguan otomatis (${mondayInfo.formattedWib}): ${currentBatch?.name ?? "Tidak ada"} -> ${nextBatch.name} (order ${nextBatch.order_index}, ${nextBatch.activeKeywords} keywords aktif)`,
     created_at: nowIso,
   });
 
-  // 8. Perbarui cache keyword (Zero-downtime)
+  // 8. Sinkronkan slot minggu kalender saat ini agar selaras (jika slot bukan override)
+  const currentWeek = getActiveWeekOfMonth(now);
+  try {
+    await supabase
+      .from("batch_schedule_slots")
+      .update({ batch_id: nextBatch.id, updated_at: nowIso })
+      .eq("week_number", currentWeek)
+      .eq("is_override", false);
+  } catch {
+    // Non-blocking
+  }
+
+  // 9. Perbarui cache keyword (Zero-downtime)
   invalidateActiveKeywordBatchCache();
 
   return {
@@ -706,6 +751,71 @@ export function getActiveWeekOfMonth(date: Date = new Date()): number {
   if (day <= 14) return 2;
   if (day <= 21) return 3;
   return 4; // Hari 22 s/d 31 masuk ke slot Week 4
+}
+
+export interface MondayOccurrenceInfo {
+  occurrence: number; // 1 s/d 5 (Senin keberapa dalam bulan ini)
+  totalMondays: number; // 4 atau 5 (Total hari Senin di bulan ini)
+  isMonday: boolean;
+  label: string; // e.g., "Monday #1 of November 2026"
+  formattedWib: string; // e.g., "Senin ke-1 (November 2026)"
+}
+
+/**
+ * Mendeteksi kemunculan hari Senin keberapa dalam bulan kalender berjalan (1 s/d 5).
+ * Memudahkan monitoring dan audit log mingguan.
+ */
+export function getMondayOccurrenceOfMonth(date: Date = new Date()): MondayOccurrenceInfo {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDate();
+  const isMonday = date.getDay() === 1;
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  let totalMondays = 0;
+  let occurrence = 0;
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const cur = new Date(year, month, d);
+    if (cur.getDay() === 1) {
+      totalMondays++;
+      if (d <= day) {
+        occurrence++;
+      }
+    }
+  }
+
+  if (occurrence === 0) {
+    occurrence = 1;
+  }
+
+  const MONTH_NAMES_EN = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  const MONTH_NAMES_ID = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+  ];
+
+  const monthEn = MONTH_NAMES_EN[month] ?? "Current Month";
+  const monthId = MONTH_NAMES_ID[month] ?? "Bulan Ini";
+
+  const label = isMonday
+    ? `Monday #${occurrence} of ${monthEn} ${year}`
+    : `Week #${occurrence} (${monthEn} ${year})`;
+
+  const formattedWib = isMonday
+    ? `Senin ke-${occurrence} (${monthId} ${year})`
+    : `Minggu ke-${occurrence} (${monthId} ${year})`;
+
+  return {
+    occurrence,
+    totalMondays,
+    isMonday,
+    label,
+    formattedWib,
+  };
 }
 
 /**
@@ -1012,15 +1122,18 @@ export async function rotateActiveBatchBySlot(
     };
   }
 
-  // 3. Batas Maksimal Eksekusi per Bulan Kalender (Cron Max 4 Eksekusi/Bulan)
-  const maxRuns = settings.max_runs_per_month ?? 4;
-  const monthlyRuns = await getMonthlyRunCount(supabase, now);
+  // 3. Batas Maksimal Eksekusi per Bulan Kalender (Jika enforceMonthlyLimit tidak bernilai false)
+  const shouldEnforceLimit = options.enforceMonthlyLimit ?? (settings.max_runs_per_month !== undefined && settings.max_runs_per_month !== null);
+  if (shouldEnforceLimit && !options.force) {
+    const maxRuns = settings.max_runs_per_month ?? 4;
+    const monthlyRuns = await getMonthlyRunCount(supabase, now);
 
-  if (monthlyRuns >= maxRuns && !options.force) {
-    return {
-      status: "skipped_monthly_limit",
-      message: `Batas maksimal rotasi/eksekusi per bulan (${monthlyRuns}/${maxRuns} run) telah tercapai untuk bulan ini.`,
-    };
+    if (monthlyRuns >= maxRuns) {
+      return {
+        status: "skipped_monthly_limit",
+        message: `Batas maksimal rotasi/eksekusi per bulan (${monthlyRuns}/${maxRuns} run) telah tercapai untuk bulan ini.`,
+      };
+    }
   }
 
   // 4. Cari slot untuk minggu kalender saat ini
@@ -1088,6 +1201,8 @@ export async function rotateActiveBatchBySlot(
     throw new Error(`Gagal mengaktifkan batch slot: ${activateError.message}`);
   }
 
+  const mondayInfo = getMondayOccurrenceOfMonth(now);
+
   // Catat log audit
   await supabase.from("batch_audit_logs").insert({
     previous_batch_id: currentActiveBatch?.id ?? null,
@@ -1096,7 +1211,7 @@ export async function rotateActiveBatchBySlot(
     actor_id: actorId,
     notes:
       options.notes ??
-      `Rotasi slot mingguan (Week ${currentWeek}): Berpindah ke ${targetBatch.name} (order ${targetBatch.order_index})`,
+      `Rotasi slot mingguan (${mondayInfo.formattedWib}): Berpindah ke ${targetBatch.name} (order ${targetBatch.order_index})`,
     created_at: nowIso,
   });
 

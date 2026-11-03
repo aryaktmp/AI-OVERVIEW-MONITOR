@@ -2,6 +2,7 @@ import { describe, expect, it, beforeEach } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   getActiveWeekOfMonth,
+  getMondayOccurrenceOfMonth,
   getMonthlyRunCount,
   getBatchScheduleSlots,
   syncDefaultScheduleSlots,
@@ -411,5 +412,50 @@ describe("Fase Logika: Penjadwalan 4 Slot Mingguan & Batas 4 Eksekusi Bulanan", 
 
     const countOct = await getMonthlyRunCount(ctx.client, new Date("2026-10-30T00:00:00Z"));
     expect(countOct).toBe(1);
+  });
+
+  it("9. getMondayOccurrenceOfMonth mendeteksi Senin ke-1 s/d Senin ke-5 serta total Senin per bulan", () => {
+    // 2 November 2026: Senin pertama
+    const mon1 = getMondayOccurrenceOfMonth(new Date("2026-11-02T10:00:00Z"));
+    expect(mon1.occurrence).toBe(1);
+    expect(mon1.isMonday).toBe(true);
+    expect(mon1.totalMondays).toBe(5);
+    expect(mon1.label).toContain("Monday #1 of November 2026");
+    expect(mon1.formattedWib).toContain("Senin ke-1 (November 2026)");
+
+    // 9 November 2026: Senin kedua
+    const mon2 = getMondayOccurrenceOfMonth(new Date("2026-11-09T10:00:00Z"));
+    expect(mon2.occurrence).toBe(2);
+    expect(mon2.isMonday).toBe(true);
+
+    // 30 November 2026: Senin kelima (bulan 5 minggu)
+    const mon5 = getMondayOccurrenceOfMonth(new Date("2026-11-30T10:00:00Z"));
+    expect(mon5.occurrence).toBe(5);
+    expect(mon5.isMonday).toBe(true);
+    expect(mon5.label).toContain("Monday #5 of November 2026");
+  });
+
+  it("10. rotateActiveBatchBySlot mengizinkan rotasi tanpa batas saat enforceMonthlyLimit: false", async () => {
+    // Simulasikan sudah ada 4 run pada bulan berjalan
+    for (let i = 1; i <= 4; i++) {
+      ctx.checkRuns.push({
+        id: `run-limit-${i}`,
+        status: "completed",
+        is_demo: false,
+        started_at: `2026-11-${String(i * 7).padStart(2, "0")}T08:00:00Z`,
+      });
+    }
+
+    // Hari Senin ke-5: 30 November
+    const testDate = new Date("2026-11-30T08:00:00Z");
+
+    // Jika enforceMonthlyLimit: false, rotasi tetap berjalan mulus tanpa skipped_monthly_limit
+    const res = await rotateActiveBatchBySlot(ctx.client, {
+      now: testDate,
+      enforceMonthlyLimit: false,
+    });
+
+    expect(res.status).toBe("rotated");
+    expect(res.newBatch).toBeDefined();
   });
 });

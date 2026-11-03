@@ -304,6 +304,11 @@ describe("Fase Logika: Rotasi, Kontrol Manual, & Search Filtering", () => {
     expect(ctx.batches[0].is_active).toBe(false);
     expect(ctx.batches[1].is_active).toBe(false);
     expect(ctx.batches[2].is_active).toBe(true);
+
+    // Memverifikasi audit log notifikasi empty_batch_warning tercatat
+    const emptyLog = ctx.auditLogs.find((l) => l.trigger_type === "empty_batch_warning");
+    expect(emptyLog).toBeDefined();
+    expect(emptyLog?.notes).toContain("Batch 2");
   });
 
   it("3. Mengembalikan status no_candidates jika seluruh batch kosong tanpa mematikan batch saat ini", async () => {

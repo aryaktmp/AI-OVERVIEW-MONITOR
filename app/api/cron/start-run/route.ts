@@ -6,7 +6,7 @@ import {
   createSupabaseQueueStore,
   startCheckRun,
 } from "@/lib/queue";
-import { rotateActiveBatchBySlot } from "@/lib/keyword-batches";
+import { rotateActiveKeywordBatch } from "@/lib/keyword-batches";
 
 export const dynamic = "force-dynamic";
 
@@ -23,23 +23,23 @@ async function handleStartRun(request: Request) {
     const store = createSupabaseQueueStore(supabase);
 
     const url = new URL(request.url);
-    // Jadwal mingguan otomatis (Senin) secara bawaan merotasi slot batch kecuali parameter ?rotate=false
+    // Jadwal mingguan otomatis (Senin 00:00) secara bawaan merotasi batch berikutnya secara berurutan
     const shouldRotate = url.searchParams.get("rotate") !== "false";
     const force = url.searchParams.get("force") === "true";
     let batchRotation = null;
 
     if (shouldRotate) {
-      batchRotation = await rotateActiveBatchBySlot(supabase, {
+      batchRotation = await rotateActiveKeywordBatch(supabase, {
         actorId: "system:cron",
         force,
       });
 
-      // Jika kuota eksekusi bulanan (maks 4 run/bulan) telah tercapai, hentikan proses tanpa membuat run baru
-      if (batchRotation.status === "skipped_monthly_limit") {
+      // Jika tidak ada batch yang memenuhi syarat (misal seluruh batch dinonaktifkan atau kosong)
+      if (batchRotation.status === "no_candidates") {
         return NextResponse.json(
           {
             runId: null,
-            status: "skipped_monthly_limit",
+            status: "skipped_no_candidates",
             message: batchRotation.message,
             batchRotation,
           },

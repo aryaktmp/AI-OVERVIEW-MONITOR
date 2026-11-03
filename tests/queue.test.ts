@@ -986,7 +986,7 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
     };
     expect(vercelConfig.crons).toHaveLength(2);
     expect(vercelConfig.crons).toEqual([
-      { path: "/api/cron/start-run", schedule: "0 1 * * 1" },
+      { path: "/api/cron/start-run", schedule: "0 0 * * 1" },
       { path: "/api/cron/process", schedule: "0 2 * * *" },
     ]);
     expect(

@@ -18,7 +18,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -50,6 +49,7 @@ import {
 } from "@/app/(dashboard)/actions";
 import {
   getActiveWeekOfMonth,
+  getMondayOccurrenceOfMonth,
   type BatchWithKeywordsCount,
   type BatchScheduleSettingsRecord,
   type BatchScheduleSlotWithBatch,
@@ -122,15 +122,15 @@ export function BatchScheduleCalendar({
   // Audit trail accordion
   const [showAuditLogs, setShowAuditLogs] = useState(false);
 
-  const now = new Date();
+  const [now] = useState(() => new Date());
   const currentYear = now.getFullYear();
   const currentMonthIdx = now.getMonth();
   const currentDay = now.getDate();
   const currentActiveWeek = getActiveWeekOfMonth(now);
+  const mondayInfo = useMemo(() => getMondayOccurrenceOfMonth(now), [now]);
 
   const activeBatch = batches.find((b) => b.is_active) ?? null;
-  const maxRuns = settings.max_runs_per_month ?? 4;
-  const runsProgressPercent = Math.min(100, Math.round((monthlyRunCount / maxRuns) * 100));
+  const hasEmptyActiveBatch = Boolean(activeBatch && activeBatch.activeKeywords === 0);
 
   // Generate calendar days for current month
   const calendarDays = useMemo(() => {
@@ -409,6 +409,16 @@ export function BatchScheduleCalendar({
         </Alert>
       )}
 
+      {/* Empty Active Batch Warning Alert */}
+      {hasEmptyActiveBatch && (
+        <Alert className="border-amber-500/30 bg-amber-50/70 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300">
+          <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <AlertDescription className="text-xs font-medium">
+            <strong>Warning:</strong> Active batch <strong>{activeBatch?.name}</strong> currently has 0 active keywords. Keyword checks on SerpApi will scan 0 queries until keywords are assigned to this batch.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Top Status & Controls Header */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Card 1: Active Batch */}
@@ -441,46 +451,53 @@ export function BatchScheduleCalendar({
           </CardContent>
         </Card>
 
-        {/* Card 2: Current Calendar Week */}
+        {/* Card 2: Current Calendar Week & Monday Detection */}
         <Card className="border-[var(--line)] bg-[var(--surface)] shadow-xs">
           <CardHeader className="pb-2">
-            <CardDescription className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">
-              Current Calendar Week
+            <CardDescription className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)] flex items-center justify-between">
+              <span>Current Calendar Week</span>
+              {mondayInfo.isMonday && (
+                <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 text-[9px] font-bold px-1.5 py-0">
+                  Monday Cron Day
+                </Badge>
+              )}
             </CardDescription>
             <CardTitle className="text-base font-bold flex items-center gap-1.5 text-[var(--ink)]">
               <CalendarIcon className="h-4 w-4 text-[var(--cite)]" />
-              Week {currentActiveWeek} of 4
+              Week {currentActiveWeek} of {mondayInfo.totalMondays}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-xs text-[var(--muted)] flex items-center justify-between">
-              <span>{getWeekDateRange(currentActiveWeek)}</span>
-              <span className="text-[11px] font-semibold text-[var(--cite)]">
+              <span className="truncate font-medium">{mondayInfo.label}</span>
+              <span className="text-[11px] font-semibold text-[var(--cite)] shrink-0 ml-1">
                 Day {currentDay}
               </span>
             </div>
           </CardContent>
         </Card>
 
-        {/* Card 3: Monthly Run Quota (Max 4/mo) */}
+        {/* Card 3: Monthly Executions (Unlimited Cap) */}
         <Card className="border-[var(--line)] bg-[var(--surface)] shadow-xs">
           <CardHeader className="pb-2">
             <CardDescription className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)] flex items-center justify-between">
-              <span>Monthly Run Quota</span>
-              <span className="text-[10px] font-normal text-[var(--muted)]">Max 4 / mo</span>
+              <span>Monthly Executions</span>
+              <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400">Unlimited Cap</span>
             </CardDescription>
             <CardTitle className="text-base font-bold flex items-center justify-between text-[var(--ink)]">
-              <span>{monthlyRunCount} / {maxRuns} Runs</span>
+              <span>{monthlyRunCount} Runs Completed</span>
               <span className="text-xs font-semibold text-[var(--muted)]">
-                {maxRuns - monthlyRunCount} left
+                Every Monday
               </span>
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0 space-y-1">
-            <Progress value={runsProgressPercent} className="h-2 bg-[var(--none)]" />
-            <div className="flex justify-between text-[10px] text-[var(--muted)]">
-              <span>{MONTH_NAMES[currentMonthIdx]} cycle</span>
-              <span>{runsProgressPercent}% quota</span>
+            <div className="text-xs text-[var(--muted)] flex items-center justify-between">
+              <span>Trigger: Monday 00:00 UTC</span>
+              <span className="font-medium text-[var(--ink)]">{MONTH_NAMES[currentMonthIdx]}</span>
+            </div>
+            <div className="text-[10px] text-[var(--muted)] truncate">
+              Sequential rotation runs without monthly limits
             </div>
           </CardContent>
         </Card>
@@ -879,6 +896,14 @@ export function BatchScheduleCalendar({
                     <TableCell className="text-xs font-mono">
                       <span className="font-semibold text-[var(--ink)]">{batch.activeKeywords}</span>
                       <span className="text-[var(--muted)]"> / {batch.totalKeywords} active</span>
+                      {batch.activeKeywords === 0 && (
+                        <Badge
+                          variant="outline"
+                          className="ml-2 border-amber-500/30 text-amber-700 dark:text-amber-300 bg-amber-500/10 text-[9px] font-semibold py-0 px-1"
+                        >
+                          Empty
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell className="text-xs">
                       {assignedWeeks.length > 0 ? (
@@ -1003,9 +1028,18 @@ export function BatchScheduleCalendar({
                         <TableRow key={log.id} className="text-xs">
                           <TableCell className="font-mono text-[var(--muted)]">{dateStr}</TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="text-[10px] font-mono">
-                              {log.trigger_type}
-                            </Badge>
+                            {log.trigger_type === "empty_batch_warning" ? (
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 font-semibold"
+                              >
+                                Empty Batch Warning
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-[10px] font-mono">
+                                {log.trigger_type}
+                              </Badge>
+                            )}
                           </TableCell>
                           <TableCell className="font-medium text-[var(--ink)]">
                             {log.actor_id}
