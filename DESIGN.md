@@ -69,7 +69,7 @@ Sumber kebenaran desain UI. Token berasal dari `app/globals.css`; komponen dari 
   - Dua chart interaktif Recharts berdampingan (`grid-cols-1 lg:grid-cols-2`): tren detection rate mingguan (Line Chart) dan perbandingan sitasi per grup modul LinovHR (Bar Chart).
   - Heatmap per grup keyword 8 minggu terakhir (sel `h-[22px] rounded-[3px]`: 2 = `--cite`, 1 = `--seen-bg` + ring `--seen`, 0 = `--none`) + tombol ekspor matriks.
 - **Empty state**: `Card` dengan judul + deskripsi + 1–2 tombol aksi (primary + outline).
-- **Loading**: `loading.tsx` dengan skeleton `animate-pulse` yang meniru layout, `aria-busy`/`aria-live`. Pada aksi interaktif/ekspor data: wajib memiliki state loading eksplisit (`Loader2 animate-spin`, kontrol formulir & tombol disabled, banner progres proses, dan penanganan galat inline).
+- **Loading & Komunikasi Backend**: Wajib ada loading behavior di SETIAP proses atau komunikasi ke Backend (*"Zero Silent BE Operations"*): (1) Skeleton `loading.tsx` untuk pemuatan rute halaman awal, (2) Spinner `Loader2 animate-spin` + teks status aktif ("Saving...", "Generating...") + kontrol `disabled` pada tombol & input untuk mencegah submit ganda, (3) Spinner baris lokal (`pendingActionId`) untuk aksi in-line tabel, dan (4) Umpan balik galat eksplisit jika komunikasi backend gagal.
 - **Error**: `error.tsx` per segmen dengan pesan ramah + aksi coba lagi.
 - **Form**: label di atas input, pesan validasi spesifik (Zod), tombol submit menonaktifkan diri saat pending.
 - **Tabel/daftar**: header `text-xs` muted, baris dipisah `border-[var(--line)]`, aksi destruktif memakai Dialog konfirmasi.
