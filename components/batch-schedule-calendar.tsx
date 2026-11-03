@@ -6,6 +6,7 @@ import {
   Calendar as CalendarIcon,
   CheckCircle2,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Clock,
   Layers,
@@ -125,19 +126,48 @@ export function BatchScheduleCalendar({
   const [showAuditLogs, setShowAuditLogs] = useState(false);
 
   const [now] = useState(() => new Date());
+  const [viewDate, setViewDate] = useState(() => new Date());
+
   const currentYear = now.getFullYear();
   const currentMonthIdx = now.getMonth();
   const currentDay = now.getDate();
+
+  const viewYear = viewDate.getFullYear();
+  const viewMonthIdx = viewDate.getMonth();
+  const isViewingCurrentMonth =
+    viewYear === currentYear && viewMonthIdx === currentMonthIdx;
+
   const currentActiveWeek = getSlotWeekNumber(now);
   const mondayInfo = useMemo(() => getMondayOccurrenceOfMonth(now), [now]);
 
   const activeBatch = batches.find((b) => b.is_active) ?? null;
   const hasEmptyActiveBatch = Boolean(activeBatch && activeBatch.activeKeywords === 0);
 
-  // Generate calendar days for current month
+  // Month navigation handlers
+  function handlePrevMonth() {
+    setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  }
+
+  function handleNextMonth() {
+    setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  }
+
+  function handleToday() {
+    setViewDate(new Date());
+  }
+
+  function handleSelectMonth(monthIdx: number) {
+    setViewDate((prev) => new Date(prev.getFullYear(), monthIdx, 1));
+  }
+
+  function handleSelectYear(year: number) {
+    setViewDate((prev) => new Date(year, prev.getMonth(), 1));
+  }
+
+  // Generate calendar days for viewed month & year
   const calendarDays = useMemo(() => {
-    const daysInMonth = new Date(currentYear, currentMonthIdx + 1, 0).getDate();
-    const firstDayIndex = new Date(currentYear, currentMonthIdx, 1).getDay(); // 0 is Sun, 1 is Mon
+    const daysInMonth = new Date(viewYear, viewMonthIdx + 1, 0).getDate();
+    const firstDayIndex = new Date(viewYear, viewMonthIdx, 1).getDay(); // 0 is Sun, 1 is Mon
     // Shift so Mon is 0, Sun is 6
     const startOffset = (firstDayIndex + 6) % 7;
 
@@ -152,7 +182,7 @@ export function BatchScheduleCalendar({
     }> = [];
 
     for (let d = 1; d <= daysInMonth; d++) {
-      const dateObj = new Date(currentYear, currentMonthIdx, d);
+      const dateObj = new Date(viewYear, viewMonthIdx, d);
       const dayOfWeek = (dateObj.getDay() + 6) % 7; // 0 = Mon
       const weekNum = getActiveWeekOfMonth(dateObj);
 
@@ -172,10 +202,12 @@ export function BatchScheduleCalendar({
         batchName = slot?.batch?.name || "Unassigned";
       }
 
+      const isToday = isViewingCurrentMonth && d === currentDay;
+
       days.push({
         dayNumber: d,
         weekNumber: weekNum,
-        isToday: d === currentDay,
+        isToday,
         isMonday: dayOfWeek === 0,
         slot,
         batchColor,
@@ -184,7 +216,7 @@ export function BatchScheduleCalendar({
     }
 
     return { days, startOffset, daysInMonth };
-  }, [currentYear, currentMonthIdx, currentDay, slots]);
+  }, [viewYear, viewMonthIdx, isViewingCurrentMonth, currentDay, slots]);
 
   // Action handlers
   function handleRotateNow() {
@@ -395,16 +427,16 @@ export function BatchScheduleCalendar({
     });
   }
 
-  // Week date range helper: dihitung dari hari Senin s/d Minggu
-  function getWeekDateRange(weekNum: number): string {
-    const month = MONTH_NAMES[currentMonthIdx];
-    const mondays = getMondaysInMonth(currentYear, currentMonthIdx);
+  // Week date range helper: dihitung dari hari Senin s/d Minggu untuk bulan yang sedang dilihat
+  function getWeekDateRange(weekNum: number, yr = viewYear, mo = viewMonthIdx): string {
+    const month = MONTH_NAMES[mo];
+    const mondays = getMondaysInMonth(yr, mo);
     if (weekNum < 1 || weekNum > mondays.length) {
       return `${month} Week ${weekNum}`;
     }
     const startMon = mondays[weekNum - 1]!;
     const endSun = startMon + 6;
-    const daysInMonth = calendarDays.daysInMonth;
+    const daysInMonth = new Date(yr, mo + 1, 0).getDate();
 
     if (endSun <= daysInMonth) {
       return `${month} ${startMon} – ${endSun}`;
@@ -611,21 +643,109 @@ export function BatchScheduleCalendar({
         </Button>
       </div>
 
-      {/* Visual Monthly Calendar Grid (Kalender Monitoring) */}
+      {/* Visual Monthly Calendar Grid (Kalender Monitoring Semua Bulan & Tahun) */}
       <Card className="border-[var(--line)] bg-[var(--surface)] shadow-xs">
         <CardHeader className="pb-3 border-b border-[var(--line)]">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
-              <CardTitle className="text-base font-bold flex items-center gap-2 text-[var(--ink)]">
+              <CardTitle className="text-base font-bold flex flex-wrap items-center gap-2 text-[var(--ink)]">
                 <CalendarIcon className="h-4 w-4 text-[var(--cite)]" />
-                {MONTH_NAMES[currentMonthIdx]} {currentYear} Rotation Calendar
+                <span>
+                  {MONTH_NAMES[viewMonthIdx]} {viewYear} Rotation Calendar
+                </span>
+                {!isViewingCurrentMonth && (
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] text-[var(--muted)] border-[var(--line)]"
+                  >
+                    Viewing {viewYear > currentYear || (viewYear === currentYear && viewMonthIdx > currentMonthIdx) ? "Future" : "Past"}
+                  </Badge>
+                )}
               </CardTitle>
               <CardDescription className="text-xs text-[var(--muted)]">
-                Interactive schedule map. Every Monday represents a weekly run execution. Days are color-coded by assigned batch.
+                Interactive schedule map. Every Monday represents a weekly run execution. Cycles run Monday through Sunday.
               </CardDescription>
             </div>
-            {/* Color Legend */}
-            <div className="flex flex-wrap items-center gap-3 text-xs">
+
+            {/* Navigation Toolbar (Prev / Today / Next & Month / Year Selectors) */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center rounded-md border border-[var(--line)] bg-[var(--surface)] p-0.5 shadow-2xs">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handlePrevMonth}
+                  disabled={isPending}
+                  className="h-7 w-7 p-0 cursor-pointer text-[var(--ink)] hover:text-[var(--cite)]"
+                  title="Previous Month"
+                  aria-label="Previous Month"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleToday}
+                  disabled={isPending || isViewingCurrentMonth}
+                  className={`h-7 px-2.5 text-xs font-semibold cursor-pointer ${
+                    isViewingCurrentMonth
+                      ? "text-[var(--cite)] font-bold bg-[var(--cite)]/10"
+                      : "text-[var(--ink)] hover:text-[var(--cite)]"
+                  }`}
+                  title="Jump to Current Month"
+                >
+                  Today
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleNextMonth}
+                  disabled={isPending}
+                  className="h-7 w-7 p-0 cursor-pointer text-[var(--ink)] hover:text-[var(--cite)]"
+                  title="Next Month"
+                  aria-label="Next Month"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Month Dropdown */}
+              <select
+                value={viewMonthIdx}
+                onChange={(e) => handleSelectMonth(Number(e.target.value))}
+                disabled={isPending}
+                aria-label="Select calendar month"
+                className="h-8 rounded-md border border-[var(--line)] bg-[var(--surface)] px-2 text-xs font-semibold text-[var(--ink)] cursor-pointer focus:outline-none focus:ring-1 focus:ring-[var(--cite)]"
+              >
+                {MONTH_NAMES.map((name, idx) => (
+                  <option key={name} value={idx}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Year Dropdown */}
+              <select
+                value={viewYear}
+                onChange={(e) => handleSelectYear(Number(e.target.value))}
+                disabled={isPending}
+                aria-label="Select calendar year"
+                className="h-8 rounded-md border border-[var(--line)] bg-[var(--surface)] px-2 text-xs font-semibold text-[var(--ink)] cursor-pointer focus:outline-none focus:ring-1 focus:ring-[var(--cite)]"
+              >
+                {Array.from({ length: 9 }, (_, i) => currentYear - 2 + i).map((yr) => (
+                  <option key={yr} value={yr}>
+                    {yr}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Color Legend */}
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs pt-3 mt-1 border-t border-[var(--line)]/50">
+            <div className="flex flex-wrap items-center gap-3">
               {slots.map((s) => (
                 <div key={s.week_number} className="flex items-center gap-1.5">
                   <span
@@ -637,6 +757,11 @@ export function BatchScheduleCalendar({
                   </span>
                 </div>
               ))}
+            </div>
+
+            <div className="flex items-center gap-2 text-[var(--muted)]">
+              <span className="h-2.5 w-2.5 rounded-xs border border-dashed border-[var(--muted)]" />
+              <span>Prior: Days before 1st Monday</span>
             </div>
           </div>
         </CardHeader>
@@ -737,7 +862,7 @@ export function BatchScheduleCalendar({
           <div>
             <h3 className="text-sm font-bold tracking-tight text-[var(--ink)] flex items-center gap-1.5">
               <Layers className="h-4 w-4 text-[var(--cite)]" />
-              4-Week Schedule Slot Assignments
+              4-Week Schedule Slot Assignments ({MONTH_NAMES[viewMonthIdx]} {viewYear})
             </h3>
             <p className="text-xs text-[var(--muted)]">
               Customize which batch runs each week of the month. Slot changes apply automatically.
@@ -750,7 +875,12 @@ export function BatchScheduleCalendar({
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {slots.map((slot) => {
-            const isCurrent = slot.week_number === currentActiveWeek;
+            const isCurrent =
+              isViewingCurrentMonth && slot.week_number === currentActiveWeek;
+            const isPast =
+              viewYear < currentYear ||
+              (viewYear === currentYear && viewMonthIdx < currentMonthIdx) ||
+              (isViewingCurrentMonth && slot.week_number < currentActiveWeek);
             const assignedBatch = batches.find((b) => b.id === slot.batch_id);
 
             return (
@@ -776,7 +906,7 @@ export function BatchScheduleCalendar({
                       <Badge className="bg-emerald-500 text-white text-[10px] font-bold px-1.5 py-0">
                         Active Now
                       </Badge>
-                    ) : slot.week_number < currentActiveWeek ? (
+                    ) : isPast ? (
                       <Badge variant="none" className="text-[10px]">
                         Past
                       </Badge>
@@ -788,7 +918,7 @@ export function BatchScheduleCalendar({
                   </div>
 
                   <CardTitle className="text-sm font-bold text-[var(--ink)] mt-1">
-                    {getWeekDateRange(slot.week_number)}
+                    {getWeekDateRange(slot.week_number, viewYear, viewMonthIdx)}
                   </CardTitle>
                 </CardHeader>
 
