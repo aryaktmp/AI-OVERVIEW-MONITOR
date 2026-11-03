@@ -1,9 +1,16 @@
 import Link from "next/link";
-import { Search, Sparkles, CheckCircle2, TrendingUp } from "lucide-react";
+import {
+  Layers,
+  Search,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
 import { getDashboardOverviewData } from "@/lib/dashboard-data";
 import { DemoDataBanner } from "@/components/demo-banner";
-import { ExportCsvButton } from "@/components/export-csv-button";
+import { ExportDataDialog } from "@/components/export-csv-button";
 import { WeeklyTrendChart } from "@/components/weekly-trend-chart";
+import { GroupCitationBarChart } from "@/components/group-citation-bar-chart";
+import { OverviewActiveBatchWidget } from "@/components/overview-active-batch-widget";
 import {
   Card,
   CardContent,
@@ -12,6 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { getSlotWeekNumber } from "@/lib/keyword-batches";
 import type { HeatmapCellState, KeywordWeeklyRow } from "@/lib/analytics";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +35,7 @@ function DeltaBadge({
   return (
     <i
       className={`ml-1.5 text-xs font-semibold not-italic ${
-        isPositive ? "text-[var(--success)]" : "text-[var(--destructive)]"
+        isPositive ? "text-[var(--success-text)]" : "text-[var(--destructive)]"
       }`}
     >
       {isPositive ? "+" : ""}
@@ -48,7 +56,13 @@ function cellClassName(state: HeatmapCellState): string {
 }
 
 export default async function OverviewPage() {
-  const { analytics } = await getDashboardOverviewData();
+  const {
+    analytics,
+    batches,
+    slots,
+    scheduleSettings,
+    monthlyRunCount,
+  } = await getDashboardOverviewData();
 
   if (analytics.totalKeywords === 0) {
     return (
@@ -72,7 +86,10 @@ export default async function OverviewPage() {
     );
   }
 
-  // Kelompokkan baris keyword berdasarkan grup sesuai prototipe
+  const activeBatch = batches.find((b) => b.is_active);
+  const currentSlotWeek = getSlotWeekNumber(new Date());
+
+  // Kelompokkan baris keyword berdasarkan grup
   const sortedRows = [...analytics.keywordRows].sort((a, b) => {
     const grpCmp = a.groupName.localeCompare(b.groupName);
     if (grpCmp !== 0) return grpCmp;
@@ -88,72 +105,162 @@ export default async function OverviewPage() {
 
   return (
     <div className="space-y-5">
+      {/* Header Overview dengan Tombol Ekspor Cepat */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-extrabold tracking-tight text-[var(--ink)]">
+            Executive Overview
+          </h1>
+          <p className="mt-0.5 text-xs text-[var(--muted)]">
+            AI Overview citation performance, weekly batch schedule status, and trend analytics for LinovHR.
+          </p>
+        </div>
+
+        <ExportDataDialog
+          buttonLabel="Export Report"
+          summaryMetrics={{
+            totalKeywords: analytics.totalKeywords,
+            detectedCount: analytics.currentDetectedCount,
+            detectionRate: analytics.currentDetectionRate,
+          }}
+        />
+      </div>
+
       <DemoDataBanner visible={analytics.hasDemoData} />
 
+      {/* Row 1: 4 Kartu Statistik Kunci */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4">
+        {/* Card 1: Total & Active Keywords */}
+        <Card className="p-4 shadow-xs">
           <div className="flex items-center justify-between text-[var(--muted)]">
-            <span className="text-xs font-semibold">Monitored keywords</span>
+            <span className="text-xs font-semibold">Keywords Monitored</span>
             <Search className="h-4 w-4" />
           </div>
-          <div className="mt-2 text-[28px] font-extrabold leading-none tracking-tight">
-            {analytics.activeKeywords}
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-[28px] font-extrabold leading-none tracking-tight text-[var(--ink)] font-mono">
+              {analytics.activeKeywords}
+            </span>
+            <span className="text-xs text-[var(--muted)] font-mono">
+              of {analytics.totalKeywords} total
+            </span>
+          </div>
+          <div className="mt-1 text-[11px] text-[var(--muted)]">
+            {analytics.totalKeywords > 0
+              ? `${Math.round((analytics.activeKeywords / analytics.totalKeywords) * 100)}% currently active`
+              : "0% active"}
           </div>
         </Card>
 
-        <Card className="p-4">
+        {/* Card 2: Active Rotation Batch */}
+        <Card className="p-4 shadow-xs">
           <div className="flex items-center justify-between text-[var(--muted)]">
-            <span className="text-xs font-semibold">AI Overview present</span>
+            <span className="text-xs font-semibold">Active Rotation Batch</span>
+            <Layers
+              className="h-4 w-4"
+              style={{ color: activeBatch?.color || "var(--cite)" }}
+            />
+          </div>
+          <div className="mt-2 flex items-baseline justify-between truncate">
+            <span className="text-[22px] sm:text-[24px] font-extrabold leading-none tracking-tight text-[var(--ink)] truncate">
+              {activeBatch ? activeBatch.name : "None"}
+            </span>
+            <span className="text-xs font-semibold text-[var(--cite)] font-mono">
+              Week {currentSlotWeek}
+            </span>
+          </div>
+          <div className="mt-1 text-[11px] text-[var(--muted)] truncate">
+            {activeBatch
+              ? `${activeBatch.activeKeywords} active (${activeBatch.totalKeywords} total) in current rotation`
+              : "No batch currently assigned"}
+          </div>
+        </Card>
+
+        {/* Card 3: AI Overview Present */}
+        <Card className="p-4 shadow-xs">
+          <div className="flex items-center justify-between text-[var(--muted)]">
+            <span className="text-xs font-semibold">AI Overview Present</span>
             <Sparkles className="h-4 w-4 text-[var(--seen)]" />
           </div>
           <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-[28px] font-extrabold leading-none tracking-tight">
+            <span className="text-[28px] font-extrabold leading-none tracking-tight text-[var(--ink)] font-mono">
               {analytics.currentAiOverviewCount}
             </span>
             <DeltaBadge delta={analytics.aiOverviewDelta} />
           </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between text-[var(--muted)]">
-            <span className="text-xs font-semibold">LinovHR detected</span>
-            <CheckCircle2 className="h-4 w-4 text-[var(--cite)]" />
-          </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-[28px] font-extrabold leading-none tracking-tight">
-              {analytics.currentDetectedCount}
-            </span>
-            <DeltaBadge delta={analytics.detectedDelta} />
+          <div className="mt-1 text-[11px] text-[var(--muted)]">
+            Keywords triggering Google AI Overview
           </div>
         </Card>
 
-        <Card className="p-4">
+        {/* Card 4: LinovHR Detection Rate */}
+        <Card className="p-4 shadow-xs">
           <div className="flex items-center justify-between text-[var(--muted)]">
-            <span className="text-xs font-semibold">Detection rate</span>
+            <span className="text-xs font-semibold">LinovHR Detection Rate</span>
             <TrendingUp className="h-4 w-4 text-[var(--cite)]" />
           </div>
           <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-[28px] font-extrabold leading-none tracking-tight">
+            <span className="text-[28px] font-extrabold leading-none tracking-tight text-[var(--cite)] font-mono">
               {analytics.currentDetectionRate}%
             </span>
             <DeltaBadge delta={analytics.detectionRateDelta} suffix=" pts" />
           </div>
+          <div className="mt-1 text-[11px] text-[var(--muted)]">
+            {analytics.currentDetectedCount} keywords cited in AI Overview
+          </div>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Weekly detection rate</CardTitle>
-          <CardDescription>
-            Keywords citing LinovHR compared to keywords triggering Google AI Overview.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <WeeklyTrendChart weeks={analytics.weeks} />
-        </CardContent>
-      </Card>
+      {/* Row 2: Widget Status Batch Mingguan & Kalender Rotasi */}
+      <OverviewActiveBatchWidget
+        batches={batches}
+        slots={slots}
+        scheduleSettings={scheduleSettings}
+        monthlyRunCount={monthlyRunCount}
+      />
 
-      <Card>
+      {/* Row 3: Dua Chart Interaktif Berdampingan */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* Chart 1: Line Chart Tren Mingguan */}
+        <Card className="shadow-xs">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-bold text-[var(--ink)]">
+                  Weekly Detection Rate Trend
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Percentage of AI Overview citations for LinovHR over the last 8 weeks.
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <WeeklyTrendChart weeks={analytics.weeks} />
+          </CardContent>
+        </Card>
+
+        {/* Chart 2: Bar Chart Sitasi per Grup Produk */}
+        <Card className="shadow-xs">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-bold text-[var(--ink)]">
+                  Citations by Keyword Group
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  LinovHR detected vs AI Overview present per LinovHR product module.
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <GroupCitationBarChart rows={analytics.keywordRows} />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Row 4: Heatmap Sitasi 8 Minggu Terakhir */}
+      <Card className="shadow-xs">
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
@@ -162,7 +269,14 @@ export default async function OverviewPage() {
                 Each column represents one week. The rightmost column is this week.
               </CardDescription>
             </div>
-            <ExportCsvButton />
+            <ExportDataDialog
+              buttonLabel="Export Matrix"
+              summaryMetrics={{
+                totalKeywords: analytics.totalKeywords,
+                detectedCount: analytics.currentDetectedCount,
+                detectionRate: analytics.currentDetectionRate,
+              }}
+            />
           </div>
         </CardHeader>
         <CardContent>
@@ -185,7 +299,7 @@ export default async function OverviewPage() {
 
               {Array.from(rowsByGroup.entries()).map(([groupName, rows]) => (
                 <div key={groupName} className="contents">
-                  <div className="col-span-full mt-2.5 text-[13px] font-extrabold">
+                  <div className="col-span-full mt-2.5 text-[13px] font-extrabold text-[var(--ink)]">
                     {groupName}
                   </div>
                   {rows.map((row) => (
@@ -193,7 +307,7 @@ export default async function OverviewPage() {
                       <Link
                         href={`/keywords/${row.id}`}
                         title={row.keyword}
-                        className="truncate text-[13px] hover:underline"
+                        className="truncate text-[13px] hover:underline text-[var(--ink)]"
                       >
                         {row.keyword}
                       </Link>

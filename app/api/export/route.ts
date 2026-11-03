@@ -66,6 +66,11 @@ export async function GET(request: Request) {
   const mode: "latest" | "history" =
     modeParam === "history" ? "history" : "latest";
 
+  const formatParam = (url.searchParams.get("format") ?? "csv")
+    .trim()
+    .toLowerCase();
+  const isExcel = formatParam === "excel" || formatParam === "xlsx";
+
   const includeDemoParam = (url.searchParams.get("include_demo") ?? "")
     .trim()
     .toLowerCase();
@@ -234,17 +239,25 @@ export async function GET(request: Request) {
     checkOffset += PAGE_SIZE;
   }
 
-  const csvBody = `${csvLines.join("\n")}\n`;
   const dateStamp = new Date().toISOString().slice(0, 10);
-  const filename =
+  const baseName =
     mode === "history"
-      ? `ai-overview-history-${dateStamp}.csv`
-      : `ai-overview-latest-${dateStamp}.csv`;
+      ? `ai-overview-history-${dateStamp}`
+      : `ai-overview-latest-${dateStamp}`;
+  const filename = `${baseName}.csv`;
+  const contentType = isExcel
+    ? "application/vnd.ms-excel; charset=utf-8"
+    : "text/csv; charset=utf-8";
 
-  return new Response(csvBody, {
+  // Tambahkan UTF-8 BOM (\uFEFF) untuk format excel agar Microsoft Excel otomatis mengenali encoding UTF-8
+  const contentBody = isExcel
+    ? `\uFEFF${csvLines.join("\n")}\n`
+    : `${csvLines.join("\n")}\n`;
+
+  return new Response(contentBody, {
     status: 200,
     headers: {
-      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Type": contentType,
       "Content-Disposition": `attachment; filename="${filename}"`,
       "Cache-Control": "no-store, max-age=0",
     },

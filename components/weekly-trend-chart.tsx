@@ -2,6 +2,7 @@
 
 import {
   CartesianGrid,
+  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -41,18 +42,39 @@ export function WeeklyTrendChart({ weeks }: { weeks: WeekBucket[] }) {
             axisLine={false}
           />
           <Tooltip
-            formatter={(value: unknown) => [`${String(value)}%`, "Detection rate"]}
+            formatter={(value: unknown, name: unknown, item) => {
+              const week = item?.payload as WeekBucket | undefined;
+              const label =
+                name === "detectionRate" || name === "Detection Rate (%)"
+                  ? "LinovHR Detection Rate"
+                  : String(name);
+              const extra = week
+                ? ` (${week.detectedCount} of ${week.aiOverviewCount} keywords cited)`
+                : "";
+              return [`${String(value)}%${extra}`, label];
+            }}
             labelFormatter={(label) => `Week of ${String(label)}`}
             contentStyle={{
               backgroundColor: "var(--surface)",
               borderColor: "var(--line)",
-              borderRadius: "6px",
+              borderRadius: "8px",
               fontSize: "12px",
               color: "var(--ink)",
+              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.08)",
+            }}
+          />
+          <Legend
+            verticalAlign="top"
+            align="right"
+            iconType="circle"
+            wrapperStyle={{
+              fontSize: "11px",
+              paddingBottom: "8px",
             }}
           />
           <Line
-            type="linear"
+            type="monotone"
+            name="Detection Rate (%)"
             dataKey="detectionRate"
             stroke="var(--cite)"
             strokeWidth={3}

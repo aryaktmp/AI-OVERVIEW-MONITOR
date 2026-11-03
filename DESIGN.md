@@ -62,7 +62,12 @@ Sumber kebenaran desain UI. Token berasal dari `app/globals.css`; komponen dari 
 - Komponen fitur (`weekly-trend-chart`, `batch-scheduler-card`, `keyword-multi-select-dropdown`, …) harus tersusun dari primitif di atas.
 
 ## 6. Pola Halaman
-- **Overview**: baris KPI (4 kartu + `DeltaBadge`), kartu tren mingguan (Recharts), heatmap per grup keyword (sel `h-[22px] rounded-[3px]`: 2 = `--cite`, 1 = `--seen-bg` + ring `--seen`, 0 = `--none`).
+- **Overview**:
+  - Header dengan tombol ekspor laporan multi-format (`ExportDataDialog`: CSV / Excel BOM).
+  - Baris KPI 4 kartu (Keywords monitored, Active Rotation Batch, AI Overview present, LinovHR detection rate).
+  - Widget status batch mingguan (`OverviewActiveBatchWidget`: batch aktif, interval rotasi, alokasi kuota bulanan, timeline 4 slot mingguan).
+  - Dua chart interaktif Recharts berdampingan (`grid-cols-1 lg:grid-cols-2`): tren detection rate mingguan (Line Chart) dan perbandingan sitasi per grup modul LinovHR (Bar Chart).
+  - Heatmap per grup keyword 8 minggu terakhir (sel `h-[22px] rounded-[3px]`: 2 = `--cite`, 1 = `--seen-bg` + ring `--seen`, 0 = `--none`) + tombol ekspor matriks.
 - **Empty state**: `Card` dengan judul + deskripsi + 1–2 tombol aksi (primary + outline).
 - **Loading**: `loading.tsx` dengan skeleton `animate-pulse` yang meniru layout, `aria-busy`/`aria-live`.
 - **Error**: `error.tsx` per segmen dengan pesan ramah + aksi coba lagi.
