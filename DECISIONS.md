@@ -170,7 +170,7 @@ Menerapkan aturan bisnis dan orkestrasi pemrosesan batch keyword:
    - **Mode Manual Frozen & Override Until**: Jika mode `manual_frozen` aktif, rotasi rutin dilewati (kecuali dipaksa dengan flag `force: true`). Jika terdapat `override_until` yang telah kedaluwarsa, pengaturan otomatis dinormalisasi kembali ke mode `auto`.
 2. **Kontrol Manual Admin (`overrideActiveKeywordBatch` & `setBatchScheduleMode`)**:
    - Admin dapat memilih batch tujuan secara eksplisit.
-   - Pergantian batch aktif dilakukan secara transaksional dengan audit trail lengkap (`trigger_type: 'admin_override'`).
+   - Pergantian batch aktif dilakukan secara atomik melalui fungsi RPC database `activate_keyword_batch` (`SECURITY DEFINER`, `search_path = public, pg_temp`, izin hanya untuk `service_role`) dengan audit trail lengkap.
    - Mendukung opsi pembekuan mode (`freezeMode: true`) atau override sementara dengan batas waktu (`overrideUntil`).
 3. **Filter Antrean Search Berbasis Batch Aktif (`lib/queue.ts`)**:
    - `createSupabaseQueueStore.getActiveKeywords`: secara bawaan mengambil keyword aktif dari batch yang sedang `is_active = true`. Jika tidak ada batch aktif, sistem mengembalikan array kosong sebagai gagal aman (dilarang fallback ke seluruh keyword aktif).

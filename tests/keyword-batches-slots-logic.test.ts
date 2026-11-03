@@ -143,7 +143,8 @@ function createMockSupabaseForSlots() {
         maybeSingle: async () => {
           if (table === "keyword_batches") {
             const found = batches.find((b) => {
-              if (filterIsActive !== null && b.is_active !== filterIsActive) return false;
+              if (filterIsActive !== null && b.is_active !== filterIsActive)
+                return false;
               if (filterId !== null && b.id !== filterId) return false;
               return true;
             });
@@ -157,52 +158,89 @@ function createMockSupabaseForSlots() {
           }
           if (table === "keyword_batches") {
             const found = batches.find((b) => b.id === filterId);
-            return { data: found ? { ...found } : null, error: found ? null : { message: "Not found" } };
+            return {
+              data: found ? { ...found } : null,
+              error: found ? null : { message: "Not found" },
+            };
           }
           if (table === "batch_schedule_slots") {
-            const found = slots.find((s) => s.week_number === filterWeekNumber || s.id === filterId);
-            return { data: found ? { ...found } : null, error: found ? null : { message: "Not found" } };
+            const found = slots.find(
+              (s) => s.week_number === filterWeekNumber || s.id === filterId
+            );
+            return {
+              data: found ? { ...found } : null,
+              error: found ? null : { message: "Not found" },
+            };
           }
           return { data: null, error: null };
         },
         then: (resolve: (val: unknown) => unknown) => {
           if (table === "batch_schedule_slots") {
             const res = slots
-              .filter((s) => filterWeekNumber === null || s.week_number === filterWeekNumber)
+              .filter(
+                (s) =>
+                  filterWeekNumber === null ||
+                  s.week_number === filterWeekNumber
+              )
               .sort((a, b) => a.week_number - b.week_number);
-            return Promise.resolve(resolve({ data: res.map((s) => ({ ...s })), error: null }));
+            return Promise.resolve(
+              resolve({ data: res.map((s) => ({ ...s })), error: null })
+            );
           }
           if (table === "keyword_batches") {
             const res = batches.filter((b) => {
-              if (filterIsActive !== null && b.is_active !== filterIsActive) return false;
+              if (filterIsActive !== null && b.is_active !== filterIsActive)
+                return false;
               if (filterId !== null && b.id !== filterId) return false;
               return true;
             });
-            return Promise.resolve(resolve({ data: res.map((b) => ({ ...b })), error: null }));
+            return Promise.resolve(
+              resolve({ data: res.map((b) => ({ ...b })), error: null })
+            );
           }
           if (table === "check_runs") {
             const res = checkRuns.filter((r) => {
-              if (filterStatus !== null && r.status !== filterStatus) return false;
-              if (filterIsDemo !== null && r.is_demo !== filterIsDemo) return false;
-              if (filterGteStartedAt !== null && r.started_at < filterGteStartedAt) return false;
-              if (filterLteStartedAt !== null && r.started_at > filterLteStartedAt) return false;
+              if (filterStatus !== null && r.status !== filterStatus)
+                return false;
+              if (filterIsDemo !== null && r.is_demo !== filterIsDemo)
+                return false;
+              if (
+                filterGteStartedAt !== null &&
+                r.started_at < filterGteStartedAt
+              )
+                return false;
+              if (
+                filterLteStartedAt !== null &&
+                r.started_at > filterLteStartedAt
+              )
+                return false;
               return true;
             });
-            return Promise.resolve(resolve({ data: res.map((r) => ({ ...r })), error: null }));
+            return Promise.resolve(
+              resolve({ data: res.map((r) => ({ ...r })), error: null })
+            );
           }
           if (table === "batch_audit_logs") {
-            return Promise.resolve(resolve({ data: auditLogs.map((l) => ({ ...l })), error: null }));
+            return Promise.resolve(
+              resolve({ data: auditLogs.map((l) => ({ ...l })), error: null })
+            );
           }
           return Promise.resolve(resolve({ data: [], error: null }));
         },
         insert: (data: unknown) => {
           if (table === "batch_audit_logs") {
-            const row = { id: `log-${auditLogs.length + 1}`, ...(data as Record<string, unknown>) } as BatchAuditLogRecord;
+            const row = {
+              id: `log-${auditLogs.length + 1}`,
+              ...(data as Record<string, unknown>),
+            } as BatchAuditLogRecord;
             auditLogs.unshift(row);
             return Promise.resolve({ data: row, error: null });
           }
           if (table === "batch_schedule_slots") {
-            const row = { id: `slot-${slots.length + 1}`, ...(data as Record<string, unknown>) } as BatchScheduleSlotRecord;
+            const row = {
+              id: `slot-${slots.length + 1}`,
+              ...(data as Record<string, unknown>),
+            } as BatchScheduleSlotRecord;
             slots.push(row);
             return {
               select: () => ({
@@ -258,6 +296,52 @@ function createMockSupabaseForSlots() {
       };
 
       return builder;
+    },
+    rpc: async (fnName: string, params: Record<string, unknown>) => {
+      if (fnName === "activate_keyword_batch") {
+        const targetBatchId = params.target_batch_id as string;
+        const triggerType = params.trigger_type as string;
+        const actorId = (params.actor_id as string) ?? "system";
+        const notes = (params.notes as string) ?? null;
+
+        const prevBatch = batches.find((b) => b.is_active) ?? null;
+        const nextBatch = batches.find((b) => b.id === targetBatchId);
+        if (!nextBatch) {
+          return {
+            data: null,
+            error: { message: `Batch ${targetBatchId} tidak ditemukan.` },
+          };
+        }
+
+        for (const b of batches) {
+          b.is_active = b.id === targetBatchId;
+          b.updated_at = new Date().toISOString();
+        }
+
+        const log: BatchAuditLogRecord = {
+          id: `audit-${auditLogs.length + 1}`,
+          previous_batch_id: prevBatch?.id ?? null,
+          new_batch_id: targetBatchId,
+          trigger_type: triggerType,
+          actor_id: actorId,
+          notes,
+          created_at: new Date().toISOString(),
+        };
+        auditLogs.unshift(log);
+
+        return {
+          data: {
+            previous_batch_id: prevBatch?.id ?? null,
+            new_batch_id: targetBatchId,
+            audit_log_id: log.id,
+          },
+          error: null,
+        };
+      }
+      return {
+        data: null,
+        error: { message: `Unknown RPC function: ${fnName}` },
+      };
     },
   } as unknown as SupabaseClient;
 
@@ -355,7 +439,13 @@ describe("Fase Logika: Penjadwalan 4 Slot Mingguan & Batas 4 Eksekusi Bulanan", 
 
   it("4. assignBatchToSlot menetapkan batch ke slot tertentu dan mempertahankan is_override", async () => {
     // Admin secara manual menugaskan Batch 3 ke Slot Week 1
-    const res = await assignBatchToSlot(ctx.client, 1, "b-3", true, "admin-user");
+    const res = await assignBatchToSlot(
+      ctx.client,
+      1,
+      "b-3",
+      true,
+      "admin-user"
+    );
     expect(res.ok).toBe(true);
 
     const slot1 = ctx.slots.find((s) => s.week_number === 1);
@@ -409,22 +499,51 @@ describe("Fase Logika: Penjadwalan 4 Slot Mingguan & Batas 4 Eksekusi Bulanan", 
     expect(res.message).toContain("4/4");
 
     // Jika dipaksa (force: true), batas bulanan dilewati
-    const forceRes = await rotateActiveBatchBySlot(ctx.client, { now: testDate, force: true });
+    const forceRes = await rotateActiveBatchBySlot(ctx.client, {
+      now: testDate,
+      force: true,
+    });
     expect(forceRes.status).toBe("rotated");
   });
 
   it("8. getMonthlyRunCount menghitung jumlah run non-demo dalam bulan berjalan", async () => {
     ctx.checkRuns.push(
-      { id: "r1", status: "completed", is_demo: false, started_at: "2026-11-02T01:00:00Z" },
-      { id: "r2", status: "completed", is_demo: false, started_at: "2026-11-09T01:00:00Z" },
-      { id: "r-demo", status: "completed", is_demo: true, started_at: "2026-11-10T01:00:00Z" }, // diabaikan karena demo
-      { id: "r-oct", status: "completed", is_demo: false, started_at: "2026-10-25T01:00:00Z" } // diabaikan karena bulan Oktober
+      {
+        id: "r1",
+        status: "completed",
+        is_demo: false,
+        started_at: "2026-11-02T01:00:00Z",
+      },
+      {
+        id: "r2",
+        status: "completed",
+        is_demo: false,
+        started_at: "2026-11-09T01:00:00Z",
+      },
+      {
+        id: "r-demo",
+        status: "completed",
+        is_demo: true,
+        started_at: "2026-11-10T01:00:00Z",
+      }, // diabaikan karena demo
+      {
+        id: "r-oct",
+        status: "completed",
+        is_demo: false,
+        started_at: "2026-10-25T01:00:00Z",
+      } // diabaikan karena bulan Oktober
     );
 
-    const countNov = await getMonthlyRunCount(ctx.client, new Date("2026-11-15T00:00:00Z"));
+    const countNov = await getMonthlyRunCount(
+      ctx.client,
+      new Date("2026-11-15T00:00:00Z")
+    );
     expect(countNov).toBe(2);
 
-    const countOct = await getMonthlyRunCount(ctx.client, new Date("2026-10-30T00:00:00Z"));
+    const countOct = await getMonthlyRunCount(
+      ctx.client,
+      new Date("2026-10-30T00:00:00Z")
+    );
     expect(countOct).toBe(1);
   });
 

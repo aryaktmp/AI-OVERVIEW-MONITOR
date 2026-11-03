@@ -12,7 +12,8 @@
     "20261102000000_single_running_run.sql",
     "20261102010000_keyword_batches.sql",
     "20261102020000_batch_schedule_slots.sql",
-    "20261103000000_default_batch_4.sql"
+    "20261103000000_default_batch_4.sql",
+    "20261104000000_activate_keyword_batch.sql"
   ],
   "perFileSummary": [
     {
@@ -704,6 +705,66 @@
       "viewsCreatedOrReplaced": [],
       "functionsCreatedOrReplaced": [],
       "permissionOps": [],
+      "seedUpdates": []
+    },
+    {
+      "fileName": "20261104000000_activate_keyword_batch.sql",
+      "extensionsCreated": [],
+      "tablesCreated": [],
+      "columnsAdded": [],
+      "indexesCreated": [],
+      "rlsEnabledTables": [],
+      "policiesCreated": [],
+      "viewsCreatedOrReplaced": [],
+      "functionsCreatedOrReplaced": [
+        "activate_keyword_batch"
+      ],
+      "permissionOps": [
+        {
+          "action": "REVOKE",
+          "privileges": [
+            "ALL",
+            "EXECUTE"
+          ],
+          "objectType": "FUNCTION",
+          "objectName": "activate_keyword_batch",
+          "argsSignature": "uuid, text, text, text",
+          "roles": [
+            "public",
+            "anon",
+            "authenticated"
+          ],
+          "sourceMigration": "20261104000000_activate_keyword_batch.sql"
+        },
+        {
+          "action": "REVOKE",
+          "privileges": [
+            "EXECUTE"
+          ],
+          "objectType": "FUNCTION",
+          "objectName": "activate_keyword_batch",
+          "argsSignature": "uuid, text, text, text",
+          "roles": [
+            "public",
+            "anon",
+            "authenticated"
+          ],
+          "sourceMigration": "20261104000000_activate_keyword_batch.sql"
+        },
+        {
+          "action": "GRANT",
+          "privileges": [
+            "EXECUTE"
+          ],
+          "objectType": "FUNCTION",
+          "objectName": "activate_keyword_batch",
+          "argsSignature": "uuid, text, text, text",
+          "roles": [
+            "service_role"
+          ],
+          "sourceMigration": "20261104000000_activate_keyword_batch.sql"
+        }
+      ],
       "seedUpdates": []
     }
   ],
@@ -2426,6 +2487,33 @@
           "20261029060000_predeploy_hardening.sql",
           "20261029070000_function_search_path.sql"
         ]
+      },
+      "activate_keyword_batch": {
+        "name": "activate_keyword_batch",
+        "schema": "public",
+        "argsSignature": "uuid, text, text, text",
+        "argTypes": [
+          "uuid",
+          "text",
+          "text",
+          "text"
+        ],
+        "returnType": "jsonb",
+        "language": "plpgsql",
+        "securityDefiner": true,
+        "searchPath": "public, pg_temp",
+        "revokedFrom": [
+          "public",
+          "anon",
+          "authenticated"
+        ],
+        "grantedTo": [
+          "service_role"
+        ],
+        "sourceMigration": "20261104000000_activate_keyword_batch.sql",
+        "modifiedByMigrations": [
+          "20261104000000_activate_keyword_batch.sql"
+        ]
       }
     },
     "permissions": [
@@ -2777,6 +2865,50 @@
           "service_role"
         ],
         "sourceMigration": "20261029070000_function_search_path.sql"
+      },
+      {
+        "action": "REVOKE",
+        "privileges": [
+          "ALL",
+          "EXECUTE"
+        ],
+        "objectType": "FUNCTION",
+        "objectName": "activate_keyword_batch",
+        "argsSignature": "uuid, text, text, text",
+        "roles": [
+          "public",
+          "anon",
+          "authenticated"
+        ],
+        "sourceMigration": "20261104000000_activate_keyword_batch.sql"
+      },
+      {
+        "action": "REVOKE",
+        "privileges": [
+          "EXECUTE"
+        ],
+        "objectType": "FUNCTION",
+        "objectName": "activate_keyword_batch",
+        "argsSignature": "uuid, text, text, text",
+        "roles": [
+          "public",
+          "anon",
+          "authenticated"
+        ],
+        "sourceMigration": "20261104000000_activate_keyword_batch.sql"
+      },
+      {
+        "action": "GRANT",
+        "privileges": [
+          "EXECUTE"
+        ],
+        "objectType": "FUNCTION",
+        "objectName": "activate_keyword_batch",
+        "argsSignature": "uuid, text, text, text",
+        "roles": [
+          "service_role"
+        ],
+        "sourceMigration": "20261104000000_activate_keyword_batch.sql"
       }
     ],
     "seeds": {

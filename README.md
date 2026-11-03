@@ -8,7 +8,7 @@ Aplikasi web untuk memantau apakah **LinovHR (`linovhr.com`)** muncul di Google 
    - **Tingkat 1 (`detected_domain`)**: Hostname `linovhr.com` atau subdomainnya dikutip langsung sebagai referensi AI Overview.
    - **Tingkat 2 (`detected_text`)**: Istilah merek (`LinovHR`, `Linov HR`, `linovhr.com`) disebut di dalam teks jawaban AI Overview.
    - **Tingkat 3 (`detected_third_party`)**: Halaman sumber pihak ketiga yang dikutip oleh AI Overview menyebut istilah merek atau menautkan ke `linovhr.com` (dilengkapi cache 7 hari, batas waktu 15 detik per keyword, dan proteksi SSRF berlapis).
-2. **Antrean Atomik & Batas Laju**: Memproses keyword secara bertahap melalui endpoint HTTP `/api/cron/*` dengan klaim atomik (`FOR UPDATE SKIP LOCKED`), batas laju `SERPAPI_MAX_PER_HOUR`, batas durasi yang dapat dikonfigurasi lewat `MAX_DURATION_MS`, serta jalur cepat (*fast-path*) saat antrean kosong.
+2. **Antrean Atomik & Batas Laju**: Memproses keyword secara bertahap melalui endpoint HTTP `/api/cron/*` dengan klaim atomik (`FOR UPDATE SKIP LOCKED`), batas laju `SERPAPI_MAX_PER_HOUR`, batas durasi yang dapat dikonfigurasi lewat `MAX_DURATION_MS`, serta jalur cepat (_fast-path_) saat antrean kosong.
 3. **Dasbor Analitik & Impor/Ekspor CSV**: Ringkasan statistik, grafik tren 8 minggu, peta status keyword, analisis domain kompetitor, impor CSV keyword dengan pratinjau, ekspor CSV terpaginasi dengan proteksi formula injection, serta pemantauan kapasitas database terhadap batas 500 MB.
 
 ## Stack Teknologi
@@ -20,7 +20,7 @@ Aplikasi web untuk memantau apakah **LinovHR (`linovhr.com`)** muncul di Google 
 
 ## Urutan Migrasi Database (`supabase/migrations/`)
 
-Jalankan kesembilan file migrasi berikut secara berurutan di Supabase SQL Editor:
+Jalankan ketiga belas file migrasi berikut secara berurutan di Supabase SQL Editor:
 
 1. `20261029000000_init_schema.sql`
 2. `20261029010000_phase3_queue_and_calls.sql`
@@ -31,6 +31,10 @@ Jalankan kesembilan file migrasi berikut secara berurutan di Supabase SQL Editor
 7. `20261029060000_predeploy_hardening.sql`
 8. `20261029070000_function_search_path.sql`
 9. `20261102000000_single_running_run.sql`
+10. `20261102010000_keyword_batches.sql`
+11. `20261102020000_batch_schedule_slots.sql`
+12. `20261103000000_default_batch_4.sql`
+13. `20261104000000_activate_keyword_batch.sql`
 
 ## Persiapan Lingkungan Lokal
 
@@ -51,19 +55,19 @@ Jalankan kesembilan file migrasi berikut secara berurutan di Supabase SQL Editor
 
 ## Daftar Skrip NPM
 
-| Perintah | Fungsi |
-| :--- | :--- |
-| `npm run dev` | Menjalankan server pengembangan Next.js. |
-| `npm run build` | Membangun aplikasi untuk produksi. |
-| `npm test` | Menjalankan seluruh pengujian unit Vitest. |
-| `npm run typecheck` | Memeriksa tipe TypeScript (`tsc --noEmit`). |
-| `npm run lint` | Menjalankan pemeriksaan ESLint. |
-| `npm run check:env` | Memeriksa format variabel lingkungan, koneksi Supabase/SerpApi, RLS, dan keamanan kode. |
-| `npm run check:env -- --production` | Memeriksa kesiapan produksi (`SERPAPI_DRY_RUN=false`, `CRON_SECRET` >= 32 karakter, bebas data `is_demo`, dan Site URL bukan `localhost`). |
-| `npm run seed:demo` | Mengisi data contoh 8 minggu (`is_demo = true`) untuk melihat tampilan dasbor. |
-| `npm run seed:clear` | Menghapus seluruh data contoh (`is_demo = true`) dari semua tabel. |
-| `npm run try:keyword -- "<keyword>"` | Menguji panggilan SerpApi nyata dan deteksi tingkat 1 & 2 untuk satu keyword. |
-| `npm run try:fetch -- "<url>"` | Menguji pengambilan halaman pihak ketiga nyata (deteksi tingkat 3 & proteksi SSRF) untuk satu URL. |
+| Perintah                             | Fungsi                                                                                                                                     |
+| :----------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`                        | Menjalankan server pengembangan Next.js.                                                                                                   |
+| `npm run build`                      | Membangun aplikasi untuk produksi.                                                                                                         |
+| `npm test`                           | Menjalankan seluruh pengujian unit Vitest.                                                                                                 |
+| `npm run typecheck`                  | Memeriksa tipe TypeScript (`tsc --noEmit`).                                                                                                |
+| `npm run lint`                       | Menjalankan pemeriksaan ESLint.                                                                                                            |
+| `npm run check:env`                  | Memeriksa format variabel lingkungan, koneksi Supabase/SerpApi, RLS, dan keamanan kode.                                                    |
+| `npm run check:env -- --production`  | Memeriksa kesiapan produksi (`SERPAPI_DRY_RUN=false`, `CRON_SECRET` >= 32 karakter, bebas data `is_demo`, dan Site URL bukan `localhost`). |
+| `npm run seed:demo`                  | Mengisi data contoh 8 minggu (`is_demo = true`) untuk melihat tampilan dasbor.                                                             |
+| `npm run seed:clear`                 | Menghapus seluruh data contoh (`is_demo = true`) dari semua tabel.                                                                         |
+| `npm run try:keyword -- "<keyword>"` | Menguji panggilan SerpApi nyata dan deteksi tingkat 1 & 2 untuk satu keyword.                                                              |
+| `npm run try:fetch -- "<url>"`       | Menguji pengambilan halaman pihak ketiga nyata (deteksi tingkat 3 & proteksi SSRF) untuk satu URL.                                         |
 
 ## Panduan Deploy & Migrasi VPS
 

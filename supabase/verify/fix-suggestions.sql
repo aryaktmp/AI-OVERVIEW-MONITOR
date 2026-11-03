@@ -12,6 +12,7 @@
 
 -- -> Jalankan file: supabase/migrations/20261029000000_init_schema.sql
 -- -> Jalankan file: supabase/migrations/20261029070000_function_search_path.sql
+-- -> Jalankan file: supabase/migrations/20261104000000_activate_keyword_batch.sql
 
 -- =============================================================================
 -- 3. SARAN OPSIONAL LAPISAN PERTAHANAN TAMBAHAN (Defense-in-Depth)

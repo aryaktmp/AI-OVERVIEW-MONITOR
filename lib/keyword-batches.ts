@@ -108,7 +108,10 @@ export interface OverrideBatchResult {
 }
 
 // In-memory cache untuk active batch (mempercepat query search & zero-downtime)
-let activeBatchCache: { record: KeywordBatchRecord | null; expiresAt: number } | null = null;
+let activeBatchCache: {
+  record: KeywordBatchRecord | null;
+  expiresAt: number;
+} | null = null;
 const CACHE_TTL_MS = 30 * 1000; // 30 detik
 
 /**
@@ -178,7 +181,9 @@ export async function listKeywordBatchesWithCounts(
   ]);
 
   if (kwError) {
-    throw new Error(`Gagal membaca data keyword untuk agregasi batch: ${kwError.message}`);
+    throw new Error(
+      `Gagal membaca data keyword untuk agregasi batch: ${kwError.message}`
+    );
   }
 
   const keywords = (keywordsData ?? []) as Array<{
@@ -230,7 +235,9 @@ export async function getKeywordsByBatchId(
   const { data, error } = await query;
 
   if (error) {
-    throw new Error(`Gagal membaca keyword untuk batch ${batchId}: ${error.message}`);
+    throw new Error(
+      `Gagal membaca keyword untuk batch ${batchId}: ${error.message}`
+    );
   }
 
   return (data as KeywordWithBatch[]) ?? [];
@@ -298,14 +305,13 @@ export interface SelectableKeywordItem {
 export async function listKeywordsForBatchSelection(
   supabase: SupabaseClient
 ): Promise<SelectableKeywordItem[]> {
-  const [{ data: kws, error: kwErr }, { data: batches }] =
-    await Promise.all([
-      supabase
-        .from("keywords")
-        .select("id, text, batch_id, active")
-        .order("text", { ascending: true }),
-      supabase.from("keyword_batches").select("id, name"),
-    ]);
+  const [{ data: kws, error: kwErr }, { data: batches }] = await Promise.all([
+    supabase
+      .from("keywords")
+      .select("id, text, batch_id, active")
+      .order("text", { ascending: true }),
+    supabase.from("keyword_batches").select("id, name"),
+  ]);
 
   if (kwErr) {
     throw new Error(`Gagal membaca daftar keyword: ${kwErr.message}`);
@@ -318,11 +324,18 @@ export async function listKeywordsForBatchSelection(
     }
   }
 
-  return ((kws ?? []) as Array<{ id: string; text: string; batch_id: string | null; active: boolean }>).map((k) => ({
+  return (
+    (kws ?? []) as Array<{
+      id: string;
+      text: string;
+      batch_id: string | null;
+      active: boolean;
+    }>
+  ).map((k) => ({
     id: k.id,
     text: k.text,
     batch_id: k.batch_id ?? null,
-    batch_name: k.batch_id ? batchMap.get(k.batch_id) ?? null : null,
+    batch_name: k.batch_id ? (batchMap.get(k.batch_id) ?? null) : null,
     active: k.active ?? true,
   }));
 }
@@ -347,7 +360,10 @@ export async function createKeywordBatch(
 
   if (typeof orderIndex !== "number") {
     const existing = await listKeywordBatches(supabase);
-    const maxOrder = existing.reduce((max, b) => Math.max(max, b.order_index), 0);
+    const maxOrder = existing.reduce(
+      (max, b) => Math.max(max, b.order_index),
+      0
+    );
     orderIndex = maxOrder + 1;
   }
 
@@ -401,7 +417,9 @@ export async function createKeywordBatch(
         .in("id", validIds);
 
       if (assignErr) {
-        throw new Error(`Gagal menautkan keyword ke batch baru: ${assignErr.message}`);
+        throw new Error(
+          `Gagal menautkan keyword ke batch baru: ${assignErr.message}`
+        );
       }
       keywordsCount += validIds.length;
     }
@@ -414,9 +432,16 @@ export async function createKeywordBatch(
       .from("keywords")
       .select("id, text, batch_id");
 
-    const existingByLower = new Map<string, { id: string; batch_id: string | null }>();
+    const existingByLower = new Map<
+      string,
+      { id: string; batch_id: string | null }
+    >();
     if (Array.isArray(existingRows)) {
-      for (const row of existingRows as Array<{ id: string; text: string; batch_id: string | null }>) {
+      for (const row of existingRows as Array<{
+        id: string;
+        text: string;
+        batch_id: string | null;
+      }>) {
         existingByLower.set(row.text.toLowerCase().trim(), {
           id: row.id,
           batch_id: row.batch_id ?? null,
@@ -425,7 +450,8 @@ export async function createKeywordBatch(
     }
 
     const toReassignIds: string[] = [];
-    const toInsert: Array<{ text: string; batch_id: string; active: boolean }> = [];
+    const toInsert: Array<{ text: string; batch_id: string; active: boolean }> =
+      [];
 
     for (const kw of parsedKeywords) {
       const existing = existingByLower.get(kw.toLowerCase());
@@ -449,7 +475,10 @@ export async function createKeywordBatch(
         .update({ batch_id: batch.id })
         .in("id", toReassignIds);
       if (reassignErr) {
-        console.error("Gagal menautkan keyword unassigned ke batch baru:", reassignErr.message);
+        console.error(
+          "Gagal menautkan keyword unassigned ke batch baru:",
+          reassignErr.message
+        );
       }
       keywordsCount += toReassignIds.length;
     }
@@ -459,7 +488,10 @@ export async function createKeywordBatch(
         .from("keywords")
         .insert(toInsert);
       if (insertErr) {
-        console.error("Gagal menambahkan keyword baru ke batch:", insertErr.message);
+        console.error(
+          "Gagal menambahkan keyword baru ke batch:",
+          insertErr.message
+        );
       }
       keywordsCount += toInsert.length;
     }
@@ -495,9 +527,13 @@ export async function updateKeywordBatch(
 
   if (payload.name !== undefined) updatePayload.name = payload.name.trim();
   if (payload.description !== undefined)
-    updatePayload.description = payload.description ? payload.description.trim() : null;
-  if (payload.orderIndex !== undefined) updatePayload.order_index = payload.orderIndex;
-  if (payload.isEnabled !== undefined) updatePayload.is_enabled = payload.isEnabled;
+    updatePayload.description = payload.description
+      ? payload.description.trim()
+      : null;
+  if (payload.orderIndex !== undefined)
+    updatePayload.order_index = payload.orderIndex;
+  if (payload.isEnabled !== undefined)
+    updatePayload.is_enabled = payload.isEnabled;
   if (payload.color !== undefined) updatePayload.color = payload.color.trim();
 
   const { data, error } = await supabase
@@ -559,7 +595,9 @@ export async function updateBatchWithKeywords(
     .single();
 
   if (batchErr || !updatedBatch) {
-    throw new Error(`Gagal memperbarui batch: ${batchErr?.message ?? "Batch tidak ditemukan"}`);
+    throw new Error(
+      `Gagal memperbarui batch: ${batchErr?.message ?? "Batch tidak ditemukan"}`
+    );
   }
 
   // 2. Ambil keyword yang saat ini terdaftar di batch ini
@@ -569,11 +607,15 @@ export async function updateBatchWithKeywords(
     .eq("batch_id", batchId);
 
   if (currentErr) {
-    throw new Error(`Gagal membaca keyword saat ini pada batch: ${currentErr.message}`);
+    throw new Error(
+      `Gagal membaca keyword saat ini pada batch: ${currentErr.message}`
+    );
   }
 
   const currentIds = new Set((currentKeywords ?? []).map((k) => k.id));
-  const targetIds = payload.keywordIds ? new Set(payload.keywordIds) : currentIds;
+  const targetIds = payload.keywordIds
+    ? new Set(payload.keywordIds)
+    : currentIds;
 
   // Keyword yang di-unselect -> set batch_id = null
   const toUnassign = [...currentIds].filter((id) => !targetIds.has(id));
@@ -584,7 +626,9 @@ export async function updateBatchWithKeywords(
       .in("id", toUnassign);
 
     if (unassignErr) {
-      throw new Error(`Gagal melepas keyword dari batch: ${unassignErr.message}`);
+      throw new Error(
+        `Gagal melepas keyword dari batch: ${unassignErr.message}`
+      );
     }
   }
 
@@ -597,11 +641,16 @@ export async function updateBatchWithKeywords(
       .in("id", toAssign);
 
     if (candErr) {
-      throw new Error(`Gagal memvalidasi keyword yang dipilih: ${candErr.message}`);
+      throw new Error(
+        `Gagal memvalidasi keyword yang dipilih: ${candErr.message}`
+      );
     }
 
     const inOtherBatch = (assignCandidates ?? []).filter(
-      (k) => k.batch_id !== null && k.batch_id !== undefined && k.batch_id !== batchId
+      (k) =>
+        k.batch_id !== null &&
+        k.batch_id !== undefined &&
+        k.batch_id !== batchId
     );
     if (inOtherBatch.length > 0) {
       throw new Error(
@@ -619,7 +668,9 @@ export async function updateBatchWithKeywords(
         .in("id", validAssignIds);
 
       if (assignErr) {
-        throw new Error(`Gagal menautkan keyword ke batch: ${assignErr.message}`);
+        throw new Error(
+          `Gagal menautkan keyword ke batch: ${assignErr.message}`
+        );
       }
     }
   }
@@ -631,9 +682,16 @@ export async function updateBatchWithKeywords(
       .from("keywords")
       .select("id, text, batch_id");
 
-    const existingByLower = new Map<string, { id: string; batch_id: string | null }>();
+    const existingByLower = new Map<
+      string,
+      { id: string; batch_id: string | null }
+    >();
     if (Array.isArray(existingRows)) {
-      for (const row of existingRows as Array<{ id: string; text: string; batch_id: string | null }>) {
+      for (const row of existingRows as Array<{
+        id: string;
+        text: string;
+        batch_id: string | null;
+      }>) {
         existingByLower.set(row.text.toLowerCase().trim(), {
           id: row.id,
           batch_id: row.batch_id ?? null,
@@ -642,7 +700,8 @@ export async function updateBatchWithKeywords(
     }
 
     const toReassignIds: string[] = [];
-    const toInsert: Array<{ text: string; batch_id: string; active: boolean }> = [];
+    const toInsert: Array<{ text: string; batch_id: string; active: boolean }> =
+      [];
 
     for (const kw of parsedKeywords) {
       const existing = existingByLower.get(kw.toLowerCase());
@@ -704,7 +763,9 @@ export async function deleteKeywordBatch(
 ): Promise<void> {
   const activeBatch = await getActiveKeywordBatch(supabase);
   if (activeBatch && activeBatch.id === batchId) {
-    throw new Error("Tidak dapat menghapus batch yang sedang berstatus aktif. Ubah batch aktif terlebih dahulu.");
+    throw new Error(
+      "Tidak dapat menghapus batch yang sedang berstatus aktif. Ubah batch aktif terlebih dahulu."
+    );
   }
 
   const { error } = await supabase
@@ -823,7 +884,8 @@ export async function rotateActiveKeywordBatch(
   if (settings.mode === "manual_frozen" && !options.force) {
     return {
       status: "skipped_manual_frozen",
-      message: "Rotasi dilewati karena mode jadwal saat ini berstatus 'manual_frozen'.",
+      message:
+        "Rotasi dilewati karena mode jadwal saat ini berstatus 'manual_frozen'.",
     };
   }
 
@@ -872,7 +934,8 @@ export async function rotateActiveKeywordBatch(
       new_batch_id: null,
       trigger_type: "warning",
       actor_id: actorId,
-      notes: "Peringatan: Rotasi gagal karena tidak ada batch yang diaktifkan (is_enabled = true).",
+      notes:
+        "Peringatan: Rotasi gagal karena tidak ada batch yang diaktifkan (is_enabled = true).",
       created_at: nowIso,
     });
 
@@ -898,7 +961,9 @@ export async function rotateActiveKeywordBatch(
 
   // 5b. Deteksi & Penanganan Batch Kosong (0 active keywords)
   if (nextBatch.activeKeywords === 0) {
-    const candidatesWithKeywords = enabledBatches.filter((b) => b.activeKeywords > 0);
+    const candidatesWithKeywords = enabledBatches.filter(
+      (b) => b.activeKeywords > 0
+    );
 
     if (candidatesWithKeywords.length === 0) {
       await supabase.from("batch_audit_logs").insert({
@@ -906,7 +971,8 @@ export async function rotateActiveKeywordBatch(
         new_batch_id: null,
         trigger_type: "warning",
         actor_id: actorId,
-        notes: "Peringatan: Seluruh batch yang aktif memiliki 0 keyword. Tidak ada batch yang dapat diaktifkan.",
+        notes:
+          "Peringatan: Seluruh batch yang aktif memiliki 0 keyword. Tidak ada batch yang dapat diaktifkan.",
         created_at: nowIso,
       });
 
@@ -926,8 +992,8 @@ export async function rotateActiveKeywordBatch(
       created_at: nowIso,
     });
 
-    const altCandidate = candidatesWithKeywords.find(
-      (b) => (currentBatch ? b.order_index > currentBatch.order_index : true)
+    const altCandidate = candidatesWithKeywords.find((b) =>
+      currentBatch ? b.order_index > currentBatch.order_index : true
     );
     nextBatch = altCandidate ?? candidatesWithKeywords[0]!;
   }
@@ -942,49 +1008,27 @@ export async function rotateActiveKeywordBatch(
     };
   }
 
-  // 6. Jalankan pergantian batch secara transaksional
-  // Nonaktifkan batch aktif sebelumnya
-  if (currentBatch) {
-    const { error: deactivateError } = await supabase
-      .from("keyword_batches")
-      .update({ is_active: false, updated_at: nowIso })
-      .eq("id", currentBatch.id);
+  const mondayInfo = getMondayOccurrenceOfMonth(now);
+  const rotationNotes =
+    options.notes ??
+    `Rotasi mingguan otomatis (${mondayInfo.formattedWib}): ${currentBatch?.name ?? "Tidak ada"} -> ${nextBatch.name} (order ${nextBatch.order_index}, ${nextBatch.activeKeywords} keywords aktif)`;
 
-    if (deactivateError) {
-      throw new Error(`Gagal menonaktifkan batch sebelumnya: ${deactivateError.message}`);
+  // 6. Jalankan aktivasi batch atomik via fungsi activate_keyword_batch
+  const { error: activateError } = await supabase.rpc(
+    "activate_keyword_batch",
+    {
+      target_batch_id: nextBatch.id,
+      trigger_type: "auto_schedule",
+      actor_id: actorId,
+      notes: rotationNotes,
     }
-  }
-
-  // Aktifkan batch baru
-  const { error: activateError } = await supabase
-    .from("keyword_batches")
-    .update({ is_active: true, updated_at: nowIso })
-    .eq("id", nextBatch.id);
+  );
 
   if (activateError) {
-    // Upayakan pemulihan jika aktivasi gagal
-    if (currentBatch) {
-      await supabase
-        .from("keyword_batches")
-        .update({ is_active: true, updated_at: nowIso })
-        .eq("id", currentBatch.id);
-    }
-    throw new Error(`Gagal mengaktifkan batch baru: ${activateError.message}`);
+    throw new Error(
+      `Gagal mengaktifkan batch baru secara atomik: ${activateError.message}`
+    );
   }
-
-  const mondayInfo = getMondayOccurrenceOfMonth(now);
-
-  // 7. Catat audit trail pergantian batch
-  await supabase.from("batch_audit_logs").insert({
-    previous_batch_id: currentBatch?.id ?? null,
-    new_batch_id: nextBatch.id,
-    trigger_type: "auto_schedule",
-    actor_id: actorId,
-    notes:
-      options.notes ??
-      `Rotasi mingguan otomatis (${mondayInfo.formattedWib}): ${currentBatch?.name ?? "Tidak ada"} -> ${nextBatch.name} (order ${nextBatch.order_index}, ${nextBatch.activeKeywords} keywords aktif)`,
-    created_at: nowIso,
-  });
 
   // 8. Sinkronkan slot minggu kalender saat ini agar selaras (jika slot bukan override)
   const currentWeek = getSlotWeekNumber(now);
@@ -1033,41 +1077,36 @@ export async function overrideActiveKeywordBatch(
     .single();
 
   if (targetError || !targetData) {
-    throw new Error(`Batch tujuan tidak ditemukan: ${targetError?.message ?? targetBatchId}`);
+    throw new Error(
+      `Batch tujuan tidak ditemukan: ${targetError?.message ?? targetBatchId}`
+    );
   }
 
   const targetBatch = targetData as KeywordBatchRecord;
   const currentBatch = await getActiveKeywordBatch(supabase);
 
-  // 2. Ubah batch aktif
-  if (currentBatch && currentBatch.id !== targetBatchId) {
-    const { error: deactError } = await supabase
-      .from("keyword_batches")
-      .update({ is_active: false, updated_at: nowIso })
-      .eq("id", currentBatch.id);
+  const nextMode: BatchScheduleMode = options.freezeMode
+    ? "manual_frozen"
+    : "auto";
+  const overrideNotes =
+    options.notes ??
+    `Override manual ke ${targetBatch.name} (order ${targetBatch.order_index}, mode: ${nextMode})`;
 
-    if (deactError) {
-      throw new Error(`Gagal menonaktifkan batch aktif lama: ${deactError.message}`);
-    }
-  }
-
-  const { error: actError } = await supabase
-    .from("keyword_batches")
-    .update({ is_active: true, updated_at: nowIso })
-    .eq("id", targetBatchId);
+  // 2. Aktivasi batch atomik via fungsi activate_keyword_batch
+  const { error: actError } = await supabase.rpc("activate_keyword_batch", {
+    target_batch_id: targetBatchId,
+    trigger_type: "admin_override",
+    actor_id: actorId,
+    notes: overrideNotes,
+  });
 
   if (actError) {
-    if (currentBatch && currentBatch.id !== targetBatchId) {
-      await supabase
-        .from("keyword_batches")
-        .update({ is_active: true, updated_at: nowIso })
-        .eq("id", currentBatch.id);
-    }
-    throw new Error(`Gagal mengaktifkan batch target: ${actError.message}`);
+    throw new Error(
+      `Gagal mengaktifkan batch target secara atomik: ${actError.message}`
+    );
   }
 
   // 3. Perbarui mode schedule
-  const nextMode: BatchScheduleMode = options.freezeMode ? "manual_frozen" : "auto";
   await supabase
     .from("batch_schedule_settings")
     .update({
@@ -1076,18 +1115,6 @@ export async function overrideActiveKeywordBatch(
       updated_at: nowIso,
     })
     .eq("id", 1);
-
-  // 4. Catat ke audit log
-  await supabase.from("batch_audit_logs").insert({
-    previous_batch_id: currentBatch?.id ?? null,
-    new_batch_id: targetBatch.id,
-    trigger_type: "admin_override",
-    actor_id: actorId,
-    notes:
-      options.notes ??
-      `Override manual ke ${targetBatch.name} (order ${targetBatch.order_index}, mode: ${nextMode})`,
-    created_at: nowIso,
-  });
 
   // 5. Invalidate cache
   invalidateActiveKeywordBatchCache();
@@ -1183,7 +1210,9 @@ export interface MondayOccurrenceInfo {
  * Mendeteksi kemunculan hari Senin keberapa dalam bulan kalender berjalan (1 s/d 5).
  * Memudahkan monitoring dan audit log mingguan.
  */
-export function getMondayOccurrenceOfMonth(date: Date = new Date()): MondayOccurrenceInfo {
+export function getMondayOccurrenceOfMonth(
+  date: Date = new Date()
+): MondayOccurrenceInfo {
   const year = date.getFullYear();
   const month = date.getMonth();
   const day = date.getDate();
@@ -1208,12 +1237,32 @@ export function getMondayOccurrenceOfMonth(date: Date = new Date()): MondayOccur
   }
 
   const MONTH_NAMES_EN = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
   const MONTH_NAMES_ID = [
-    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
   ];
 
   const monthEn = MONTH_NAMES_EN[month] ?? "Current Month";
@@ -1245,8 +1294,12 @@ export async function getMonthlyRunCount(
 ): Promise<number> {
   const year = date.getFullYear();
   const month = date.getMonth();
-  const startOfMonth = new Date(Date.UTC(year, month, 1, 0, 0, 0)).toISOString();
-  const endOfMonth = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999)).toISOString();
+  const startOfMonth = new Date(
+    Date.UTC(year, month, 1, 0, 0, 0)
+  ).toISOString();
+  const endOfMonth = new Date(
+    Date.UTC(year, month + 1, 0, 23, 59, 59, 999)
+  ).toISOString();
 
   const { data, error } = await supabase
     .from("check_runs")
@@ -1285,7 +1338,10 @@ export async function getBatchScheduleSlots(
       .from("batch_schedule_slots")
       .select("id, week_number, batch_id, is_override, created_at, updated_at")
       .order("week_number", { ascending: true });
-    return joinSlotsWithBatches(supabase, (syncedData as BatchScheduleSlotRecord[]) ?? []);
+    return joinSlotsWithBatches(
+      supabase,
+      (syncedData as BatchScheduleSlotRecord[]) ?? []
+    );
   }
 
   return joinSlotsWithBatches(supabase, rawSlots);
@@ -1300,7 +1356,7 @@ async function joinSlotsWithBatches(
 
   return slots.map((s) => ({
     ...s,
-    batch: s.batch_id ? batchMap.get(s.batch_id) ?? null : null,
+    batch: s.batch_id ? (batchMap.get(s.batch_id) ?? null) : null,
   }));
 }
 
@@ -1323,8 +1379,21 @@ export async function syncDefaultScheduleSlots(
     .select("id, week_number, batch_id, is_override")
     .order("week_number", { ascending: true });
 
-  const existingMap = new Map<number, { id: string; week_number: number; batch_id: string | null; is_override: boolean }>();
-  for (const s of (existingSlots ?? []) as Array<{ id: string; week_number: number; batch_id: string | null; is_override: boolean }>) {
+  const existingMap = new Map<
+    number,
+    {
+      id: string;
+      week_number: number;
+      batch_id: string | null;
+      is_override: boolean;
+    }
+  >();
+  for (const s of (existingSlots ?? []) as Array<{
+    id: string;
+    week_number: number;
+    batch_id: string | null;
+    is_override: boolean;
+  }>) {
     existingMap.set(s.week_number, s);
   }
 
@@ -1388,7 +1457,9 @@ export async function assignBatchToSlot(
   actorId = "admin"
 ): Promise<{ ok: boolean; message: string }> {
   if (weekNumber < 1 || weekNumber > 4) {
-    throw new Error(`Nomor minggu slot harus antara 1 dan 4 (diterima: ${weekNumber})`);
+    throw new Error(
+      `Nomor minggu slot harus antara 1 dan 4 (diterima: ${weekNumber})`
+    );
   }
 
   const now = new Date();
@@ -1418,7 +1489,9 @@ export async function assignBatchToSlot(
     .eq("week_number", weekNumber);
 
   if (slotError) {
-    throw new Error(`Gagal memperbarui slot minggu ke-${weekNumber}: ${slotError.message}`);
+    throw new Error(
+      `Gagal memperbarui slot minggu ke-${weekNumber}: ${slotError.message}`
+    );
   }
 
   // Catat riwayat audit
@@ -1434,7 +1507,11 @@ export async function assignBatchToSlot(
   // Jika minggu ini sedang berjalan dan mode jadwal 'auto', langsung sinkronkan batch aktif
   const currentWeek = getSlotWeekNumber(now);
   const settings = await getBatchScheduleSettings(supabase).catch(() => null);
-  if (currentWeek === weekNumber && targetBatch && settings?.mode !== "manual_frozen") {
+  if (
+    currentWeek === weekNumber &&
+    targetBatch &&
+    settings?.mode !== "manual_frozen"
+  ) {
     await overrideActiveKeywordBatch(supabase, targetBatch.id, {
       actorId,
       freezeMode: false,
@@ -1507,7 +1584,8 @@ export async function rotateActiveBatchBySlot(
   if (settings.mode === "manual_frozen" && !options.force) {
     return {
       status: "skipped_manual_frozen",
-      message: "Rotasi slot dilewati karena mode jadwal saat ini berstatus 'manual_frozen'.",
+      message:
+        "Rotasi slot dilewati karena mode jadwal saat ini berstatus 'manual_frozen'.",
     };
   }
 
@@ -1541,7 +1619,10 @@ export async function rotateActiveBatchBySlot(
   }
 
   // 3. Batas Maksimal Eksekusi per Bulan Kalender (Jika enforceMonthlyLimit tidak bernilai false)
-  const shouldEnforceLimit = options.enforceMonthlyLimit ?? (settings.max_runs_per_month !== undefined && settings.max_runs_per_month !== null);
+  const shouldEnforceLimit =
+    options.enforceMonthlyLimit ??
+    (settings.max_runs_per_month !== undefined &&
+      settings.max_runs_per_month !== null);
   if (shouldEnforceLimit && !options.force) {
     const maxRuns = settings.max_runs_per_month ?? 4;
     const monthlyRuns = await getMonthlyRunCount(supabase, now);
@@ -1595,43 +1676,27 @@ export async function rotateActiveBatchBySlot(
     };
   }
 
-  // Nonaktifkan batch aktif lama
-  if (currentActiveBatch) {
-    await supabase
-      .from("keyword_batches")
-      .update({ is_active: false, updated_at: nowIso })
-      .eq("id", currentActiveBatch.id);
-  }
+  const mondayInfo = getMondayOccurrenceOfMonth(now);
+  const slotNotes =
+    options.notes ??
+    `Rotasi slot mingguan (${mondayInfo.formattedWib}): Berpindah ke ${targetBatch.name} (order ${targetBatch.order_index})`;
 
-  // Aktifkan batch slot target
-  const { error: activateError } = await supabase
-    .from("keyword_batches")
-    .update({ is_active: true, updated_at: nowIso })
-    .eq("id", targetBatch.id);
+  // Aktivasi batch atomik via fungsi activate_keyword_batch
+  const { error: activateError } = await supabase.rpc(
+    "activate_keyword_batch",
+    {
+      target_batch_id: targetBatch.id,
+      trigger_type: "weekly_slot_rotation",
+      actor_id: actorId,
+      notes: slotNotes,
+    }
+  );
 
   if (activateError) {
-    if (currentActiveBatch) {
-      await supabase
-        .from("keyword_batches")
-        .update({ is_active: true, updated_at: nowIso })
-        .eq("id", currentActiveBatch.id);
-    }
-    throw new Error(`Gagal mengaktifkan batch slot: ${activateError.message}`);
+    throw new Error(
+      `Gagal mengaktifkan batch slot secara atomik: ${activateError.message}`
+    );
   }
-
-  const mondayInfo = getMondayOccurrenceOfMonth(now);
-
-  // Catat log audit
-  await supabase.from("batch_audit_logs").insert({
-    previous_batch_id: currentActiveBatch?.id ?? null,
-    new_batch_id: targetBatch.id,
-    trigger_type: "weekly_slot_rotation",
-    actor_id: actorId,
-    notes:
-      options.notes ??
-      `Rotasi slot mingguan (${mondayInfo.formattedWib}): Berpindah ke ${targetBatch.name} (order ${targetBatch.order_index})`,
-    created_at: nowIso,
-  });
 
   invalidateActiveKeywordBatchCache();
 

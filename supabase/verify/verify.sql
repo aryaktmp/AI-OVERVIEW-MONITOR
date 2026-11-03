@@ -79,7 +79,7 @@ expected_views(name) AS (
   VALUES ('latest_keyword_checks'), ('latest_domain_citation_counts')
 ),
 expected_functions(name) AS (
-  VALUES ('claim_next_run_item'), ('get_database_size_bytes'), ('cleanup_old_checks_raw')
+  VALUES ('claim_next_run_item'), ('get_database_size_bytes'), ('cleanup_old_checks_raw'), ('activate_keyword_batch')
 ),
 db_tables AS (
   SELECT
@@ -275,7 +275,7 @@ SELECT * FROM (
       ELSE 'Fungsi ada di schema public tetapi tidak ada di manifest'
     END AS detail
   FROM db_functions df
-  WHERE df.name NOT IN ('claim_next_run_item', 'get_database_size_bytes', 'cleanup_old_checks_raw')
+  WHERE df.name NOT IN ('claim_next_run_item', 'get_database_size_bytes', 'cleanup_old_checks_raw', 'activate_keyword_batch')
 
   UNION ALL
 

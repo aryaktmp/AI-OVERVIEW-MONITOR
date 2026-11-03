@@ -155,7 +155,8 @@ function createMockSupabase() {
         maybeSingle: async () => {
           if (table === "keyword_batches") {
             const found = batches.find((b) => {
-              if (filterIsActive !== null && b.is_active !== filterIsActive) return false;
+              if (filterIsActive !== null && b.is_active !== filterIsActive)
+                return false;
               if (filterId !== null && b.id !== filterId) return false;
               return true;
             });
@@ -169,48 +170,73 @@ function createMockSupabase() {
           }
           if (table === "keyword_batches") {
             const found = batches.find((b) => b.id === filterId);
-            return { data: found ? { ...found } : null, error: found ? null : { message: "Not found" } };
+            return {
+              data: found ? { ...found } : null,
+              error: found ? null : { message: "Not found" },
+            };
           }
           return { data: null, error: null };
         },
         then: (resolve: (val: unknown) => unknown) => {
           if (table === "keyword_batches") {
             const filtered = batches.filter((b) => {
-              if (filterIsActive !== null && b.is_active !== filterIsActive) return false;
+              if (filterIsActive !== null && b.is_active !== filterIsActive)
+                return false;
               if (filterId !== null && b.id !== filterId) return false;
               return true;
             });
-            return Promise.resolve(resolve({ data: filtered.map((b) => ({ ...b })), error: null }));
+            return Promise.resolve(
+              resolve({ data: filtered.map((b) => ({ ...b })), error: null })
+            );
           }
           if (table === "keywords") {
             const filtered = keywords.filter((k) => {
               if (filterIds !== null && !filterIds.includes(k.id)) return false;
-              if (filterBatchId !== null && k.batch_id !== filterBatchId) return false;
-              if (filterActive !== null && k.active !== filterActive) return false;
+              if (filterBatchId !== null && k.batch_id !== filterBatchId)
+                return false;
+              if (filterActive !== null && k.active !== filterActive)
+                return false;
               return true;
             });
-            return Promise.resolve(resolve({ data: filtered.map((k) => ({ ...k })), error: null, count: filtered.length }));
+            return Promise.resolve(
+              resolve({
+                data: filtered.map((k) => ({ ...k })),
+                error: null,
+                count: filtered.length,
+              })
+            );
           }
           if (table === "check_runs") {
             const filtered = checkRuns.filter((r) => {
-              if (filterStatus !== null && r.status !== filterStatus) return false;
+              if (filterStatus !== null && r.status !== filterStatus)
+                return false;
               return true;
             });
-            return Promise.resolve(resolve({ data: filtered.map((r) => ({ ...r })), error: null }));
+            return Promise.resolve(
+              resolve({ data: filtered.map((r) => ({ ...r })), error: null })
+            );
           }
           if (table === "batch_audit_logs") {
-            return Promise.resolve(resolve({ data: auditLogs.map((l) => ({ ...l })), error: null }));
+            return Promise.resolve(
+              resolve({ data: auditLogs.map((l) => ({ ...l })), error: null })
+            );
           }
           return Promise.resolve(resolve({ data: [], error: null }));
         },
         insert: (data: unknown) => {
           if (table === "batch_audit_logs") {
-            const row = { id: `log-${auditLogs.length + 1}`, ...(data as Record<string, unknown>) } as BatchAuditLogRecord;
+            const row = {
+              id: `log-${auditLogs.length + 1}`,
+              ...(data as Record<string, unknown>),
+            } as BatchAuditLogRecord;
             auditLogs.unshift(row);
             return Promise.resolve({ data: row, error: null });
           }
           if (table === "keyword_batches") {
-            const row = { id: `b-${batches.length + 1}`, ...(data as Record<string, unknown>) } as KeywordBatchRecord;
+            const row = {
+              id: `b-${batches.length + 1}`,
+              ...(data as Record<string, unknown>),
+            } as KeywordBatchRecord;
             batches.push(row);
             return {
               select: () => ({
@@ -252,7 +278,10 @@ function createMockSupabase() {
                   single: async () => {
                     if (table === "keyword_batches") {
                       const target = batches.find((b) => b.id === val);
-                      return { data: target ? { ...target } : null, error: target ? null : { message: "Not found" } };
+                      return {
+                        data: target ? { ...target } : null,
+                        error: target ? null : { message: "Not found" },
+                      };
                     }
                     return { data: { ...settings }, error: null };
                   },
@@ -278,6 +307,52 @@ function createMockSupabase() {
 
       return builder;
     },
+    rpc: async (fnName: string, params: Record<string, unknown>) => {
+      if (fnName === "activate_keyword_batch") {
+        const targetBatchId = params.target_batch_id as string;
+        const triggerType = params.trigger_type as string;
+        const actorId = (params.actor_id as string) ?? "system";
+        const notes = (params.notes as string) ?? null;
+
+        const prevBatch = batches.find((b) => b.is_active) ?? null;
+        const nextBatch = batches.find((b) => b.id === targetBatchId);
+        if (!nextBatch) {
+          return {
+            data: null,
+            error: { message: `Batch ${targetBatchId} tidak ditemukan.` },
+          };
+        }
+
+        for (const b of batches) {
+          b.is_active = b.id === targetBatchId;
+          b.updated_at = new Date().toISOString();
+        }
+
+        const log: BatchAuditLogRecord = {
+          id: `audit-${auditLogs.length + 1}`,
+          previous_batch_id: prevBatch?.id ?? null,
+          new_batch_id: targetBatchId,
+          trigger_type: triggerType,
+          actor_id: actorId,
+          notes,
+          created_at: new Date().toISOString(),
+        };
+        auditLogs.unshift(log);
+
+        return {
+          data: {
+            previous_batch_id: prevBatch?.id ?? null,
+            new_batch_id: targetBatchId,
+            audit_log_id: log.id,
+          },
+          error: null,
+        };
+      }
+      return {
+        data: null,
+        error: { message: `Unknown RPC function: ${fnName}` },
+      };
+    },
   } as unknown as SupabaseClient;
 
   return { client, batches, keywords, settings, auditLogs, checkRuns };
@@ -297,7 +372,9 @@ describe("Fase Logika: Rotasi, Kontrol Manual, & Search Filtering", () => {
     expect(ctx.batches[2].is_active).toBe(false);
 
     // Rotasi ke-1: Harus berpindah ke Batch 2
-    const res1 = await rotateActiveKeywordBatch(ctx.client, { actorId: "system:cron" });
+    const res1 = await rotateActiveKeywordBatch(ctx.client, {
+      actorId: "system:cron",
+    });
     expect(res1.status).toBe("rotated");
     expect(res1.newBatch?.name).toBe("Batch 2");
     expect(ctx.batches[0].is_active).toBe(false);
@@ -307,14 +384,18 @@ describe("Fase Logika: Rotasi, Kontrol Manual, & Search Filtering", () => {
     expect(ctx.auditLogs[0].trigger_type).toBe("auto_schedule");
 
     // Rotasi ke-2: Harus berpindah ke Batch 3
-    const res2 = await rotateActiveKeywordBatch(ctx.client, { actorId: "system:cron" });
+    const res2 = await rotateActiveKeywordBatch(ctx.client, {
+      actorId: "system:cron",
+    });
     expect(res2.status).toBe("rotated");
     expect(res2.newBatch?.name).toBe("Batch 3");
     expect(ctx.batches[1].is_active).toBe(false);
     expect(ctx.batches[2].is_active).toBe(true);
 
     // Rotasi ke-3: Wrap-around kembali ke Batch 1
-    const res3 = await rotateActiveKeywordBatch(ctx.client, { actorId: "system:cron" });
+    const res3 = await rotateActiveKeywordBatch(ctx.client, {
+      actorId: "system:cron",
+    });
     expect(res3.status).toBe("rotated");
     expect(res3.newBatch?.name).toBe("Batch 1");
     expect(ctx.batches[0].is_active).toBe(true);
@@ -341,7 +422,9 @@ describe("Fase Logika: Rotasi, Kontrol Manual, & Search Filtering", () => {
     expect(ctx.batches[2].is_active).toBe(true);
 
     // Memverifikasi audit log notifikasi empty_batch_warning tercatat
-    const emptyLog = ctx.auditLogs.find((l) => l.trigger_type === "empty_batch_warning");
+    const emptyLog = ctx.auditLogs.find(
+      (l) => l.trigger_type === "empty_batch_warning"
+    );
     expect(emptyLog).toBeDefined();
     expect(emptyLog?.notes).toContain("Batch 2");
   });
@@ -386,7 +469,9 @@ describe("Fase Logika: Rotasi, Kontrol Manual, & Search Filtering", () => {
     expect(ctx.batches[0].is_active).toBe(true);
 
     // Panggilan rotasi dengan force = true harus tetap dieksekusi
-    const resForced = await rotateActiveKeywordBatch(ctx.client, { force: true });
+    const resForced = await rotateActiveKeywordBatch(ctx.client, {
+      force: true,
+    });
     expect(resForced.status).toBe("rotated");
     expect(resForced.newBatch?.name).toBe("Batch 2");
     expect(ctx.batches[1].is_active).toBe(true);
@@ -427,7 +512,9 @@ describe("Fase Logika: Rotasi, Kontrol Manual, & Search Filtering", () => {
 
     expect(ctx.auditLogs[0].trigger_type).toBe("admin_override");
     expect(ctx.auditLogs[0].actor_id).toBe("admin-ryan");
-    expect(ctx.auditLogs[0].notes).toContain("Ubah manual ke batch recruitment");
+    expect(ctx.auditLogs[0].notes).toContain(
+      "Ubah manual ke batch recruitment"
+    );
   });
 
   it("8. Memastikan antrean search hanya membaca keyword dari batch yang aktif (Search Implementation)", async () => {
@@ -631,5 +718,54 @@ describe("Fase Logika: Rotasi, Kontrol Manual, & Search Filtering", () => {
 
     // Pastikan k-3 tetap berada di b-2
     expect(ctx.keywords.find((k) => k.id === "k-3")?.batch_id).toBe("b-2");
+  });
+
+  it("16. Memastikan aktivasi batch memakai fungsi atomik public.activate_keyword_batch", async () => {
+    let rpcCalledWith: {
+      fnName: string;
+      params: Record<string, unknown>;
+    } | null = null;
+    const originalRpc = ctx.client.rpc;
+    ctx.client.rpc = ((fnName: string, params: Record<string, unknown>) => {
+      rpcCalledWith = { fnName, params };
+      return originalRpc(fnName, params);
+    }) as unknown as typeof ctx.client.rpc;
+
+    // 1. Override manual
+    const res = await overrideActiveKeywordBatch(ctx.client, "b-3", {
+      actorId: "admin-tester",
+      notes: "Aktivasi manual batch 3",
+    });
+
+    expect(res.ok).toBe(true);
+    expect(rpcCalledWith).toEqual({
+      fnName: "activate_keyword_batch",
+      params: {
+        target_batch_id: "b-3",
+        trigger_type: "admin_override",
+        actor_id: "admin-tester",
+        notes: "Aktivasi manual batch 3",
+      },
+    });
+    expect(ctx.batches.find((b) => b.id === "b-1")?.is_active).toBe(false);
+    expect(ctx.batches.find((b) => b.id === "b-3")?.is_active).toBe(true);
+    expect(ctx.auditLogs[0].new_batch_id).toBe("b-3");
+
+    // 2. Rotasi batch
+    rpcCalledWith = null;
+    const rotateRes = await rotateActiveKeywordBatch(ctx.client, {
+      actorId: "cron-rotator",
+    });
+    expect(rotateRes.status).toBe("rotated");
+    const lastRpc = rpcCalledWith as {
+      fnName: string;
+      params: Record<string, unknown>;
+    } | null;
+    expect(lastRpc?.fnName).toBe("activate_keyword_batch");
+    expect(lastRpc?.params).toMatchObject({
+      target_batch_id: "b-1",
+      trigger_type: "auto_schedule",
+      actor_id: "cron-rotator",
+    });
   });
 });
