@@ -11,6 +11,7 @@ import {
   Clock,
   Layers,
   Loader2,
+  Pencil,
   Plus,
   RefreshCw,
   RotateCcw,
@@ -41,12 +42,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 import {
   rotateBatchNowAction,
   overrideActiveBatchAction,
   updateBatchScheduleModeAction,
   toggleBatchEnabledAction,
   createBatchAction,
+  updateBatchWithKeywordsAction,
   assignBatchToSlotAction,
   resetSlotsToDefaultAction,
   getSelectableKeywordsAction,
@@ -133,6 +136,15 @@ export function BatchScheduleCalendar({
   const [newBatchColor, setNewBatchColor] = useState(PRESET_COLORS[0]);
   const [newBatchKeywords, setNewBatchKeywords] = useState("");
 
+  // Edit Batch Dialog states
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingBatch, setEditingBatch] = useState<BatchWithKeywordsCount | null>(null);
+  const [editBatchName, setEditBatchName] = useState("");
+  const [editBatchDescription, setEditBatchDescription] = useState("");
+  const [editBatchColor, setEditBatchColor] = useState(PRESET_COLORS[0]);
+  const [editSelectedKeywordIds, setEditSelectedKeywordIds] = useState<string[]>([]);
+  const [editNewKeywordsText, setEditNewKeywordsText] = useState("");
+
   // Keywords for multi-select dropdown
   const [allKeywords, setAllKeywords] = useState<SelectableKeyword[]>(availableKeywords);
   const [selectedKeywordIds, setSelectedKeywordIds] = useState<string[]>([]);
@@ -145,14 +157,14 @@ export function BatchScheduleCalendar({
   }, [availableKeywords]);
 
   useEffect(() => {
-    if (showCreateDialog && allKeywords.length === 0 && !isLoadingKeywords) {
+    if ((showCreateDialog || showEditDialog) && allKeywords.length === 0 && !isLoadingKeywords) {
       setIsLoadingKeywords(true);
       getSelectableKeywordsAction()
         .then((kws) => setAllKeywords(kws))
         .catch((err) => console.error("Failed to load selectable keywords:", err))
         .finally(() => setIsLoadingKeywords(false));
     }
-  }, [showCreateDialog, allKeywords.length, isLoadingKeywords]);
+  }, [showCreateDialog, showEditDialog, allKeywords.length, isLoadingKeywords]);
 
   const parsedKeywordCount = useMemo(() => {
     if (!newBatchKeywords.trim()) return 0;
@@ -162,6 +174,15 @@ export function BatchScheduleCalendar({
       .filter((k) => k.length >= 2 && k.length <= 200);
     return new Set(items.map((k) => k.toLowerCase())).size;
   }, [newBatchKeywords]);
+
+  const parsedEditKeywordCount = useMemo(() => {
+    if (!editNewKeywordsText.trim()) return 0;
+    const items = editNewKeywordsText
+      .split(/[\r\n,]+/)
+      .map((k) => k.trim())
+      .filter((k) => k.length >= 2 && k.length <= 200);
+    return new Set(items.map((k) => k.toLowerCase())).size;
+  }, [editNewKeywordsText]);
 
   // Audit trail accordion
   const [showAuditLogs, setShowAuditLogs] = useState(false);
@@ -470,6 +491,100 @@ export function BatchScheduleCalendar({
         setFeedback({
           type: "error",
           text: err instanceof Error ? err.message : "Failed to create batch.",
+        });
+      } finally {
+        setPendingAction(null);
+      }
+    });
+  }
+
+  function handleOpenEditBatch(batch: BatchWithKeywordsCount) {
+    setEditingBatch(batch);
+    setEditBatchName(batch.name);
+    setEditBatchDescription(batch.description ?? "");
+    setEditBatchColor(batch.color ?? PRESET_COLORS[0]);
+    setEditNewKeywordsText("");
+
+    // Find all keywords currently assigned to this batch
+    const inThisBatch = allKeywords
+      .filter((k) => k.batch_id === batch.id)
+      .map((k) => k.id);
+    setEditSelectedKeywordIds(inThisBatch);
+
+    // If keywords list not yet loaded, load it
+    if (allKeywords.length === 0 && !isLoadingKeywords) {
+      setIsLoadingKeywords(true);
+      getSelectableKeywordsAction()
+        .then((kws) => {
+          setAllKeywords(kws);
+          const currentInBatch = kws
+            .filter((k) => k.batch_id === batch.id)
+            .map((k) => k.id);
+          setEditSelectedKeywordIds(currentInBatch);
+        })
+        .catch((err) => console.error("Failed to load selectable keywords:", err))
+        .finally(() => setIsLoadingKeywords(false));
+    }
+
+    setShowEditDialog(true);
+  }
+
+  function handleSaveEditBatch() {
+    if (!editingBatch || !editBatchName.trim()) return;
+    setFeedback(null);
+    setPendingAction(`edit-${editingBatch.id}`);
+    startTransition(async () => {
+      try {
+        const res = await updateBatchWithKeywordsAction(
+          editingBatch.id,
+          editBatchName.trim(),
+          editBatchDescription.trim() || undefined,
+          editBatchColor,
+          editSelectedKeywordIds,
+          editNewKeywordsText.trim() || undefined
+        );
+
+        if (res.ok && res.batch) {
+          const finalCount = res.keywordsCount ?? 0;
+          setBatches((prev) =>
+            prev.map((b) =>
+              b.id === editingBatch.id
+                ? {
+                    ...b,
+                    name: res.batch.name,
+                    description: res.batch.description,
+                    color: editBatchColor,
+                    totalKeywords: finalCount,
+                    activeKeywords: finalCount,
+                  }
+                : b
+            )
+          );
+
+          // Update local keywords membership
+          const selectedSet = new Set(editSelectedKeywordIds);
+          setAllKeywords((prev) =>
+            prev.map((k) => {
+              if (selectedSet.has(k.id)) {
+                return { ...k, batch_id: editingBatch.id, batch_name: editBatchName.trim() };
+              }
+              if (k.batch_id === editingBatch.id && !selectedSet.has(k.id)) {
+                return { ...k, batch_id: null, batch_name: null };
+              }
+              return k;
+            })
+          );
+
+          setShowEditDialog(false);
+          setFeedback({
+            type: "success",
+            text: `Batch "${editBatchName.trim()}" updated successfully (${finalCount} keyword(s)).`,
+          });
+        }
+      } catch (err) {
+        setFeedback({
+          type: "error",
+          text: err instanceof Error ? err.message : "Failed to update batch.",
         });
       } finally {
         setPendingAction(null);
@@ -1229,23 +1344,36 @@ export function BatchScheduleCalendar({
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      {!batch.is_active && (
+                      <div className="flex items-center justify-end gap-1.5">
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            setSelectedOverrideBatchId(batch.id);
-                            setOverrideFreezeMode(false);
-                            setShowOverrideDialog(true);
-                          }}
+                          onClick={() => handleOpenEditBatch(batch)}
                           disabled={isPending}
-                          className="cursor-pointer text-xs h-7 px-2.5 font-medium"
+                          className="cursor-pointer text-xs h-7 px-2.5 font-medium hover:bg-[var(--line)]/50"
                         >
-                          <Sparkles className="h-3 w-3 mr-1 text-[var(--cite)]" />
-                          Activate Now
+                          <Pencil className="h-3 w-3 mr-1 text-[var(--muted)]" />
+                          Edit
                         </Button>
-                      )}
+                        {!batch.is_active && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedOverrideBatchId(batch.id);
+                              setOverrideFreezeMode(false);
+                              setShowOverrideDialog(true);
+                            }}
+                            disabled={isPending}
+                            className="cursor-pointer text-xs h-7 px-2.5 font-medium"
+                          >
+                            <Sparkles className="h-3 w-3 mr-1 text-[var(--cite)]" />
+                            Activate Now
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -1560,6 +1688,150 @@ export function BatchScheduleCalendar({
                 </>
               ) : (
                 "Create Batch"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Edit Keyword Batch */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5 text-[var(--cite)]" />
+              Edit Keyword Batch
+            </DialogTitle>
+            <DialogDescription>
+              Update batch name, color, and manage keywords included in this rotation batch.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {/* Batch Name */}
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-batch-name" className="text-xs font-semibold">
+                Batch Name <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="edit-batch-name"
+                value={editBatchName}
+                onChange={(e) => setEditBatchName(e.target.value)}
+                placeholder="e.g. Batch 1 - Core HR"
+                className="text-xs"
+              />
+            </div>
+
+            {/* Description */}
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-batch-desc" className="text-xs font-semibold">
+                Description (Optional)
+              </Label>
+              <Input
+                id="edit-batch-desc"
+                value={editBatchDescription}
+                onChange={(e) => setEditBatchDescription(e.target.value)}
+                placeholder="e.g. Focus on employee data and attendance keywords"
+                className="text-xs"
+              />
+            </div>
+
+            {/* Color Picker */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">Batch Color</Label>
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                {PRESET_COLORS.map((col) => (
+                  <button
+                    key={col}
+                    type="button"
+                    onClick={() => setEditBatchColor(col)}
+                    className={cn(
+                      "h-6 w-6 rounded-full transition-transform cursor-pointer",
+                      editBatchColor === col
+                        ? "scale-125 ring-2 ring-offset-2 ring-[var(--ink)]"
+                        : "hover:scale-110 opacity-80"
+                    )}
+                    style={{ backgroundColor: col }}
+                    aria-label={`Select color ${col}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Select & Manage Keywords */}
+            <div className="space-y-1.5 pt-2 border-t border-[var(--line)]/50">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold">
+                  Keywords in this Batch
+                </Label>
+                <span className="text-[11px] font-mono text-[var(--muted)]">
+                  {editSelectedKeywordIds.length} keyword{editSelectedKeywordIds.length === 1 ? "" : "s"} selected
+                </span>
+              </div>
+              <KeywordMultiSelectDropdown
+                keywords={allKeywords}
+                selectedIds={editSelectedKeywordIds}
+                onChange={setEditSelectedKeywordIds}
+                disabled={isPending}
+                isLoading={isLoadingKeywords}
+                placeholder="Select keywords for this batch..."
+                currentBatchId={editingBatch?.id}
+              />
+              <p className="text-[11px] text-[var(--muted)]">
+                Uncheck to remove keywords from this batch. Keywords in other batches are locked.
+              </p>
+            </div>
+
+            {/* Optional: Add Brand New Keywords */}
+            <div className="space-y-1.5 pt-2 border-t border-[var(--line)]/50">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="edit-batch-keywords" className="text-xs font-semibold">
+                  Or Add Brand New Keywords (Optional)
+                </Label>
+                {parsedEditKeywordCount > 0 && (
+                  <Badge variant="outline" className="text-[10px] font-mono text-[var(--cite)] border-[var(--cite)]/30">
+                    {parsedEditKeywordCount} new keyword{parsedEditKeywordCount === 1 ? "" : "s"}
+                  </Badge>
+                )}
+              </div>
+              <Textarea
+                id="edit-batch-keywords"
+                value={editNewKeywordsText}
+                onChange={(e) => setEditNewKeywordsText(e.target.value)}
+                placeholder={"software hris terbaik\naplikasi payroll online\nsistem manajemen sdm"}
+                rows={3}
+                className="font-mono text-xs leading-relaxed"
+              />
+              <p className="text-[11px] text-[var(--muted)]">
+                Add new keywords that are not yet in the database. Separate with new lines or commas.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowEditDialog(false)}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={handleSaveEditBatch}
+              disabled={isPending || !editBatchName.trim()}
+            >
+              {pendingAction?.startsWith("edit-") ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                  Saving Changes...
+                </>
+              ) : (
+                "Save Changes"
               )}
             </Button>
           </DialogFooter>

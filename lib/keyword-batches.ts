@@ -486,6 +486,7 @@ export async function updateKeywordBatch(
     description?: string | null;
     orderIndex?: number;
     isEnabled?: boolean;
+    color?: string;
   }
 ): Promise<KeywordBatchRecord> {
   const updatePayload: Record<string, unknown> = {
@@ -497,6 +498,7 @@ export async function updateKeywordBatch(
     updatePayload.description = payload.description ? payload.description.trim() : null;
   if (payload.orderIndex !== undefined) updatePayload.order_index = payload.orderIndex;
   if (payload.isEnabled !== undefined) updatePayload.is_enabled = payload.isEnabled;
+  if (payload.color !== undefined) updatePayload.color = payload.color.trim();
 
   const { data, error } = await supabase
     .from("keyword_batches")
@@ -511,6 +513,186 @@ export async function updateKeywordBatch(
 
   invalidateActiveKeywordBatchCache();
   return data as KeywordBatchRecord;
+}
+
+/**
+ * Memperbarui nama batch, metadata, serta daftar keyword yang diasosiasikan dengan batch tersebut.
+ * - Keyword yang dipilih tetap di batch.
+ * - Keyword yang sebelumnya di batch tetapi di-uncheck akan dilepas (batch_id = null).
+ * - Keyword unassigned yang baru dipilih akan dimasukkan ke batch ini.
+ * - Keyword teks tambahan (jika ada) akan ditambahkan/ditautkan ke batch.
+ */
+export async function updateBatchWithKeywords(
+  supabase: SupabaseClient,
+  batchId: string,
+  payload: {
+    name: string;
+    description?: string | null;
+    color?: string;
+    keywordIds?: string[];
+    newKeywordsText?: string;
+    actorId?: string;
+  }
+): Promise<{ batch: KeywordBatchRecord; keywordsCount: number }> {
+  const trimmedName = payload.name.trim();
+  if (!trimmedName || trimmedName.length < 2) {
+    throw new Error("Nama batch minimal 2 karakter.");
+  }
+
+  const nowIso = new Date().toISOString();
+
+  // 1. Update entitas batch
+  const updatePayload: Record<string, unknown> = {
+    name: trimmedName,
+    description: payload.description ? payload.description.trim() : null,
+    updated_at: nowIso,
+  };
+  if (payload.color) {
+    updatePayload.color = payload.color.trim();
+  }
+
+  const { data: updatedBatch, error: batchErr } = await supabase
+    .from("keyword_batches")
+    .update(updatePayload)
+    .eq("id", batchId)
+    .select()
+    .single();
+
+  if (batchErr || !updatedBatch) {
+    throw new Error(`Gagal memperbarui batch: ${batchErr?.message ?? "Batch tidak ditemukan"}`);
+  }
+
+  // 2. Ambil keyword yang saat ini terdaftar di batch ini
+  const { data: currentKeywords, error: currentErr } = await supabase
+    .from("keywords")
+    .select("id, text, batch_id")
+    .eq("batch_id", batchId);
+
+  if (currentErr) {
+    throw new Error(`Gagal membaca keyword saat ini pada batch: ${currentErr.message}`);
+  }
+
+  const currentIds = new Set((currentKeywords ?? []).map((k) => k.id));
+  const targetIds = payload.keywordIds ? new Set(payload.keywordIds) : currentIds;
+
+  // Keyword yang di-unselect -> set batch_id = null
+  const toUnassign = [...currentIds].filter((id) => !targetIds.has(id));
+  if (toUnassign.length > 0) {
+    const { error: unassignErr } = await supabase
+      .from("keywords")
+      .update({ batch_id: null })
+      .in("id", toUnassign);
+
+    if (unassignErr) {
+      throw new Error(`Gagal melepas keyword dari batch: ${unassignErr.message}`);
+    }
+  }
+
+  // Keyword baru yang dipilih -> pastikan tidak milik batch lain lalu assign
+  const toAssign = [...targetIds].filter((id) => !currentIds.has(id));
+  if (toAssign.length > 0) {
+    const { data: assignCandidates, error: candErr } = await supabase
+      .from("keywords")
+      .select("id, text, batch_id")
+      .in("id", toAssign);
+
+    if (candErr) {
+      throw new Error(`Gagal memvalidasi keyword yang dipilih: ${candErr.message}`);
+    }
+
+    const inOtherBatch = (assignCandidates ?? []).filter(
+      (k) => k.batch_id !== null && k.batch_id !== undefined && k.batch_id !== batchId
+    );
+    if (inOtherBatch.length > 0) {
+      throw new Error(
+        `Tidak dapat memilih keyword yang sudah masuk ke batch lain: ${inOtherBatch
+          .map((k) => `"${k.text}"`)
+          .join(", ")}`
+      );
+    }
+
+    const validAssignIds = (assignCandidates ?? []).map((k) => k.id);
+    if (validAssignIds.length > 0) {
+      const { error: assignErr } = await supabase
+        .from("keywords")
+        .update({ batch_id: batchId })
+        .in("id", validAssignIds);
+
+      if (assignErr) {
+        throw new Error(`Gagal menautkan keyword ke batch: ${assignErr.message}`);
+      }
+    }
+  }
+
+  // 3. Proses keyword teks tambahan jika ada
+  const parsedKeywords = parseKeywordsInput(payload.newKeywordsText);
+  if (parsedKeywords.length > 0) {
+    const { data: existingRows } = await supabase
+      .from("keywords")
+      .select("id, text, batch_id");
+
+    const existingByLower = new Map<string, { id: string; batch_id: string | null }>();
+    if (Array.isArray(existingRows)) {
+      for (const row of existingRows as Array<{ id: string; text: string; batch_id: string | null }>) {
+        existingByLower.set(row.text.toLowerCase().trim(), {
+          id: row.id,
+          batch_id: row.batch_id ?? null,
+        });
+      }
+    }
+
+    const toReassignIds: string[] = [];
+    const toInsert: Array<{ text: string; batch_id: string; active: boolean }> = [];
+
+    for (const kw of parsedKeywords) {
+      const existing = existingByLower.get(kw.toLowerCase());
+      if (existing) {
+        if (!existing.batch_id || existing.batch_id === batchId) {
+          toReassignIds.push(existing.id);
+        }
+      } else {
+        toInsert.push({
+          text: kw,
+          batch_id: batchId,
+          active: true,
+        });
+      }
+    }
+
+    if (toReassignIds.length > 0) {
+      await supabase
+        .from("keywords")
+        .update({ batch_id: batchId })
+        .in("id", toReassignIds);
+    }
+
+    if (toInsert.length > 0) {
+      await supabase.from("keywords").insert(toInsert);
+    }
+  }
+
+  // Hitung total keyword akhir pada batch
+  const { count: finalCount } = await supabase
+    .from("keywords")
+    .select("id", { count: "exact" })
+    .eq("batch_id", batchId);
+
+  // Catat audit log
+  await supabase.from("batch_audit_logs").insert({
+    previous_batch_id: batchId,
+    new_batch_id: batchId,
+    trigger_type: "batch_updated",
+    actor_id: payload.actorId ?? "system",
+    notes: `Pembaruan batch "${trimmedName}" (${finalCount ?? 0} keyword)`,
+    created_at: nowIso,
+  });
+
+  invalidateActiveKeywordBatchCache();
+
+  return {
+    batch: updatedBatch as KeywordBatchRecord,
+    keywordsCount: finalCount ?? 0,
+  };
 }
 
 /**

@@ -33,6 +33,7 @@ import {
   saveSearchSettingsAction,
   toggleBrandTermAction,
   toggleKeywordActiveAction,
+  updateBatchWithKeywordsAction,
 } from "@/app/(dashboard)/actions";
 
 describe("Otorisasi Server Actions (app/(dashboard)/actions.ts)", () => {
@@ -73,6 +74,7 @@ describe("Otorisasi Server Actions (app/(dashboard)/actions.ts)", () => {
       () => saveSearchSettingsAction(fd),
       () => runCheckNowAction(),
       () => processRunBatchAction(sampleUuid),
+      () => updateBatchWithKeywordsAction(sampleUuid, "Batch Edit", undefined, undefined, [sampleUuid]),
       () => clearDemoDataAction(),
     ];
   }

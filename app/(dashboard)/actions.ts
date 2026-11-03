@@ -19,6 +19,7 @@ import {
   setBatchScheduleMode,
   assignKeywordsToBatch,
   updateKeywordBatch,
+  updateBatchWithKeywords,
   createKeywordBatch,
   listKeywordsForBatchSelection,
   deleteKeywordBatch,
@@ -844,6 +845,33 @@ export async function createBatchAction(
 
   revalidateAllDashboardRoutes();
   return { ok: true, batch: result, keywordsCount: result.keywordsCount };
+}
+
+export async function updateBatchWithKeywordsAction(
+  batchId: string,
+  name: string,
+  description?: string,
+  color?: string,
+  keywordIds?: string[],
+  newKeywordsText?: string
+) {
+  const user = await requireAllowedAdminUser();
+  const validBatchId = uuidSchema.parse(batchId);
+  const validName = z.string().trim().min(2, "Batch name must be at least 2 characters").parse(name);
+  const validIds = keywordIds ? z.array(uuidSchema).parse(keywordIds) : undefined;
+
+  const supabase = createSupabaseAdminClient();
+  const result = await updateBatchWithKeywords(supabase, validBatchId, {
+    name: validName,
+    description: description ? description.trim() : null,
+    color: color ? color.trim() : undefined,
+    keywordIds: validIds,
+    newKeywordsText: newKeywordsText ? newKeywordsText.trim() : undefined,
+    actorId: user.email ?? "admin",
+  });
+
+  revalidateAllDashboardRoutes();
+  return { ok: true, batch: result.batch, keywordsCount: result.keywordsCount };
 }
 
 export async function getSelectableKeywordsAction() {

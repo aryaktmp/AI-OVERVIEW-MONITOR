@@ -4,6 +4,7 @@ import {
   rotateActiveKeywordBatch,
   overrideActiveKeywordBatch,
   createKeywordBatch,
+  updateBatchWithKeywords,
   listKeywordsForBatchSelection,
   parseKeywordsInput,
   assignKeywordsToBatch,
@@ -188,7 +189,7 @@ function createMockSupabase() {
               if (filterActive !== null && k.active !== filterActive) return false;
               return true;
             });
-            return Promise.resolve(resolve({ data: filtered.map((k) => ({ ...k })), error: null }));
+            return Promise.resolve(resolve({ data: filtered.map((k) => ({ ...k })), error: null, count: filtered.length }));
           }
           if (table === "check_runs") {
             const filtered = checkRuns.filter((r) => {
@@ -248,7 +249,13 @@ function createMockSupabase() {
               }
               return {
                 select: () => ({
-                  single: async () => ({ data: { ...settings }, error: null }),
+                  single: async () => {
+                    if (table === "keyword_batches") {
+                      const target = batches.find((b) => b.id === val);
+                      return { data: target ? { ...target } : null, error: target ? null : { message: "Not found" } };
+                    }
+                    return { data: { ...settings }, error: null };
+                  },
                 }),
                 then: (resolve: (val: unknown) => unknown) => {
                   return Promise.resolve(resolve({ data: null, error: null }));
@@ -561,5 +568,68 @@ describe("Fase Logika: Rotasi, Kontrol Manual, & Search Filtering", () => {
     // Unassign k-6 (set batch_id ke null)
     await assignKeywordsToBatch(ctx.client, ["k-6"], null);
     expect(k6?.batch_id).toBeNull();
+  });
+
+  it("14. updateBatchWithKeywords memperbarui nama, deskripsi, warna, melepas keyword yang di-uncheck, dan menautkan keyword unassigned yang baru dipilih", async () => {
+    // b-1 awalnya berisi k-1 dan k-2. k-6 unassigned (batch_id null).
+    const k1 = ctx.keywords.find((k) => k.id === "k-1");
+    const k2 = ctx.keywords.find((k) => k.id === "k-2");
+    const k6 = ctx.keywords.find((k) => k.id === "k-6");
+    expect(k1?.batch_id).toBe("b-1");
+    expect(k2?.batch_id).toBe("b-1");
+    expect(k6?.batch_id).toBeNull();
+
+    // Update b-1: uncheck k-1 (tinggal k-2), tambahkan k-6, dan tambahkan 2 keyword baru via teks
+    const result = await updateBatchWithKeywords(ctx.client, "b-1", {
+      name: "Batch 1 Updated",
+      description: "Deskripsi diperbarui",
+      color: "#10b981",
+      keywordIds: ["k-2", "k-6"],
+      newKeywordsText: "keyword baru 1\nkeyword baru 2",
+    });
+
+    expect(result.batch.name).toBe("Batch 1 Updated");
+    expect(result.batch.description).toBe("Deskripsi diperbarui");
+    expect(result.batch.color).toBe("#10b981");
+
+    // k-1 sekarang unassigned (batch_id null)
+    expect(k1?.batch_id).toBeNull();
+    // k-2 tetap di b-1
+    expect(k2?.batch_id).toBe("b-1");
+    // k-6 sekarang ditautkan ke b-1
+    expect(k6?.batch_id).toBe("b-1");
+
+    // Dua keyword baru terdaftar di b-1
+    const newKw1 = ctx.keywords.find((k) => k.text === "keyword baru 1");
+    const newKw2 = ctx.keywords.find((k) => k.text === "keyword baru 2");
+    expect(newKw1?.batch_id).toBe("b-1");
+    expect(newKw2?.batch_id).toBe("b-1");
+
+    // Total keyword di b-1 sekarang 4 (k-2, k-6, newKw1, newKw2)
+    expect(result.keywordsCount).toBe(4);
+
+    // Audit log tersimpan dengan trigger batch_updated
+    const updateLog = ctx.auditLogs.find(
+      (l) => l.trigger_type === "batch_updated" && l.new_batch_id === "b-1"
+    );
+    expect(updateLog).toBeDefined();
+    expect(updateLog?.notes).toContain('Pembaruan batch "Batch 1 Updated"');
+  });
+
+  it("15. updateBatchWithKeywords MENOLAK jika menyertakan keyword yang sudah masuk ke batch lain", async () => {
+    // k-3 berada di b-2
+    expect(ctx.keywords.find((k) => k.id === "k-3")?.batch_id).toBe("b-2");
+
+    await expect(
+      updateBatchWithKeywords(ctx.client, "b-1", {
+        name: "Batch 1 Updated",
+        keywordIds: ["k-3"],
+      })
+    ).rejects.toThrowError(
+      /Tidak dapat memilih keyword yang sudah masuk ke batch lain/
+    );
+
+    // Pastikan k-3 tetap berada di b-2
+    expect(ctx.keywords.find((k) => k.id === "k-3")?.batch_id).toBe("b-2");
   });
 });

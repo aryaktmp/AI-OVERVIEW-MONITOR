@@ -22,6 +22,7 @@ interface KeywordMultiSelectDropdownProps {
   disabled?: boolean;
   isLoading?: boolean;
   placeholder?: string;
+  currentBatchId?: string;
 }
 
 export function KeywordMultiSelectDropdown({
@@ -31,6 +32,7 @@ export function KeywordMultiSelectDropdown({
   disabled = false,
   isLoading = false,
   placeholder = "Select unassigned keywords...",
+  currentBatchId,
 }: KeywordMultiSelectDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,13 +66,13 @@ export function KeywordMultiSelectDropdown({
   }, [isOpen]);
 
   const unassignedKeywords = useMemo(
-    () => keywords.filter((k) => !k.batch_id),
-    [keywords]
+    () => keywords.filter((k) => !k.batch_id || k.batch_id === currentBatchId),
+    [keywords, currentBatchId]
   );
 
   const assignedKeywords = useMemo(
-    () => keywords.filter((k) => Boolean(k.batch_id)),
-    [keywords]
+    () => keywords.filter((k) => Boolean(k.batch_id && k.batch_id !== currentBatchId)),
+    [keywords, currentBatchId]
   );
 
   // Map of selected keywords
@@ -94,12 +96,16 @@ export function KeywordMultiSelectDropdown({
 
   // Count visible selectable items
   const visibleSelectableCount = useMemo(
-    () => filteredKeywords.filter((k) => !k.batch_id).length,
-    [filteredKeywords]
+    () =>
+      filteredKeywords.filter(
+        (k) => !k.batch_id || k.batch_id === currentBatchId
+      ).length,
+    [filteredKeywords, currentBatchId]
   );
 
   function handleToggleKeyword(kw: SelectableKeyword) {
-    if (disabled || kw.batch_id) return; // Strict: cannot select assigned keywords
+    const isLocked = Boolean(kw.batch_id && kw.batch_id !== currentBatchId);
+    if (disabled || isLocked) return;
 
     if (selectedMap.has(kw.id)) {
       onChange(selectedIds.filter((id) => id !== kw.id));
@@ -110,11 +116,11 @@ export function KeywordMultiSelectDropdown({
 
   function handleSelectAllVisible() {
     if (disabled) return;
-    const visibleUnassignedIds = filteredKeywords
-      .filter((k) => !k.batch_id)
+    const visibleSelectableIds = filteredKeywords
+      .filter((k) => !k.batch_id || k.batch_id === currentBatchId)
       .map((k) => k.id);
 
-    const merged = Array.from(new Set([...selectedIds, ...visibleUnassignedIds]));
+    const merged = Array.from(new Set([...selectedIds, ...visibleSelectableIds]));
     onChange(merged);
   }
 
@@ -323,9 +329,9 @@ export function KeywordMultiSelectDropdown({
             ) : (
               filteredKeywords.map((kw) => {
                 const isSelected = selectedMap.has(kw.id);
-                const isAssigned = Boolean(kw.batch_id);
+                const isLocked = Boolean(kw.batch_id && kw.batch_id !== currentBatchId);
 
-                if (isAssigned) {
+                if (isLocked) {
                   return (
                     <div
                       key={kw.id}
