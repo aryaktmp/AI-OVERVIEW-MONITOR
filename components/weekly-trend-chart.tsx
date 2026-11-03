@@ -15,7 +15,7 @@ import type { WeekBucket } from "@/lib/analytics";
 export function WeeklyTrendChart({ weeks }: { weeks: WeekBucket[] }) {
   return (
     <div
-      className="h-[210px] w-full"
+      className="h-[285px] w-full"
       role="img"
       aria-label="Weekly detection rate chart"
     >
