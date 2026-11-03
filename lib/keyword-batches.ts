@@ -107,7 +107,9 @@ export interface OverrideBatchResult {
   message: string;
 }
 
-// In-memory cache untuk active batch (mempercepat query search & zero-downtime)
+// In-memory cache untuk active batch khusus tampilan antarmuka UI.
+// PERHATIAN: Jalur yang menentukan keyword mana yang diperiksa (startCheckRun dan processQueue)
+// selalu membaca database secara langsung dan tidak menggunakan cache in-memory ini.
 let activeBatchCache: {
   record: KeywordBatchRecord | null;
   expiresAt: number;

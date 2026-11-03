@@ -1103,6 +1103,103 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
     expect(emptyBatchStoreCtx.runs).toHaveLength(0);
   });
 
+  it("memastikan jalur startCheckRun dan processQueue selalu membaca database secara langsung tanpa in-memory cache", async () => {
+    let keywordQueriesCount = 0;
+    let batchQueriesCount = 0;
+
+    const mockSupabase = {
+      from: (table: string) => {
+        if (table === "check_runs") {
+          return {
+            select: () => ({
+              eq: () => ({
+                order: () => ({
+                  limit: () => Promise.resolve({ data: [], error: null }),
+                }),
+              }),
+            }),
+            insert: () => ({
+              select: () => ({
+                single: () =>
+                  Promise.resolve({
+                    data: {
+                      id: "run-direct-1",
+                      total: 1,
+                      status: "running",
+                      is_demo: false,
+                    },
+                    error: null,
+                  }),
+              }),
+            }),
+          };
+        }
+        if (table === "keyword_batches") {
+          return {
+            select: () => {
+              batchQueriesCount++;
+              return {
+                eq: () => ({
+                  maybeSingle: () =>
+                    Promise.resolve({
+                      data: { id: "b-live" },
+                      error: null,
+                    }),
+                }),
+              };
+            },
+          };
+        }
+        if (table === "keywords") {
+          return {
+            select: () => {
+              keywordQueriesCount++;
+              return {
+                eq: () => ({
+                  eq: () => ({
+                    order: () =>
+                      Promise.resolve({
+                        data: [
+                          {
+                            id: "kw-live-1",
+                            text: "payroll online",
+                            active: true,
+                            is_demo: false,
+                            batch_id: "b-live",
+                          },
+                        ],
+                        error: null,
+                      }),
+                  }),
+                }),
+              };
+            },
+          };
+        }
+        if (table === "run_items") {
+          return {
+            insert: () => Promise.resolve({ data: null, error: null }),
+          };
+        }
+        return {
+          select: () => Promise.resolve({ data: [], error: null }),
+        };
+      },
+    } as unknown as SupabaseClient;
+
+    const store = createSupabaseQueueStore(mockSupabase);
+
+    // Pemanggilan pertama startCheckRun
+    await startCheckRun(store, new Date(), { isDemo: false });
+    expect(batchQueriesCount).toBe(1);
+    expect(keywordQueriesCount).toBe(1);
+
+    // Pemanggilan kedua: WAJIB menembak database kembali, bukan membaca in-memory cache
+    await startCheckRun(store, new Date(), { isDemo: false });
+    expect(batchQueriesCount).toBe(2);
+    expect(keywordQueriesCount).toBe(2);
+  });
+
   it("memakai MAX_DURATION_MS dari env (bawaan 50000), mengembalikan pending/stoppedReason/runStatus dengan cepat saat kosong, dan memvalidasi jadwal Hobby & VPS", async () => {
     // 1. Semua route cron wajib mengekspor dynamic = "force-dynamic"
     expect(startRunDynamic).toBe("force-dynamic");
