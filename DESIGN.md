@@ -63,7 +63,7 @@ Sumber kebenaran desain UI. Token berasal dari `app/globals.css`; komponen dari 
 
 ## 6. Pola Halaman
 - **Overview**:
-  - Header dengan tombol ekspor laporan multi-format (`ExportDataDialog`: CSV / Excel BOM).
+  - Header dengan tombol ekspor laporan multi-format (`ExportDataDialog`: Workbook Excel `.xlsx` dengan template rapi 2 sheet, freeze panes, auto-filter, dan opsi fallback CSV).
   - Baris KPI 4 kartu (Keywords monitored, Active Rotation Batch, AI Overview present, LinovHR detection rate).
   - Widget status batch mingguan (`OverviewActiveBatchWidget`: batch aktif, interval rotasi, alokasi kuota bulanan, timeline 4 slot mingguan).
   - Dua chart interaktif Recharts berdampingan (`grid-cols-1 lg:grid-cols-2`): tren detection rate mingguan (Line Chart) dan perbandingan sitasi per grup modul LinovHR (Bar Chart).

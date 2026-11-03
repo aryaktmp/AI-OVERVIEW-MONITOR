@@ -7,6 +7,10 @@ import {
   formatCsvExportRow,
   type CsvExportRow,
 } from "@/lib/csv-export";
+import {
+  generateExcelExportBuffer,
+  type ExcelExportRow,
+} from "@/lib/excel-export";
 
 export const dynamic = "force-dynamic";
 
@@ -66,10 +70,10 @@ export async function GET(request: Request) {
   const mode: "latest" | "history" =
     modeParam === "history" ? "history" : "latest";
 
-  const formatParam = (url.searchParams.get("format") ?? "csv")
+  const formatParam = (url.searchParams.get("format") ?? "xlsx")
     .trim()
     .toLowerCase();
-  const isExcel = formatParam === "excel" || formatParam === "xlsx";
+  const isCsv = formatParam === "csv";
 
   const includeDemoParam = (url.searchParams.get("include_demo") ?? "")
     .trim()
@@ -135,7 +139,8 @@ export async function GET(request: Request) {
   }
 
   // 3. Ambil data checks secara bertahap (1000 baris per query)
-  const csvLines: string[] = [CSV_EXPORT_HEADERS.join(",")];
+  const exportRows: ExcelExportRow[] = [];
+  const csvLines: string[] = isCsv ? [CSV_EXPORT_HEADERS.join(",")] : [];
   const seenLatestKeywords = new Set<string>();
   let checkOffset = 0;
 
@@ -214,7 +219,7 @@ export async function GET(request: Request) {
         )
       );
 
-      const exportRow: CsvExportRow = {
+      const exportRow: ExcelExportRow = {
         keyword: kwMeta.text,
         group: kwMeta.groupName,
         checked_at: c.checked_at,
@@ -226,7 +231,10 @@ export async function GET(request: Request) {
         competitor_domains_cited: competitorDomainsCited,
       };
 
-      csvLines.push(formatCsvExportRow(exportRow));
+      exportRows.push(exportRow);
+      if (isCsv) {
+        csvLines.push(formatCsvExportRow(exportRow as CsvExportRow));
+      }
     }
 
     if (
@@ -242,22 +250,41 @@ export async function GET(request: Request) {
   const dateStamp = new Date().toISOString().slice(0, 10);
   const baseName =
     mode === "history"
-      ? `ai-overview-history-${dateStamp}`
-      : `ai-overview-latest-${dateStamp}`;
-  const filename = `${baseName}.csv`;
-  const contentType = isExcel
-    ? "application/vnd.ms-excel; charset=utf-8"
-    : "text/csv; charset=utf-8";
+      ? `ai-overview-history_${dateStamp}`
+      : `ai-overview-latest_${dateStamp}`;
 
-  // Tambahkan UTF-8 BOM (\uFEFF) untuk format excel agar Microsoft Excel otomatis mengenali encoding UTF-8
-  const contentBody = isExcel
-    ? `\uFEFF${csvLines.join("\n")}\n`
-    : `${csvLines.join("\n")}\n`;
+  if (isCsv) {
+    const filename = `${baseName}.csv`;
+    const contentBody = `${csvLines.join("\n")}\n`;
+    return new Response(contentBody, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Cache-Control": "no-store, max-age=0",
+      },
+    });
+  }
 
-  return new Response(contentBody, {
+  // Format Excel (.xlsx) dengan styling rapi, freeze panes, dan auto-filter
+  const filename = `${baseName}.xlsx`;
+  const excelBuffer = await generateExcelExportBuffer(exportRows, {
+    reportTitle: "Laporan Pemantauan AI Overview — LinovHR",
+    generatedAt: new Date().toISOString(),
+    mode,
+    dateRange: {
+      from: url.searchParams.get("from"),
+      to: url.searchParams.get("to"),
+    },
+    includeDemo,
+    totalKeywords: keywordMap.size,
+  });
+
+  return new Response(excelBuffer as unknown as BodyInit, {
     status: 200,
     headers: {
-      "Content-Type": contentType,
+      "Content-Type":
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "Content-Disposition": `attachment; filename="${filename}"`,
       "Cache-Control": "no-store, max-age=0",
     },

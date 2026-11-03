@@ -37,7 +37,7 @@ export function ExportDataDialog({
 }: ExportDataDialogProps) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"latest" | "history">("latest");
-  const [format, setFormat] = useState<"csv" | "excel">("csv");
+  const [format, setFormat] = useState<"xlsx" | "csv">("xlsx");
 
   const defaultToDate = new Date().toISOString().slice(0, 10);
   const defaultFromDate = new Date(Date.now() - 56 * 24 * 60 * 60 * 1000)
@@ -123,6 +123,25 @@ export function ExportDataDialog({
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
+                onClick={() => setFormat("xlsx")}
+                className={cn(
+                  "flex items-center gap-2 p-2.5 rounded-lg border text-left cursor-pointer transition-all",
+                  format === "xlsx"
+                    ? "border-[var(--cite)] bg-[var(--cite-bg)]/25 text-[var(--ink)] ring-1 ring-[var(--cite)]"
+                    : "border-[var(--line)] bg-[var(--surface)] text-[var(--muted)] hover:bg-[var(--surface-hover)]"
+                )}
+              >
+                <FileSpreadsheet className="h-4 w-4 shrink-0 text-emerald-600" />
+                <div>
+                  <div className="font-bold text-xs text-[var(--ink)] flex items-center gap-1">
+                    <span>Excel (.xlsx)</span>
+                  </div>
+                  <div className="text-[10px] text-[var(--muted)]">Template & 2 sheet</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setFormat("csv")}
                 className={cn(
                   "flex items-center gap-2 p-2.5 rounded-lg border text-left cursor-pointer transition-all",
@@ -134,24 +153,7 @@ export function ExportDataDialog({
                 <FileText className="h-4 w-4 shrink-0 text-[var(--cite)]" />
                 <div>
                   <div className="font-bold text-xs text-[var(--ink)]">CSV (.csv)</div>
-                  <div className="text-[10px] text-[var(--muted)]">Universal delimiter</div>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setFormat("excel")}
-                className={cn(
-                  "flex items-center gap-2 p-2.5 rounded-lg border text-left cursor-pointer transition-all",
-                  format === "excel"
-                    ? "border-[var(--cite)] bg-[var(--cite-bg)]/25 text-[var(--ink)] ring-1 ring-[var(--cite)]"
-                    : "border-[var(--line)] bg-[var(--surface)] text-[var(--muted)] hover:bg-[var(--surface-hover)]"
-                )}
-              >
-                <FileSpreadsheet className="h-4 w-4 shrink-0 text-emerald-600" />
-                <div>
-                  <div className="font-bold text-xs text-[var(--ink)]">Excel (.csv / BOM)</div>
-                  <div className="text-[10px] text-[var(--muted)]">UTF-8 spreadsheet</div>
+                  <div className="text-[10px] text-[var(--muted)]">Data teks delimitasi</div>
                 </div>
               </button>
             </div>
@@ -258,7 +260,7 @@ export function ExportDataDialog({
           >
             <a href={buildExportUrl()} download>
               <Download className="h-3.5 w-3.5" />
-              Download {format === "excel" ? "Excel" : "CSV"}
+              Download {format === "xlsx" ? "Excel (.xlsx)" : "CSV"}
             </a>
           </Button>
         </DialogFooter>
