@@ -194,7 +194,8 @@ export function compactSerpApiRawForStorage(
   const aiOverviewBlock =
     sanitized.ai_overview && typeof sanitized.ai_overview === "object"
       ? sanitized.ai_overview
-      : Array.isArray(sanitized.text_blocks) || Array.isArray(sanitized.references)
+      : Array.isArray(sanitized.text_blocks) ||
+          Array.isArray(sanitized.references)
         ? {
             text_blocks: sanitized.text_blocks,
             references: sanitized.references,
@@ -202,7 +203,10 @@ export function compactSerpApiRawForStorage(
         : undefined;
 
   let compactMeta: Record<string, unknown> | undefined;
-  if (sanitized.search_metadata && typeof sanitized.search_metadata === "object") {
+  if (
+    sanitized.search_metadata &&
+    typeof sanitized.search_metadata === "object"
+  ) {
     const m = sanitized.search_metadata as Record<string, unknown>;
     compactMeta = {};
     for (const key of [
@@ -320,7 +324,9 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
         query = query.eq("batch_id", activeBatchId);
       }
 
-      const { data, error } = await query.order("created_at", { ascending: true });
+      const { data, error } = await query.order("created_at", {
+        ascending: true,
+      });
 
       if (!error && data) {
         return data as KeywordRecord[];
@@ -333,7 +339,9 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
         .order("created_at", { ascending: true });
 
       if (fallbackError) {
-        throw new Error(`Gagal membaca keywords aktif: ${fallbackError.message}`);
+        throw new Error(
+          `Gagal membaca keywords aktif: ${fallbackError.message}`
+        );
       }
       return ((fallbackData ?? []) as KeywordRecord[]).map((kw) => ({
         ...kw,
@@ -364,7 +372,8 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
         return insertWithDemo.data as CheckRunRecord;
       }
 
-      const demoErrCode = (insertWithDemo.error as { code?: string } | null)?.code;
+      const demoErrCode = (insertWithDemo.error as { code?: string } | null)
+        ?.code;
       if (demoErrCode === "23505") {
         const existing = await store.getRunningCheckRun();
         if (existing) {
@@ -613,11 +622,10 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
 
       const enableThirdPartyCheck = Boolean(
         !settingsRes.error &&
-          (
-            settingsRes.data?.value as
-              | { enable_third_party_check?: boolean }
-              | undefined
-          )?.enable_third_party_check === true
+        (
+          settingsRes.data?.value as
+            { enable_third_party_check?: boolean } | undefined
+        )?.enable_third_party_check === true
       );
 
       return {
@@ -726,7 +734,10 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
       const prevCallsMatch = errorMessage.match(/\[serpapi_calls=(\d+)\]/);
       const totalFailedCalls =
         (prevCallsMatch ? Number(prevCallsMatch[1]) : 0) + callsUsedInAttempt;
-      const cleanMessage = errorMessage.replace(/\s*\[serpapi_calls=\d+\]/g, "");
+      const cleanMessage = errorMessage.replace(
+        /\s*\[serpapi_calls=\d+\]/g,
+        ""
+      );
       const annotatedError =
         totalFailedCalls > 0
           ? `${cleanMessage} [serpapi_calls=${totalFailedCalls}]`
@@ -743,7 +754,9 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
         .eq("id", itemId);
 
       if (error) {
-        throw new Error(`Gagal memperbarui kegagalan run_item: ${error.message}`);
+        throw new Error(
+          `Gagal memperbarui kegagalan run_item: ${error.message}`
+        );
       }
     },
 
@@ -803,7 +816,16 @@ export function createSupabaseQueueStore(supabase: SupabaseClient): QueueStore {
           ? "failed"
           : "done";
 
-      const isDemo = Boolean(forceIsDemo || hasDryRunCheck);
+      const { data: runData } = await supabase
+        .from("check_runs")
+        .select("is_demo")
+        .eq("id", runId)
+        .maybeSingle();
+
+      const isDemo =
+        forceIsDemo !== undefined
+          ? forceIsDemo
+          : Boolean(runData?.is_demo || hasDryRunCheck);
 
       const updateWithDemo = await supabase
         .from("check_runs")
@@ -962,10 +984,7 @@ export async function startCheckRun(
 }
 
 export type ProcessStoppedReason =
-  | "queue_empty"
-  | "rate_limit"
-  | "time_limit"
-  | "max_items";
+  "queue_empty" | "rate_limit" | "time_limit" | "max_items" | "mode_mismatch";
 
 export interface ProcessQueueOptions {
   maxPerHour?: number;
@@ -1034,9 +1053,7 @@ export async function processQueue(
   const nowFn = options.nowFn ?? (() => new Date());
   const startTimeMs = nowFn().getTime();
 
-  const isDryRunMode =
-    options.dryRun ??
-    (!options.serpApiFetcher && isDryRun());
+  const isDryRunMode = options.dryRun ?? isDryRun();
 
   const maxPerHour =
     options.maxPerHour ??
@@ -1045,7 +1062,8 @@ export async function processQueue(
       : 50);
   const maxItems = options.maxItems ?? 50;
   const maxDurationMs =
-    options.maxDurationMs ?? getConfiguredMaxDurationMs(DEFAULT_MAX_DURATION_MS);
+    options.maxDurationMs ??
+    getConfiguredMaxDurationMs(DEFAULT_MAX_DURATION_MS);
   const retryBaseDelayMs =
     options.retryBaseDelayMs ?? DEFAULT_RETRY_BASE_DELAY_MS;
   const brandDomain =
@@ -1066,7 +1084,10 @@ export async function processQueue(
   );
 
   const isCandidateEligible = (item: RunItemRecord, refNow: Date): boolean => {
-    if (!isDryRunMode && item.run_is_demo === true) {
+    // Mode pemrosesan mengikuti run:
+    // Run is_demo=true hanya diproses dalam mode dry run (isDryRunMode === true).
+    // Run is_demo=false hanya diproses saat isDryRun() bernilai false (isDryRunMode === false).
+    if (Boolean(item.run_is_demo) !== isDryRunMode) {
       return false;
     }
     if (item.attempts <= 0) return true;
@@ -1078,15 +1099,11 @@ export async function processQueue(
 
   // 2. Jalur cepat: periksa kandidat pending terlebih dahulu supaya kembali 200 dengan cepat saat antrean kosong
   const initialCandidates = await store.listPendingCandidates(20);
-  const firstEligible = initialCandidates.find((item) =>
-    isCandidateEligible(item, currentNow)
-  );
-
   const oneHourAgoIso = new Date(
     currentNow.getTime() - RATE_LIMIT_WINDOW_MS
   ).toISOString();
 
-  if (!firstEligible) {
+  if (initialCandidates.length === 0) {
     const activeRun = await store.getRunningCheckRun();
     let pending = 0;
     let runStatus: RunStatus = "idle";
@@ -1094,7 +1111,7 @@ export async function processQueue(
       const summary = await store.syncRunProgress(
         activeRun.id,
         currentNow.toISOString(),
-        isDryRunMode ? true : undefined
+        activeRun.is_demo
       );
       pending = summary.pending;
       runStatus = summary.status;
@@ -1118,6 +1135,46 @@ export async function processQueue(
     };
   }
 
+  const hasMatchingInitial = initialCandidates.some(
+    (item) => Boolean(item.run_is_demo) === isDryRunMode
+  );
+
+  const firstEligible = initialCandidates.find((item) =>
+    isCandidateEligible(item, currentNow)
+  );
+
+  if (!firstEligible) {
+    const activeRun = await store.getRunningCheckRun();
+    let pending = initialCandidates.length;
+    let runStatus: RunStatus = "idle";
+    if (activeRun) {
+      const summary = await store.syncRunProgress(
+        activeRun.id,
+        currentNow.toISOString(),
+        activeRun.is_demo
+      );
+      pending = summary.pending;
+      runStatus = summary.status;
+    }
+    const hourlySerpApiCallsUsed =
+      await store.getHourlySerpApiCalls(oneHourAgoIso);
+
+    return {
+      recoveredCount: recoveredIds.length,
+      processedCount: 0,
+      succeededCount: 0,
+      retriedCount: 0,
+      failedCount: 0,
+      serpApiCallsUsedInBatch: 0,
+      hourlySerpApiCallsUsed,
+      maxPerHour,
+      pending,
+      runStatus,
+      stoppedReason: !hasMatchingInitial ? "mode_mismatch" : "queue_empty",
+      runsSummary: [],
+    };
+  }
+
   // 3. Hitung panggilan SerpApi nyata (non-dry-run) dalam 60 menit terakhir dari database
   let hourlySerpApiCallsUsed = await store.getHourlySerpApiCalls(oneHourAgoIso);
 
@@ -1129,7 +1186,7 @@ export async function processQueue(
       const summary = await store.syncRunProgress(
         activeRun.id,
         currentNow.toISOString(),
-        isDryRunMode ? true : undefined
+        activeRun.is_demo
       );
       pending = summary.pending;
       runStatus = summary.status;
@@ -1178,7 +1235,8 @@ export async function processQueue(
     }
 
     if (!isDryRunMode) {
-      const latestHourlyCalls = await store.getHourlySerpApiCalls(oneHourAgoIso);
+      const latestHourlyCalls =
+        await store.getHourlySerpApiCalls(oneHourAgoIso);
       hourlySerpApiCallsUsed = Math.max(
         hourlySerpApiCallsUsed,
         latestHourlyCalls
@@ -1190,17 +1248,22 @@ export async function processQueue(
     }
 
     const candidates = await store.listPendingCandidates(20);
-    const eligibleCandidate = candidates.find((item) => {
-      // Saat SERPAPI_DRY_RUN=false (!isDryRunMode), jangan memproses item dari run is_demo = true
-      if (!isDryRunMode && item.run_is_demo === true) {
-        return false;
-      }
-      if (item.attempts <= 0) return true;
-      const delayMs = getRetryDelayMs(item.attempts, retryBaseDelayMs);
-      const updatedMs = Date.parse(item.updated_at);
-      if (Number.isNaN(updatedMs)) return true;
-      return loopNow.getTime() - updatedMs >= delayMs;
-    });
+    if (candidates.length === 0) {
+      stoppedReason = "queue_empty";
+      break;
+    }
+
+    const hasMatchingMode = candidates.some(
+      (item) => Boolean(item.run_is_demo) === isDryRunMode
+    );
+    if (!hasMatchingMode) {
+      stoppedReason = "mode_mismatch";
+      break;
+    }
+
+    const eligibleCandidate = candidates.find((item) =>
+      isCandidateEligible(item, loopNow)
+    );
 
     if (!eligibleCandidate) {
       stoppedReason = "queue_empty";
@@ -1317,8 +1380,7 @@ export async function processQueue(
         nextAttempts <= MAX_RETRIES ? "pending" : "error";
       const errMsg = err instanceof Error ? err.message : String(err);
 
-      const callsUsedOnError =
-        !isDryRunMode && /SerpApi/i.test(errMsg) ? 1 : 0;
+      const callsUsedOnError = !isDryRunMode && /SerpApi/i.test(errMsg) ? 1 : 0;
       serpApiCallsUsedInBatch += callsUsedOnError;
       hourlySerpApiCallsUsed += callsUsedOnError;
 
@@ -1344,7 +1406,8 @@ export async function processQueue(
     }
 
     if (!isDryRunMode) {
-      const latestHourlyCalls = await store.getHourlySerpApiCalls(oneHourAgoIso);
+      const latestHourlyCalls =
+        await store.getHourlySerpApiCalls(oneHourAgoIso);
       hourlySerpApiCallsUsed = Math.max(
         hourlySerpApiCallsUsed,
         latestHourlyCalls
@@ -1356,13 +1419,13 @@ export async function processQueue(
     }
   }
 
+  if (processedCount >= maxItems) {
+    stoppedReason = "max_items";
+  }
+
   const runsSummary: RunSummary[] = [];
   for (const runId of touchedRunIds) {
-    const summary = await store.syncRunProgress(
-      runId,
-      nowFn().toISOString(),
-      isDryRunMode ? true : undefined
-    );
+    const summary = await store.syncRunProgress(runId, nowFn().toISOString());
     runsSummary.push(summary);
   }
 
@@ -1375,7 +1438,7 @@ export async function processQueue(
       const summary = await store.syncRunProgress(
         activeRun.id,
         nowFn().toISOString(),
-        isDryRunMode ? true : undefined
+        activeRun.is_demo
       );
       pending = summary.pending;
       runStatus = summary.status;
@@ -1424,4 +1487,3 @@ export async function cleanupExpiredRawPayloads(
 
   return (data ?? []).length;
 }
-

@@ -174,11 +174,7 @@ function createInMemoryQueueStore(initial?: {
         target.updated_at = nowIso;
       }
     },
-    async syncRunProgress(
-      runId,
-      nowIso,
-      forceIsDemo
-    ): Promise<RunSummary> {
+    async syncRunProgress(runId, nowIso, forceIsDemo): Promise<RunSummary> {
       const runItems = items.filter((i) => i.run_id === runId);
       const total = runItems.length;
       const done = runItems.filter((i) => i.state === "done").length;
@@ -202,7 +198,10 @@ function createInMemoryQueueStore(initial?: {
             : "done";
 
       const run = runs.find((r) => r.id === runId);
-      const isDemo = Boolean(forceIsDemo || run?.is_demo || hasDryRun);
+      const isDemo =
+        forceIsDemo !== undefined
+          ? forceIsDemo
+          : Boolean(run?.is_demo || hasDryRun);
       if (run) {
         run.done = done;
         run.status = status;
@@ -379,11 +378,9 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
       is_demo: false,
     });
 
-    const res = await startCheckRun(
-      store,
-      new Date("2026-10-29T08:00:00Z"),
-      { isDemo: false }
-    );
+    const res = await startCheckRun(store, new Date("2026-10-29T08:00:00Z"), {
+      isDemo: false,
+    });
 
     // Run yang memiliki item processing tidak boleh ditutup
     const runningRun = runs.find((r) => r.id === "run-processing");
@@ -466,7 +463,8 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
                   data: null,
                   error: {
                     code: "23505",
-                    message: "duplicate key value violates unique constraint check_runs_single_running_idx",
+                    message:
+                      "duplicate key value violates unique constraint check_runs_single_running_idx",
                   },
                 }),
               }),
@@ -496,7 +494,10 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
     } as unknown as SupabaseClient;
 
     const sbStore23505 = createSupabaseQueueStore(mockSupabase23505);
-    const runResult = await sbStore23505.createCheckRun(3, "2026-10-29T08:00:00Z");
+    const runResult = await sbStore23505.createCheckRun(
+      3,
+      "2026-10-29T08:00:00Z"
+    );
     expect(runResult.isExisting).toBe(true);
     expect(runResult.id).toBe("run-existing-1");
 
@@ -781,15 +782,34 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
   it("mengabaikan keyword dengan is_demo = true saat SERPAPI_DRY_RUN=false (isDemo = false)", async () => {
     const { store, items } = createInMemoryQueueStore({
       keywords: [
-        { id: "kw-demo-1", text: "software hr terbaik", active: true, is_demo: true },
-        { id: "kw-demo-2", text: "aplikasi hris indonesia", active: true, is_demo: true },
-        { id: "kw-real-1", text: "keyword produksi nyata", active: true, is_demo: false },
+        {
+          id: "kw-demo-1",
+          text: "software hr terbaik",
+          active: true,
+          is_demo: true,
+        },
+        {
+          id: "kw-demo-2",
+          text: "aplikasi hris indonesia",
+          active: true,
+          is_demo: true,
+        },
+        {
+          id: "kw-real-1",
+          text: "keyword produksi nyata",
+          active: true,
+          is_demo: false,
+        },
       ],
     });
 
-    const realRun = await startCheckRun(store, new Date("2026-10-29T12:00:00Z"), {
-      isDemo: false,
-    });
+    const realRun = await startCheckRun(
+      store,
+      new Date("2026-10-29T12:00:00Z"),
+      {
+        isDemo: false,
+      }
+    );
 
     expect(realRun.total).toBe(1);
     expect(items).toHaveLength(1);
@@ -813,7 +833,9 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
       related_questions: [{ question: "Apa itu HR?" }],
       ai_overview: {
         text_blocks: [{ type: "paragraph", snippet: "LinovHR adalah HRIS." }],
-        references: [{ index: 1, title: "LinovHR", link: "https://linovhr.com" }],
+        references: [
+          { index: 1, title: "LinovHR", link: "https://linovhr.com" },
+        ],
       },
       ai_overview_followup: {
         text_blocks: [{ type: "paragraph", snippet: "LinovHR adalah HRIS." }],
@@ -845,7 +867,12 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
   it("mencegah pemrosesan ganda saat /api/cron/process dan processRunBatchAction berjalan paralel, menghormati batas laju, dan melewati run is_demo saat SERPAPI_DRY_RUN=false", async () => {
     const { store, checks, items } = createInMemoryQueueStore({
       keywords: [
-        { id: "kw-1", text: "software hr terbaik", active: true, is_demo: false },
+        {
+          id: "kw-1",
+          text: "software hr terbaik",
+          active: true,
+          is_demo: false,
+        },
         { id: "kw-2", text: "aplikasi hris", active: true, is_demo: false },
         { id: "kw-3", text: "aplikasi payroll", active: true, is_demo: false },
         { id: "kw-4", text: "software absensi", active: true, is_demo: false },
@@ -897,9 +924,13 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
         { id: "kw-rl-2", text: "keyword 2", active: true, is_demo: false },
       ],
     });
-    await startCheckRun(rateLimitedCtx.store, new Date("2026-10-29T13:02:00Z"), {
-      isDemo: false,
-    });
+    await startCheckRun(
+      rateLimitedCtx.store,
+      new Date("2026-10-29T13:02:00Z"),
+      {
+        isDemo: false,
+      }
+    );
     const rlBatchRes = await processQueue(rateLimitedCtx.store, {
       maxItems: 5,
       maxPerHour: 50,
@@ -908,8 +939,12 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
     });
     expect(rlBatchRes.processedCount).toBe(1);
     expect(rlBatchRes.stoppedReason).toBe("rate_limit");
-    expect(rateLimitedCtx.items.filter((i) => i.state === "done")).toHaveLength(1);
-    expect(rateLimitedCtx.items.filter((i) => i.state === "pending")).toHaveLength(1);
+    expect(rateLimitedCtx.items.filter((i) => i.state === "done")).toHaveLength(
+      1
+    );
+    expect(
+      rateLimitedCtx.items.filter((i) => i.state === "pending")
+    ).toHaveLength(1);
 
     // Pastikan jika ada run dengan is_demo = true, tidak dijalankan saat dryRun = false (SERPAPI_DRY_RUN=false)
     const demoStoreCtx = createInMemoryQueueStore({
@@ -927,8 +962,87 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
       serpApiFetcher: slowFetcher,
     });
     expect(skippedDemoRes.processedCount).toBe(0);
+    expect(skippedDemoRes.stoppedReason).toBe("mode_mismatch");
     expect(demoStoreCtx.checks).toHaveLength(0);
     expect(demoStoreCtx.items[0]?.state).toBe("pending");
+  });
+
+  it("memastikan mode pemrosesan mengikuti run (4 kombinasi run is_demo dan mode dry run)", async () => {
+    const fakeFetcher = async () => makeFakeSerpResult(1, false);
+
+    // 1. Run is_demo=true + mode dryRun=true -> Cocok, diproses
+    const ctx1 = createInMemoryQueueStore({
+      keywords: [
+        { id: "kw-demo", text: "software hr", active: true, is_demo: true },
+      ],
+    });
+    await startCheckRun(ctx1.store, new Date("2026-10-30T10:00:00Z"), {
+      isDemo: true,
+    });
+    const res1 = await processQueue(ctx1.store, {
+      dryRun: true,
+      serpApiFetcher: fakeFetcher,
+    });
+    expect(res1.processedCount).toBe(1);
+    expect(res1.succeededCount).toBe(1);
+    expect(res1.stoppedReason).toBe("queue_empty");
+    expect(ctx1.items[0]?.state).toBe("done");
+
+    // 2. Run is_demo=true + mode dryRun=false -> Tidak cocok, dilewati tanpa ubah state, stoppedReason: "mode_mismatch"
+    const ctx2 = createInMemoryQueueStore({
+      keywords: [
+        { id: "kw-demo", text: "software hr", active: true, is_demo: true },
+      ],
+    });
+    await startCheckRun(ctx2.store, new Date("2026-10-30T10:00:00Z"), {
+      isDemo: true,
+    });
+    const res2 = await processQueue(ctx2.store, {
+      dryRun: false,
+      serpApiFetcher: fakeFetcher,
+    });
+    expect(res2.processedCount).toBe(0);
+    expect(res2.stoppedReason).toBe("mode_mismatch");
+    expect(ctx2.items[0]?.state).toBe("pending");
+    expect(ctx2.items[0]?.attempts).toBe(0);
+    expect(ctx2.checks).toHaveLength(0);
+
+    // 3. Run is_demo=false + mode dryRun=true -> Tidak cocok, dilewati tanpa ubah state, stoppedReason: "mode_mismatch"
+    const ctx3 = createInMemoryQueueStore({
+      keywords: [
+        { id: "kw-real", text: "software hr", active: true, is_demo: false },
+      ],
+    });
+    await startCheckRun(ctx3.store, new Date("2026-10-30T10:00:00Z"), {
+      isDemo: false,
+    });
+    const res3 = await processQueue(ctx3.store, {
+      dryRun: true,
+      serpApiFetcher: fakeFetcher,
+    });
+    expect(res3.processedCount).toBe(0);
+    expect(res3.stoppedReason).toBe("mode_mismatch");
+    expect(ctx3.items[0]?.state).toBe("pending");
+    expect(ctx3.items[0]?.attempts).toBe(0);
+    expect(ctx3.checks).toHaveLength(0);
+
+    // 4. Run is_demo=false + mode dryRun=false -> Cocok, diproses
+    const ctx4 = createInMemoryQueueStore({
+      keywords: [
+        { id: "kw-real", text: "software hr", active: true, is_demo: false },
+      ],
+    });
+    await startCheckRun(ctx4.store, new Date("2026-10-30T10:00:00Z"), {
+      isDemo: false,
+    });
+    const res4 = await processQueue(ctx4.store, {
+      dryRun: false,
+      serpApiFetcher: fakeFetcher,
+    });
+    expect(res4.processedCount).toBe(1);
+    expect(res4.succeededCount).toBe(1);
+    expect(res4.stoppedReason).toBe("queue_empty");
+    expect(ctx4.items[0]?.state).toBe("done");
   });
 
   it("memakai MAX_DURATION_MS dari env (bawaan 50000), mengembalikan pending/stoppedReason/runStatus dengan cepat saat kosong, dan memvalidasi jadwal Hobby & VPS", async () => {
@@ -989,9 +1103,9 @@ describe("Fase 3 & Perbaikan Bagian A: Antrean, Idempotensi, Batas Laju, & Cron"
       { path: "/api/cron/start-run", schedule: "0 0 * * 1" },
       { path: "/api/cron/process", schedule: "0 2 * * *" },
     ]);
-    expect(
-      vercelConfig.crons.some((c) => c.path.includes("cleanup-raw"))
-    ).toBe(false);
+    expect(vercelConfig.crons.some((c) => c.path.includes("cleanup-raw"))).toBe(
+      false
+    );
 
     // 5. Validasi workflow GitHub Actions (.github/workflows/process-queue.yml)
     const workflowPath = path.join(

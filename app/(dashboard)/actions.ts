@@ -36,7 +36,9 @@ async function requireAllowedAdminUser() {
   } = await supabase.auth.getUser();
 
   if (!user || !isEmailAllowed(user.email)) {
-    throw new Error("Access denied. Your session is invalid or not authorized.");
+    throw new Error(
+      "Access denied. Your session is invalid or not authorized."
+    );
   }
 
   return user;
@@ -267,7 +269,10 @@ export async function bulkToggleKeywordsActiveAction(
   nextActive: boolean
 ) {
   await requireAllowedAdminUser();
-  const ids = z.array(uuidSchema).min(1, "At least one keyword must be selected").parse(keywordIds);
+  const ids = z
+    .array(uuidSchema)
+    .min(1, "At least one keyword must be selected")
+    .parse(keywordIds);
   const active = z.boolean().parse(nextActive);
 
   const supabase = createSupabaseAdminClient();
@@ -277,7 +282,10 @@ export async function bulkToggleKeywordsActiveAction(
     .in("id", ids);
 
   if (error) {
-    return { ok: false, message: `Failed to update keywords: ${error.message}` };
+    return {
+      ok: false,
+      message: `Failed to update keywords: ${error.message}`,
+    };
   }
 
   revalidateAllDashboardRoutes();
@@ -290,16 +298,19 @@ export async function bulkToggleKeywordsActiveAction(
 
 export async function bulkDeleteKeywordsAction(keywordIds: string[]) {
   await requireAllowedAdminUser();
-  const ids = z.array(uuidSchema).min(1, "At least one keyword must be selected").parse(keywordIds);
+  const ids = z
+    .array(uuidSchema)
+    .min(1, "At least one keyword must be selected")
+    .parse(keywordIds);
 
   const supabase = createSupabaseAdminClient();
-  const { error } = await supabase
-    .from("keywords")
-    .delete()
-    .in("id", ids);
+  const { error } = await supabase.from("keywords").delete().in("id", ids);
 
   if (error) {
-    return { ok: false, message: `Failed to delete keywords: ${error.message}` };
+    return {
+      ok: false,
+      message: `Failed to delete keywords: ${error.message}`,
+    };
   }
 
   revalidateAllDashboardRoutes();
@@ -315,7 +326,10 @@ export async function bulkAssignKeywordsBatchAction(
   batchId: string | null
 ) {
   await requireAllowedAdminUser();
-  const ids = z.array(uuidSchema).min(1, "At least one keyword must be selected").parse(keywordIds);
+  const ids = z
+    .array(uuidSchema)
+    .min(1, "At least one keyword must be selected")
+    .parse(keywordIds);
   const targetBatchId = batchId ? uuidSchema.parse(batchId) : null;
 
   const supabase = createSupabaseAdminClient();
@@ -373,10 +387,7 @@ export async function deleteKeywordGroupAction(groupId: string) {
   const id = uuidSchema.parse(groupId);
 
   const supabase = createSupabaseAdminClient();
-  const { error } = await supabase
-    .from("keyword_groups")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("keyword_groups").delete().eq("id", id);
 
   if (error) {
     return { ok: false, message: `Failed to delete group: ${error.message}` };
@@ -417,7 +428,10 @@ export async function addBrandTermAction(formData: FormData) {
     if (error.code === "23505") {
       return { ok: false, message: "This brand term already exists." };
     }
-    return { ok: false, message: `Failed to save brand term: ${error.message}` };
+    return {
+      ok: false,
+      message: `Failed to save brand term: ${error.message}`,
+    };
   }
 
   revalidateAllDashboardRoutes();
@@ -436,7 +450,10 @@ export async function toggleBrandTermAction(termId: string, enabled: boolean) {
     .eq("id", id);
 
   if (error) {
-    return { ok: false, message: `Failed to update brand term: ${error.message}` };
+    return {
+      ok: false,
+      message: `Failed to update brand term: ${error.message}`,
+    };
   }
 
   revalidateAllDashboardRoutes();
@@ -451,7 +468,10 @@ export async function deleteBrandTermAction(termId: string) {
   const { error } = await supabase.from("brand_terms").delete().eq("id", id);
 
   if (error) {
-    return { ok: false, message: `Failed to delete brand term: ${error.message}` };
+    return {
+      ok: false,
+      message: `Failed to delete brand term: ${error.message}`,
+    };
   }
 
   revalidateAllDashboardRoutes();
@@ -459,7 +479,11 @@ export async function deleteBrandTermAction(termId: string) {
 }
 
 const competitorSchema = z.object({
-  name: z.string().trim().min(2, "Competitor name must be at least 2 characters").max(100),
+  name: z
+    .string()
+    .trim()
+    .min(2, "Competitor name must be at least 2 characters")
+    .max(100),
   domain: z
     .string()
     .trim()
@@ -485,8 +509,7 @@ export async function addCompetitorAction(formData: FormData) {
   if (!parsed.success) {
     return {
       ok: false,
-      message:
-        parsed.error.issues[0]?.message ?? "Invalid competitor data.",
+      message: parsed.error.issues[0]?.message ?? "Invalid competitor data.",
     };
   }
 
@@ -573,7 +596,10 @@ export async function saveSearchSettingsAction(formData: FormData) {
   }
 
   revalidateAllDashboardRoutes();
-  return { ok: true, message: "Location and language settings saved successfully." };
+  return {
+    ok: true,
+    message: "Location and language settings saved successfully.",
+  };
 }
 
 export async function runCheckNowAction() {
@@ -602,6 +628,7 @@ export async function runCheckNowAction() {
   const processed = await processQueue(store, {
     maxItems: 5,
     maxDurationMs: 15_000,
+    dryRun: started.isDemo,
   });
 
   const runSummary =
@@ -637,14 +664,37 @@ export async function processRunBatchAction(runId?: string) {
   const store = createSupabaseQueueStore(supabase);
   const isDryRunEnv = isDryRun();
 
-  // Jika SERPAPI_DRY_RUN=false, jangan jalankan pemrosesan untuk run dengan is_demo = true
-  if (!isDryRunEnv) {
+  // Mode pemrosesan mengikuti run:
+  // Run is_demo=true hanya diproses dalam mode dry run (isDryRunEnv === true).
+  // Run is_demo=false hanya diproses saat isDryRun() bernilai false (!isDryRunEnv).
+  // Jika tidak cocok, item dilewati tanpa mengubah state, dan respons memuat stoppedReason: "mode_mismatch".
+  let targetRunId = runId;
+  let targetRunIsDemo: boolean | null = null;
+
+  if (targetRunId) {
+    const { data: runRow } = await supabase
+      .from("check_runs")
+      .select("id, is_demo")
+      .eq("id", targetRunId)
+      .maybeSingle();
+    if (runRow) {
+      targetRunIsDemo = Boolean(runRow.is_demo);
+    }
+  } else {
     const runningRun = await store.getRunningCheckRun();
-    if (runningRun?.is_demo && (!runId || runningRun.id === runId)) {
+    if (runningRun) {
+      targetRunId = runningRun.id;
+      targetRunIsDemo = Boolean(runningRun.is_demo);
+    }
+  }
+
+  if (targetRunId && targetRunIsDemo !== null) {
+    const isMismatch = targetRunIsDemo !== isDryRunEnv;
+    if (isMismatch) {
       const summary = await store.syncRunProgress(
-        runningRun.id,
+        targetRunId,
         new Date().toISOString(),
-        true
+        targetRunIsDemo
       );
       return {
         ok: true,
@@ -657,37 +707,8 @@ export async function processRunBatchAction(runId?: string) {
         processedCount: 0,
         succeededCount: 0,
         serpApiCallsUsed: summary.serpApiCalls,
-        stoppedReason: "no_more_items" as const,
+        stoppedReason: "mode_mismatch" as const,
       };
-    }
-
-    if (runId) {
-      const { data: runRow } = await supabase
-        .from("check_runs")
-        .select("id, is_demo")
-        .eq("id", runId)
-        .maybeSingle();
-
-      if (runRow?.is_demo) {
-        const summary = await store.syncRunProgress(
-          runRow.id,
-          new Date().toISOString(),
-          true
-        );
-        return {
-          ok: true,
-          runId: summary.runId,
-          status: summary.status,
-          total: summary.total,
-          done: summary.done,
-          pending: summary.pending,
-          errors: summary.errors,
-          processedCount: 0,
-          succeededCount: 0,
-          serpApiCallsUsed: summary.serpApiCalls,
-          stoppedReason: "no_more_items" as const,
-        };
-      }
     }
   }
 
@@ -697,13 +718,13 @@ export async function processRunBatchAction(runId?: string) {
     dryRun: isDryRunEnv,
   });
 
-  const targetRunId =
-    runId ??
+  const resolvedRunId =
+    targetRunId ??
     processed.runsSummary[0]?.runId ??
     (await store.getRunningCheckRun())?.id ??
     null;
 
-  if (!targetRunId) {
+  if (!resolvedRunId) {
     revalidateAllDashboardRoutes();
     return {
       ok: true,
@@ -721,8 +742,8 @@ export async function processRunBatchAction(runId?: string) {
   }
 
   const runSummary =
-    processed.runsSummary.find((r) => r.runId === targetRunId) ??
-    (await store.syncRunProgress(targetRunId, new Date().toISOString()));
+    processed.runsSummary.find((r) => r.runId === resolvedRunId) ??
+    (await store.syncRunProgress(resolvedRunId, new Date().toISOString()));
 
   revalidateAllDashboardRoutes();
 
@@ -784,9 +805,7 @@ export async function overrideActiveBatchAction(
   return result;
 }
 
-export async function updateBatchScheduleModeAction(
-  mode: BatchScheduleMode
-) {
+export async function updateBatchScheduleModeAction(mode: BatchScheduleMode) {
   const user = await requireAllowedAdminUser();
   const supabase = createSupabaseAdminClient();
 
@@ -857,8 +876,14 @@ export async function updateBatchWithKeywordsAction(
 ) {
   const user = await requireAllowedAdminUser();
   const validBatchId = uuidSchema.parse(batchId);
-  const validName = z.string().trim().min(2, "Batch name must be at least 2 characters").parse(name);
-  const validIds = keywordIds ? z.array(uuidSchema).parse(keywordIds) : undefined;
+  const validName = z
+    .string()
+    .trim()
+    .min(2, "Batch name must be at least 2 characters")
+    .parse(name);
+  const validIds = keywordIds
+    ? z.array(uuidSchema).parse(keywordIds)
+    : undefined;
 
   const supabase = createSupabaseAdminClient();
   const result = await updateBatchWithKeywords(supabase, validBatchId, {
@@ -932,4 +957,3 @@ export async function deleteBatchAction(batchId: string) {
   revalidateAllDashboardRoutes();
   return { ok: true };
 }
-
