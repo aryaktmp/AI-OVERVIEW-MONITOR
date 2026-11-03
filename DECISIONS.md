@@ -247,3 +247,49 @@ Menerapkan antarmuka pengguna optimal untuk manajemen batch dan pemantauan kalen
    - **Tabel Seluruh Batch**: Daftar batch dengan toggle aktivasi rotasi otomatis (`toggleBatchEnabledAction`) dan tombol aktivasi instan (`Activate Now`).
 3. **Pembaruan Navigasi Global (`components/dashboard-nav.tsx`)**:
    - Memperbarui label menu navigasi utama menjadi `Keywords & Batches` untuk kejelasan navigasi modul.
+
+## 17. Fase UI: Peningkatan Halaman Overview & Paginasi Heatmap 8 Minggu (4 November 2026)
+
+Mengoptimalkan tata letak halaman Overview untuk mengatasi kendala penskalaan keyword (140+ keyword) dan meningkatkan keterbacaan data eksekutif:
+1. **Penyempurnaan Kartu Matriks 8 Minggu (`components/overview-heatmap-card.tsx`)**:
+   - **Mengatasi Masalah Panjang Halaman**: Mengganti render seluruh 140+ baris sekaligus dengan sistem paginasi standar (bawaan 15 baris per halaman, opsi 10, 15, 25, 50) sehingga tinggi kartu tetap kompak dan terkendali (~500px).
+   - **Toolbar Pencarian & Filter**: Menyediakan pencarian teks keyword *real-time*, filter per grup modul produk, dan filter status sitasi (*LinovHR Cited*, *AI Overview Uncited*, *No AI Overview*, *Ever Cited*).
+   - **Mode Tampilan Ganda**: Mendukung beralih antara *Table View* (terpaginasi) dan *By Group Accordion View* (accordion per modul produk yang dapat dibuka/tutup dengan metrik sitasi minggu ini).
+2. **Widget Status Batch Mingguan & Quota Monitor (`components/overview-active-batch-widget.tsx`)**:
+   - Menampilkan kartu visual 4 slot minggu dengan sorotan pada minggu aktif kalender, status mode rotasi (Otomatis vs Override Manual), dan bilah progres kuota eksekusi bulanan SerpApi.
+3. **Dua Chart Tren Interaktif Berdampingan (`WeeklyTrendChart` & `GroupCitationBarChart`)**:
+   - Menggunakan Recharts 2.15.1 untuk grafik garis tren rasio sitasi mingguan dan diagram batang perbandingan sitasi antar-modul produk LinovHR dengan tooltip rasio akurat.
+
+## 18. Engine Ekspor Excel Terstruktur Multi-Sheet Menggunakan `exceljs` (4 November 2026)
+
+Memperbarui sistem ekspor dari file CSV polos menjadi format Microsoft Excel (`.xlsx`) bertemplate profesional:
+1. **Pemilihan Library `exceljs`**:
+   - Dipilih karena merupakan solusi *open-source* gratis yang mendukung penuh styling sel (warna latar, font tebal, border sel, tinggi baris), *freeze panes*, dan *auto-filter* secara native tanpa biaya lisensi komersial (berbeda dengan SheetJS/xlsx versi gratis yang mengunci fitur styling).
+2. **Struktur File 2 Sheet**:
+   - **Sheet 1 (`Data Pantauan`)**: Menampilkan 9 kolom tabel data utama dengan header berwarna Slate-800 (`#1E293B`), teks putih tebal, border tipis `#E2E8F0`, freeze row pada baris 4 (`ySplit: 4`), auto-filter aktif (`A4:I4`), format tanggal native Excel (`yyyy-mm-dd hh:mm:ss`), dan auto-fit lebar kolom dinamis (maksimal 60 karakter).
+   - **Sheet 2 (`Ringkasan & Metadata`)**: Ringkasan eksekutif berisi parameter ekspor (waktu, rentang tanggal, mode) dan tabel KPI kinerja (Total Keyword, AI Overview Muncul, LinovHR Tersitasi, dan Detection Rate bertipe numerik/persentase native `0.0%`).
+3. **Kompatibilitas & Penamaan Dinamis**:
+   - Mengembalikan MIME type `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` dengan nama file dinamis bertimestamp (mis. `ai-overview-latest_YYYY-MM-DD.xlsx`).
+   - Tetap mempertahankan fallback format `csv` bagi pengguna yang membutuhkan format teks delimitasi.
+
+## 19. Standarisasi Loading State & Komunikasi Backend (Zero Silent BE Operations) (4 November 2026)
+
+Menegakkan aturan bahwa seluruh komunikasi backend dan proses asinkron wajib memiliki umpan balik visual (*loading behavior*):
+1. **Mutasi Data & Server Actions**:
+   - Pemanggilan Server Action dari Client Component wajib dibungkus dalam `useTransition` (`isPending, startTransition`) atau `useActionState`.
+   - Tombol pemicu menampilkan spinner `<Loader2 className="animate-spin" />`, teks aktif ("Saving...", "Adding..."), dan dinonaktifkan (`disabled={isPending}`) untuk mencegah submit ganda. Input formulir terkait juga dinonaktifkan selama proses.
+2. **Fetch Asinkron & Ekspor Data (`components/export-csv-button.tsx`)**:
+   - Dilarang memakai tag tautan `<a>` langsung untuk endpoint yang membutuhkan pemrosesan server.
+   - Menggunakan alur client `fetch()` dengan state `isExporting`: tombol menampilkan spinner dan teks `Generating...`, banner status proses aktif di dalam modal, penanganan galat inline jika `res.ok` gagal, serta trigger unduhan via Blob URL (`window.URL.createObjectURL(blob)`).
+3. **Aksi In-Line Baris Tabel**:
+   - Menggunakan penanda ID proses (mis. `pendingActionId === row.id`) dengan spinner kecil lokal pada baris terkait tanpa membekukan kontrol baris lain.
+4. **Pemuatan Awal Rute**:
+   - Menyediakan file `loading.tsx` dengan skeleton `animate-pulse` yang meniru tata letak data sebenarnya.
+
+## 20. Keputusan Arsitektur Manajemen Pengguna & Allowed Emails (4 November 2026)
+
+Berdasarkan analisis keamanan dan kebutuhan operasional untuk tim inti beranggotakan 2 orang:
+1. **Mempertahankan Whitelist di `process.env.ALLOWED_EMAILS`**:
+   - Tidak memindahkan manajemen user ke antarmuka basis data/settings guna menjaga prinsip *Zero Attack Surface*: tidak ada endpoint atau form antarmuka yang dapat dieksploitasi pihak luar untuk eskalasi hak akses (*privilege escalation*).
+   - Menghilangkan risiko *self-lockout* dan meniadakan beban pemeliharaan tabel otorisasi atau RLS tambahan.
+   - Evaluasi otorisasi tetap berjalan ketat di level server via `isEmailAllowed()` di `lib/auth.ts`, Server Actions, dan Middleware.
