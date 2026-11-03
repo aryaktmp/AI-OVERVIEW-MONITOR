@@ -254,7 +254,7 @@ export function KeywordManagerClient({
           return (
             <div className="flex items-center gap-2">
               <Link
-                href={`/keyword/${row.id}`}
+                href={`/keywords/${row.id}`}
                 className="font-semibold text-[var(--ink)] hover:underline"
               >
                 {row.keyword}
@@ -374,7 +374,7 @@ export function KeywordManagerClient({
                   size="sm"
                   className="h-7 w-7 p-0 inline-flex items-center justify-center rounded-md text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[var(--none)] cursor-pointer"
                 >
-                  <Link href={`/keyword/${row.id}`} aria-label="View keyword details">
+                  <Link href={`/keywords/${row.id}`} aria-label="View keyword details">
                     <ExternalLink className="h-3.5 w-3.5" />
                   </Link>
                 </Button>

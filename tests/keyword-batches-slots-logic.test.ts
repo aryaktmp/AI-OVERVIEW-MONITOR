@@ -63,7 +63,7 @@ function createMockSupabaseForSlots() {
     },
   ];
 
-  let slots: BatchScheduleSlotRecord[] = [
+  const slots: BatchScheduleSlotRecord[] = [
     {
       id: "slot-1",
       week_number: 1,

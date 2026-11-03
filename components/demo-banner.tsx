@@ -13,7 +13,7 @@ export function DemoDataBanner({ visible }: { visible: boolean }) {
           <strong>Demo data:</strong> This page displays results from simulation / sample checks (dry-run).
         </AlertDescription>
         <Link
-          href="/pengaturan"
+          href="/settings"
           className="text-xs font-bold underline hover:opacity-80"
         >
           Manage or clear demo data in Settings →

@@ -47,7 +47,7 @@ function cellClassName(state: HeatmapCellState): string {
   return "h-[22px] rounded-[3px] bg-[var(--none)]";
 }
 
-export default async function RingkasanPage() {
+export default async function OverviewPage() {
   const { analytics } = await getDashboardOverviewData();
 
   if (analytics.totalKeywords === 0) {
@@ -62,10 +62,10 @@ export default async function RingkasanPage() {
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
           <Button asChild variant="primary">
-            <Link href="/keyword">Add first keyword</Link>
+            <Link href="/keywords">Add first keyword</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/pengaturan">Open settings</Link>
+            <Link href="/settings">Open settings</Link>
           </Button>
         </CardContent>
       </Card>
@@ -191,7 +191,7 @@ export default async function RingkasanPage() {
                   {rows.map((row) => (
                     <div key={row.id} className="contents">
                       <Link
-                        href={`/keyword/${row.id}`}
+                        href={`/keywords/${row.id}`}
                         title={row.keyword}
                         className="truncate text-[13px] hover:underline"
                       >

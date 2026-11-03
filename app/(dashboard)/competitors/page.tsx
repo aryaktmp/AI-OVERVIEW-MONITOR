@@ -14,7 +14,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export default async function KompetitorPage() {
+export default async function CompetitorsPage() {
   const { ranking, competitors, hasDemoData, totalChecksAnalyzed } =
     await getCompetitorPageData();
 
@@ -32,7 +32,7 @@ export default async function KompetitorPage() {
         </div>
 
         <Button asChild variant="outline" size="sm">
-          <Link href="/pengaturan" className="inline-flex items-center gap-1.5">
+          <Link href="/settings" className="inline-flex items-center gap-1.5">
             <Settings className="h-3.5 w-3.5" />
             Manage competitors list
           </Link>
@@ -52,10 +52,10 @@ export default async function KompetitorPage() {
           </CardHeader>
           <CardContent className="flex justify-center gap-2.5">
             <Button asChild variant="primary">
-              <Link href="/pengaturan">Open settings &amp; run check</Link>
+              <Link href="/settings">Open settings &amp; run check</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/keyword">View keywords list</Link>
+              <Link href="/keywords">View keywords list</Link>
             </Button>
           </CardContent>
         </Card>
@@ -119,7 +119,7 @@ export default async function KompetitorPage() {
               Monitored Competitors ({competitors.length})
             </CardTitle>
             <Link
-              href="/pengaturan"
+              href="/settings"
               className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--cite)] hover:underline"
             >
               Add or manage in Settings

@@ -37,5 +37,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/login?error=forbidden", request.url));
   }
 
-  return NextResponse.redirect(new URL("/ringkasan", request.url));
+  return NextResponse.redirect(new URL("/overview", request.url));
 }

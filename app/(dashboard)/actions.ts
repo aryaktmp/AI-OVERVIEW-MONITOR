@@ -42,6 +42,10 @@ async function requireAllowedAdminUser() {
 }
 
 function revalidateAllDashboardRoutes() {
+  revalidatePath("/overview");
+  revalidatePath("/keywords");
+  revalidatePath("/competitors");
+  revalidatePath("/settings");
   revalidatePath("/ringkasan");
   revalidatePath("/keyword");
   revalidatePath("/kompetitor");

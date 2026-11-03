@@ -16,7 +16,9 @@
     "try:fetch": "tsx scripts/try-fetch.ts",
     "try:dry-run": "tsx scripts/run-local-dry-run.ts",
     "seed:demo": "tsx scripts/seed-demo.ts",
-    "seed:clear": "tsx scripts/seed-clear.ts"
+    "seed:clear": "tsx scripts/seed-clear.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.6",
@@ -55,6 +57,7 @@
     "jsdom": "^26.0.0",
     "pg": "^8.23.1",
     "postcss": "^8.5.3",
+    "prettier": "^3.9.10",
     "tailwindcss": "^4.0.12",
     "tsx": "^4.23.15",
     "typescript": "^5.8.2",

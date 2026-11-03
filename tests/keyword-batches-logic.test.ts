@@ -3,8 +3,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   rotateActiveKeywordBatch,
   overrideActiveKeywordBatch,
-  setBatchScheduleMode,
-  listKeywordBatchesWithCounts,
   createKeywordBatch,
   listKeywordsForBatchSelection,
   parseKeywordsInput,
@@ -117,7 +115,7 @@ function createMockSupabase() {
     },
   ];
 
-  let settings: BatchScheduleSettingsRecord = {
+  const settings: BatchScheduleSettingsRecord = {
     id: 1,
     mode: "auto",
     override_until: null,

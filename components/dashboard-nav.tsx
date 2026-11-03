@@ -4,10 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/ringkasan", label: "Overview" },
-  { href: "/keyword", label: "Keywords & Batches" },
-  { href: "/kompetitor", label: "Competitors" },
-  { href: "/pengaturan", label: "Settings" },
+  { href: "/overview", legacyHref: "/ringkasan", label: "Overview" },
+  { href: "/keywords", legacyHref: "/keyword", label: "Keywords & Batches" },
+  { href: "/competitors", legacyHref: "/kompetitor", label: "Competitors" },
+  { href: "/settings", legacyHref: "/pengaturan", label: "Settings" },
 ];
 
 export function DashboardNav() {
@@ -20,7 +20,10 @@ export function DashboardNav() {
     >
       {navItems.map((item) => {
         const isActive =
-          pathname === item.href || pathname.startsWith(`${item.href}/`);
+          pathname === item.href ||
+          pathname.startsWith(`${item.href}/`) ||
+          pathname === item.legacyHref ||
+          pathname.startsWith(`${item.legacyHref}/`);
         return (
           <Link
             key={item.href}

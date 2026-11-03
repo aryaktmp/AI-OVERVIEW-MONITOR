@@ -91,7 +91,7 @@ export async function loginAction(
     };
   }
 
-  redirect("/ringkasan");
+  redirect("/overview");
 }
 
 export async function logoutAction(): Promise<void> {

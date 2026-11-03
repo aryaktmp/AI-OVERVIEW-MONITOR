@@ -1,0 +1,8 @@
+.next
+node_modules
+coverage
+package-lock.json
+next-env.d.ts
+supabase/migrations
+dashboard-ai-overview.html
+tests/fixtures

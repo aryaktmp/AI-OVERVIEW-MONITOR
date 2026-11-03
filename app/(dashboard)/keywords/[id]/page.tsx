@@ -92,7 +92,7 @@ export default async function KeywordDetailPage({
         </div>
 
         <Button asChild variant="outline" size="sm">
-          <Link href="/keyword" className="inline-flex items-center gap-1.5">
+          <Link href="/keywords" className="inline-flex items-center gap-1.5">
             <ArrowLeft className="h-4 w-4" />
             Back to keywords list
           </Link>
@@ -110,7 +110,7 @@ export default async function KeywordDetailPage({
           </CardHeader>
           <CardContent>
             <Button asChild variant="primary">
-              <Link href="/pengaturan">Open Settings page</Link>
+              <Link href="/settings">Open Settings page</Link>
             </Button>
           </CardContent>
         </Card>
@@ -278,7 +278,7 @@ export default async function KeywordDetailPage({
                         <TableCell>
                           <Button asChild variant="outline" size="sm">
                             <Link
-                              href={`/keyword/${keyword.id}?checkId=${chk.id}`}
+                              href={`/keywords/${keyword.id}?checkId=${chk.id}`}
                             >
                               {isCurrent ? "Currently viewing" : "View details"}
                             </Link>

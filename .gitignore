@@ -45,3 +45,10 @@ supabase/verify/Supabase Snippet*
 
 # scratch files
 scratch-*.json
+
+# AI agent context files (jangan di-push)
+AGENT_CONTEXT.md
+GEMINI.md
+AGENTS.md
+AGENT.md
+.agents/

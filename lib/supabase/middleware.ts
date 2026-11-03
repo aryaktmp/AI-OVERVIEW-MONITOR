@@ -79,7 +79,7 @@ export async function updateSessionAndEnforceAllowlist(request: NextRequest) {
 
   if (pathname.startsWith("/login")) {
     const dashboardUrl = request.nextUrl.clone();
-    dashboardUrl.pathname = "/ringkasan";
+    dashboardUrl.pathname = "/overview";
     dashboardUrl.search = "";
     return NextResponse.redirect(dashboardUrl);
   }
