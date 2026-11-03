@@ -105,6 +105,7 @@ export function KeywordManagerClient({
   const [selectedGroup, setSelectedGroup] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedBatch, setSelectedBatch] = useState("");
+  const [activeTab, setActiveTab] = useState("keywords");
   const [showCsvPanel, setShowCsvPanel] = useState(false);
   const [csvText, setCsvText] = useState("");
   const [csvFileName, setCsvFileName] = useState("");
@@ -356,35 +357,71 @@ export function KeywordManagerClient({
         </Alert>
       )}
 
-      <Tabs defaultValue="keywords" className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--line)] pb-3">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--line)] pb-4">
           <div>
-            <h1 className="text-[20px] font-semibold tracking-[-0.01em] text-[var(--ink)]">
-              Keyword &amp; Batch Hub
-            </h1>
-            <p className="mt-0.5 text-[13px] text-[var(--muted)]">
-              Search term management, 4-week monthly rotation calendar, and product groups.
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-[20px] font-semibold tracking-[-0.01em] text-[var(--ink)]">
+                Keyword &amp; Batch Hub
+              </h1>
+              <Badge
+                variant="outline"
+                className="text-[11px] font-mono text-[var(--cite)] border-[var(--cite)]/30 bg-[var(--cite)]/5 transition-all duration-300"
+              >
+                {activeTab === "keywords" && `${rows.length} Keywords`}
+                {activeTab === "schedule" && `${batches.length} Batches`}
+                {activeTab === "groups" && `${groups.length} Groups`}
+              </Badge>
+            </div>
+            <p className="mt-1 text-[13px] text-[var(--muted)] transition-opacity duration-200">
+              {activeTab === "keywords" && "Manage monitored search keywords, active states, and assignment to rotation batches."}
+              {activeTab === "schedule" && "Explore multi-month schedule, automated Monday rotations, and batch calendar slots."}
+              {activeTab === "groups" && "Organize keywords into LinovHR product modules and business department groupings."}
             </p>
           </div>
 
-          <TabsList className="bg-[var(--surface)] border border-[var(--line)] p-1">
-            <TabsTrigger value="keywords" className="gap-1.5 text-xs font-semibold">
-              <Key className="h-3.5 w-3.5 text-[var(--cite)]" />
-              Keywords ({rows.length})
+          <TabsList className="h-auto p-1 bg-[var(--surface)] border border-[var(--line)] rounded-xl shadow-xs gap-1">
+            <TabsTrigger
+              value="keywords"
+              className="gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold data-[state=active]:bg-[var(--cite)] data-[state=active]:text-white transition-all duration-200 group cursor-pointer"
+            >
+              <Key className="h-3.5 w-3.5 text-[var(--cite)] group-data-[state=active]:text-white transition-colors" />
+              <span>Keywords</span>
+              <span className="ml-0.5 inline-flex items-center justify-center rounded-full bg-[var(--line)]/60 px-1.5 py-0.2 text-[10px] font-mono text-[var(--muted)] group-data-[state=active]:bg-white/20 group-data-[state=active]:text-white transition-colors">
+                {rows.length}
+              </span>
             </TabsTrigger>
-            <TabsTrigger value="schedule" className="gap-1.5 text-xs font-semibold">
-              <CalendarIcon className="h-3.5 w-3.5 text-[var(--cite)]" />
-              Batches &amp; 4-Week Schedule ({batches.length})
+
+            <TabsTrigger
+              value="schedule"
+              className="gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold data-[state=active]:bg-[var(--cite)] data-[state=active]:text-white transition-all duration-200 group cursor-pointer"
+            >
+              <CalendarIcon className="h-3.5 w-3.5 text-[var(--cite)] group-data-[state=active]:text-white transition-colors" />
+              <span>Schedule &amp; Batches</span>
+              <span className="ml-0.5 inline-flex items-center justify-center rounded-full bg-[var(--line)]/60 px-1.5 py-0.2 text-[10px] font-mono text-[var(--muted)] group-data-[state=active]:bg-white/20 group-data-[state=active]:text-white transition-colors">
+                {batches.length}
+              </span>
             </TabsTrigger>
-            <TabsTrigger value="groups" className="gap-1.5 text-xs font-semibold">
-              <FolderTree className="h-3.5 w-3.5 text-[var(--cite)]" />
-              Groups ({groups.length})
+
+            <TabsTrigger
+              value="groups"
+              className="gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold data-[state=active]:bg-[var(--cite)] data-[state=active]:text-white transition-all duration-200 group cursor-pointer"
+            >
+              <FolderTree className="h-3.5 w-3.5 text-[var(--cite)] group-data-[state=active]:text-white transition-colors" />
+              <span>Groups</span>
+              <span className="ml-0.5 inline-flex items-center justify-center rounded-full bg-[var(--line)]/60 px-1.5 py-0.2 text-[10px] font-mono text-[var(--muted)] group-data-[state=active]:bg-white/20 group-data-[state=active]:text-white transition-colors">
+                {groups.length}
+              </span>
             </TabsTrigger>
           </TabsList>
         </div>
 
         {/* Tab 1: Keywords Management */}
-        <TabsContent value="keywords" className="space-y-4 pt-1">
+        <TabsContent value="keywords" className="space-y-4 pt-1 animate-tab-fade-in">
           <Card>
           <CardHeader>
             <div className="flex flex-wrap items-start justify-between gap-2">
@@ -745,7 +782,7 @@ export function KeywordManagerClient({
     </TabsContent>
 
     {/* Tab 2: Batches & 4-Week Schedule Calendar */}
-    <TabsContent value="schedule" className="space-y-4 pt-1">
+    <TabsContent value="schedule" className="space-y-4 pt-1 animate-tab-fade-in">
       <BatchScheduleCalendar
         initialBatches={batches}
         initialSlots={slots}
@@ -771,7 +808,7 @@ export function KeywordManagerClient({
     </TabsContent>
 
     {/* Tab 3: Keyword Product Groups */}
-    <TabsContent value="groups" className="space-y-4 pt-1">
+    <TabsContent value="groups" className="space-y-4 pt-1 animate-tab-fade-in">
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
