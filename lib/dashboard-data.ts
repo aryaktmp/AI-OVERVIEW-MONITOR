@@ -18,11 +18,6 @@ import {
   createSupabaseQueueStore,
   extractSerpApiCallsFromRaw,
 } from "@/lib/queue";
-import {
-  isKnownDemoCompetitorDomain,
-  isKnownDemoGroupName,
-  isKnownDemoKeywordText,
-} from "@/lib/demo-data";
 import { isDryRun } from "@/lib/dry-run";
 import {
   listKeywordBatchesWithCounts,
@@ -79,11 +74,11 @@ export async function getDashboardOverviewData(): Promise<{
     monthlyRunCountData,
     auditLogsData,
   ] = await Promise.all([
-    supabase.from("keyword_groups").select("id, name").order("name"),
+    supabase.from("keyword_groups").select("id, name, is_demo").order("name"),
     supabase
       .from("keywords")
       .select(
-        "id, text, active, group_id, batch_id, keyword_groups(name), keyword_batches(name)"
+        "id, text, active, is_demo, group_id, batch_id, keyword_groups(name), keyword_batches(name)"
       )
       .order("created_at", { ascending: true }),
     // Hanya ambil kolom agregasi dari 8 minggu terakhir (tanpa menarik answer_text atau raw penuh ke memori/browser)
@@ -136,11 +131,14 @@ export async function getDashboardOverviewData(): Promise<{
   }
   void runsData;
 
-  const keywords: AnalyticsKeywordInput[] = (keywordsData ?? []).map((row) => {
+  const keywords: (AnalyticsKeywordInput & { is_demo?: boolean })[] = (
+    keywordsData ?? []
+  ).map((row) => {
     const r = row as unknown as {
       id: string;
       text: string;
       active: boolean;
+      is_demo?: boolean;
       batch_id?: string | null;
       keyword_groups?: { name: string } | Array<{ name: string }> | null;
       keyword_batches?: { name: string } | Array<{ name: string }> | null;
@@ -155,6 +153,7 @@ export async function getDashboardOverviewData(): Promise<{
       id: r.id,
       text: r.text,
       active: r.active,
+      is_demo: Boolean(r.is_demo),
       groupName: grpObj?.name ?? "No Group",
       batchId: r.batch_id ?? null,
       batchName: batchObj?.name ?? null,
@@ -188,10 +187,8 @@ export async function getDashboardOverviewData(): Promise<{
 
   const analytics = computeDashboardAnalytics(keywords, checks);
   const hasDemoKeywordsOrGroups =
-    keywords.some((k) => isKnownDemoKeywordText(k.text)) ||
-    (groupsData ?? []).some((g: { name: string }) =>
-      isKnownDemoGroupName(g.name)
-    );
+    keywords.some((k) => k.is_demo) ||
+    (groupsData ?? []).some((g: { is_demo?: boolean }) => Boolean(g.is_demo));
   if (hasDemoKeywordsOrGroups || demoRunIds.size > 0) {
     analytics.hasDemoData = true;
   }
@@ -254,7 +251,7 @@ export async function getKeywordDetailData(keywordId: string): Promise<{
   ] = await Promise.all([
     supabase
       .from("keywords")
-      .select("id, text, active, keyword_groups(name)")
+      .select("id, text, active, is_demo, keyword_groups(name)")
       .eq("id", keywordId)
       .maybeSingle(),
     supabase
@@ -288,13 +285,14 @@ export async function getKeywordDetailData(keywordId: string): Promise<{
     id: string;
     text: string;
     active: boolean;
+    is_demo?: boolean;
     keyword_groups?: { name: string } | Array<{ name: string }> | null;
   };
   const grpObj = Array.isArray(typedKw.keyword_groups)
     ? typedKw.keyword_groups[0]
     : typedKw.keyword_groups;
 
-  let hasDemoData = false;
+  let hasDemoData = Boolean(typedKw.is_demo);
   const checks: KeywordDetailCheckItem[] = (checksRows ?? []).map((row) => {
     const r = row as unknown as {
       id: string;
@@ -370,7 +368,7 @@ export async function getCompetitorPageData(): Promise<{
     { data: compRows, error: compErr },
     { data: recentChecks, error: chkErr },
   ] = await Promise.all([
-    supabase.from("competitors").select("id, name, domain").order("name"),
+    supabase.from("competitors").select("id, name, domain, is_demo").order("name"),
     supabase
       .from("checks")
       .select(
@@ -390,7 +388,9 @@ export async function getCompetitorPageData(): Promise<{
   // Ambil hanya cek terbaru untuk setiap keyword_id
   const seenKeywordIds = new Set<string>();
   const citations: SourceCitationInput[] = [];
-  let hasDemoData = false;
+  let hasDemoData = (compRows ?? []).some((c: { is_demo?: boolean }) =>
+    Boolean(c.is_demo)
+  );
 
   for (const row of recentChecks ?? []) {
     const r = row as unknown as {
@@ -487,6 +487,9 @@ export async function getSettingsPageData(): Promise<{
     hourlyCallsUsed,
     monthlyCallsUsed,
     dbSizeRpc,
+    { count: demoKwCount },
+    { count: demoGrpCount },
+    { count: demoRunsTotalCount },
   ] = await Promise.all([
     supabase
       .from("brand_terms")
@@ -494,11 +497,11 @@ export async function getSettingsPageData(): Promise<{
       .order("term", { ascending: true }),
     supabase
       .from("competitors")
-      .select("id, name, domain")
+      .select("id, name, domain, is_demo")
       .order("name", { ascending: true }),
     supabase
       .from("check_runs")
-      .select("id, started_at, finished_at, status, total, done")
+      .select("id, started_at, finished_at, status, total, done, is_demo")
       .order("started_at", { ascending: false })
       .limit(15),
     supabase
@@ -511,6 +514,21 @@ export async function getSettingsPageData(): Promise<{
     store.getHourlySerpApiCalls(oneHourAgoIso),
     store.getMonthlySerpApiCalls ? store.getMonthlySerpApiCalls() : Promise.resolve(0),
     supabase.rpc("get_database_size_bytes"),
+    supabase
+      .from("keywords")
+      .select("id", { count: "exact" })
+      .eq("is_demo", true)
+      .limit(0),
+    supabase
+      .from("keyword_groups")
+      .select("id", { count: "exact" })
+      .eq("is_demo", true)
+      .limit(0),
+    supabase
+      .from("check_runs")
+      .select("id", { count: "exact" })
+      .eq("is_demo", true)
+      .limit(0),
   ]);
 
   // Baca tabel settings (dengan fallback jika tabel settings belum dimigrasi)
@@ -574,7 +592,12 @@ export async function getSettingsPageData(): Promise<{
     }
   }
 
-  let hasDemoData = false;
+  let hasDemoData =
+    (demoKwCount ?? 0) > 0 ||
+    (demoGrpCount ?? 0) > 0 ||
+    (demoRunsTotalCount ?? 0) > 0 ||
+    (compData ?? []).some((c: { is_demo?: boolean }) => Boolean(c.is_demo));
+
   const recentRuns: RunHistoryRow[] = (runsData ?? []).map((r) => {
     const typed = r as {
       id: string;
@@ -583,8 +606,9 @@ export async function getSettingsPageData(): Promise<{
       status: string;
       total: number;
       done: number;
+      is_demo?: boolean;
     };
-    const isDemo = Boolean(demoByRunId.get(typed.id));
+    const isDemo = Boolean(typed.is_demo || demoByRunId.get(typed.id));
     if (isDemo) hasDemoData = true;
 
     const resolved = resolvedByRunId.get(typed.id);
@@ -612,13 +636,6 @@ export async function getSettingsPageData(): Promise<{
       ? Number(process.env.SERPAPI_MAX_PER_HOUR)
       : 50;
   const isDryRunEnv = isDryRun();
-
-  const hasDemoCompetitors = (compData ?? []).some((c: { domain: string }) =>
-    isKnownDemoCompetitorDomain(c.domain)
-  );
-  if (hasDemoCompetitors) {
-    hasDemoData = true;
-  }
 
   // Ukuran database (dari fungsi SQL get_database_size_bytes() atau estimasi ruang jika migrasi belum dijalankan)
   const baseOverheadBytes = 8 * 1024 * 1024; // ~8 MB sistem & katalog Postgres dasar

@@ -155,6 +155,12 @@ export async function clearAllDemoData(supabase: SupabaseClient): Promise<{
     throw new Error(`Failed to delete demo competitors: ${delCompErr.message}`);
   }
 
+  // 7. Delete keyword_batches where is_demo = true (jika ada)
+  await supabase
+    .from("keyword_batches")
+    .delete()
+    .eq("is_demo", true);
+
   return {
     deletedRunsCount: demoRunIds.length,
   };
