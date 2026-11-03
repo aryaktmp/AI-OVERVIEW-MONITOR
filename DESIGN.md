@@ -46,8 +46,8 @@ Sumber kebenaran desain UI. Token berasal dari `app/globals.css`; komponen dari 
 
 ## 4. Layout & Spasi
 - Kontainer: `mx-auto max-w-[1040px] px-4` (lihat `app/(dashboard)/layout.tsx`).
-- Header & Navigasi Utama Sticky: `sticky top-0 z-40 w-full border-b border-[var(--line)] bg-[var(--bg)]/95 backdrop-blur-md` (tinggi ~100px, token `--top-nav-height`). Judul kiri, email + `Sign out` (outline/sm) kanan, navigasi tab bergaris bawah (`components/dashboard-nav.tsx`) aktif `border-b-[2.5px]` warna `--accent`, `overflow-x-auto`.
-- Sub-Tab Hub Sticky: Pada halaman dengan sub-tab (mis. Keywords & Batches Hub), header title dan sub-tab list menggunakan `sticky top-[var(--top-nav-height,100px)] z-30 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--line)]` sehingga tetap menempel tepat di bawah navigasi utama saat di-scroll.
+- Header & Navigasi Utama Sticky: `sticky top-0 z-40 w-full border-b border-[var(--line)] bg-[var(--bg)]/95 backdrop-blur-md` (tinggi ~105px, token `--top-nav-height` disinkronkan dinamis lewat `ResizeObserver` di `components/dashboard-nav.tsx`). Judul kiri, email + `Sign out` (outline/sm) kanan, navigasi tab bergaris bawah (`components/dashboard-nav.tsx`) aktif `border-b-[2.5px]` warna `--accent`, `overflow-x-auto`.
+- Sub-Tab Hub Sticky: Pada halaman dengan sub-tab (mis. Keywords & Batches Hub), header title dan sub-tab list menggunakan `sticky z-30 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--line)]` dengan `style={{ top: "var(--top-nav-height, 105px)" }}` sehingga tetap menempel tepat mepet di bawah navigasi utama saat di-scroll.
 - Layering Z-Index: Modals/Dialogs (`z-50`) > Top Nav Header (`z-40`) > Sub-Tab Hub Header (`z-30`) > Frozen Table Headers (`z-20`) > Frozen Table Body Cells (`z-10`).
 - Ritme vertikal: `space-y-5` antar blok; grid KPI `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3`; padding kartu KPI `p-4`.
 - Mobile-first; tabel lebar dibungkus `overflow-auto`.
@@ -58,6 +58,7 @@ Sumber kebenaran desain UI. Token berasal dari `app/globals.css`; komponen dari 
 - **Badge** (pil): `cited`/`detected` (teal), `notDetected` (amber), `none` (abu), `outline`, `secondary`.
 - **Alert**: `default`, `success`, `warning`, `destructive`, `info`; ikon lucide `h-4 w-4`. `DemoDataBanner` memakai `warning`.
 - **Input/Select/Textarea/Label/Switch/Tabs/Dialog/Tooltip/Table/Progress/Separator**: ikuti varian yang ada; tinggi kontrol `h-9`, border `--line`, fokus `outline-2 outline-[var(--cite)]`.
+- **DataTablePagination** (`components/ui/data-table-pagination.tsx`): Komponen standar pagination untuk tabel data banyak (TanStack Table). Menyediakan pemilih rows per page (`10`, `25`, `50`, `100`), status rentang baris (`Showing X–Y of Z items`), indikator jumlah baris terpilih (`X of Y selected`), dan tombol navigasi responsif (`First`, `Previous`, `Next`, `Last`). Didukung oleh modul kalkulasi dan pemotongan data standar di `lib/pagination.ts`.
 - Komponen fitur (`weekly-trend-chart`, `batch-scheduler-card`, `keyword-multi-select-dropdown`, …) harus tersusun dari primitif di atas.
 
 ## 6. Pola Halaman

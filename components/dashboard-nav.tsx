@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -12,6 +13,34 @@ const navItems = [
 
 export function DashboardNav() {
   const pathname = usePathname();
+
+  useEffect(() => {
+    const header = document.querySelector("header");
+    if (!header) return;
+
+    const updateHeight = () => {
+      const height = header.getBoundingClientRect().height;
+      if (height > 0) {
+        document.documentElement.style.setProperty(
+          "--top-nav-height",
+          `${Math.round(height)}px`
+        );
+      }
+    };
+
+    updateHeight();
+
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(() => {
+        updateHeight();
+      });
+      observer.observe(header);
+      return () => observer.disconnect();
+    }
+
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, []);
 
   return (
     <nav

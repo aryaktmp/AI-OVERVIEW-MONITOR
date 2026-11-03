@@ -24,6 +24,8 @@ import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
+  getPaginationRowModel,
+  type PaginationState,
   useReactTable,
 } from "@tanstack/react-table";
 import type { HeatmapCellState, KeywordWeeklyRow } from "@/lib/analytics";
@@ -81,6 +83,8 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BatchScheduleCalendar } from "@/components/batch-schedule-calendar";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 import { SimpleTooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -579,10 +583,25 @@ export function KeywordManagerClient({
     ]
   );
 
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: DEFAULT_PAGE_SIZE,
+  });
+
+  // Reset ke halaman awal saat filter pencarian, grup, status, atau batch berubah
+  useEffect(() => {
+    setPagination((prev) => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }));
+  }, [searchQuery, selectedGroup, selectedStatus, selectedBatch]);
+
   const table = useReactTable({
     data: filteredRows,
     columns,
+    state: {
+      pagination,
+    },
+    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
   });
 
   const allGroupNames = useMemo(() => {
@@ -612,7 +631,10 @@ export function KeywordManagerClient({
           onValueChange={handleTabChange}
           className="space-y-4"
         >
-        <div className="sticky top-[var(--top-nav-height,100px)] z-30 -mx-4 px-4 py-3 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--line)] mb-4 transition-all flex flex-wrap items-center justify-between gap-3">
+        <div
+          className="sticky z-30 -mx-4 px-4 py-3 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--line)] mb-4 transition-all flex flex-wrap items-center justify-between gap-3 shadow-xs"
+          style={{ top: "var(--top-nav-height, 105px)" }}
+        >
           <div>
             <div className="flex items-center gap-2.5">
               <h1 className="text-[18px] sm:text-[20px] font-semibold tracking-[-0.01em] text-[var(--ink)]">
@@ -1214,6 +1236,15 @@ export function KeywordManagerClient({
               </TableBody>
             </Table>
           </div>
+
+          {/* Standar Pagination Kontrol */}
+          <DataTablePagination
+            table={table}
+            totalItems={filteredRows.length}
+            selectedCount={selectedFilteredCount}
+            itemLabel="keywords"
+            className="mt-3"
+          />
         </CardContent>
       </Card>
     </TabsContent>
