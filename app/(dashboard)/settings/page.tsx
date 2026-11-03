@@ -15,8 +15,7 @@ export default async function PengaturanPage() {
           Monitoring Settings
         </h1>
         <p className="mt-0.5 text-[13px] text-[var(--muted)]">
-          Brand identity search terms, competitor list, search parameters,
-          database storage, and SerpApi quota.
+          Brand identity search terms, search parameters, database storage, and SerpApi quota.
         </p>
       </div>
 
@@ -24,7 +23,6 @@ export default async function PengaturanPage() {
 
       <SettingsClient
         brandTerms={data.brandTerms}
-        competitors={data.competitors}
         searchSettings={data.searchSettings}
         recentRuns={data.recentRuns}
         activeKeywordsCount={data.activeKeywordsCount}

@@ -41,10 +41,8 @@ import {
 } from "@/components/ui/table";
 import {
   addBrandTermAction,
-  addCompetitorAction,
   clearDemoDataAction,
   deleteBrandTermAction,
-  deleteCompetitorAction,
   processRunBatchAction,
   runCheckNowAction,
   saveSearchSettingsAction,
@@ -69,7 +67,6 @@ interface LiveRunProgressState {
 
 interface SettingsClientProps {
   brandTerms: Array<{ id: string; term: string; enabled: boolean }>;
-  competitors: Array<{ id: string; name: string; domain: string }>;
   searchSettings: SearchSettingsConfig;
   recentRuns: RunHistoryRow[];
   activeKeywordsCount: number;
@@ -85,7 +82,6 @@ interface SettingsClientProps {
 
 export function SettingsClient({
   brandTerms,
-  competitors,
   searchSettings,
   recentRuns,
   activeKeywordsCount,
@@ -123,8 +119,6 @@ export function SettingsClient({
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
 
   const [termInput, setTermInput] = useState("");
-  const [compNameInput, setCompNameInput] = useState("");
-  const [compDomainInput, setCompDomainInput] = useState("");
 
   const [locationInput, setLocationInput] = useState(searchSettings.location);
   const [googleDomainInput, setGoogleDomainInput] = useState(
@@ -306,33 +300,6 @@ export function SettingsClient({
     setFeedback(null);
     startTransition(async () => {
       const res = await deleteBrandTermAction(id);
-      if (!res.ok && res.message) {
-        setFeedback({ ok: false, message: res.message });
-      }
-    });
-  }
-
-  function handleAddCompetitor(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setFeedback(null);
-    const fd = new FormData();
-    fd.set("name", compNameInput);
-    fd.set("domain", compDomainInput);
-
-    startTransition(async () => {
-      const res = await addCompetitorAction(fd);
-      setFeedback(res);
-      if (res.ok) {
-        setCompNameInput("");
-        setCompDomainInput("");
-      }
-    });
-  }
-
-  function handleDeleteCompetitor(id: string) {
-    setFeedback(null);
-    startTransition(async () => {
-      const res = await deleteCompetitorAction(id);
       if (!res.ok && res.message) {
         setFeedback({ ok: false, message: res.message });
       }
@@ -799,74 +766,6 @@ export function SettingsClient({
           </CardContent>
         </Card>
       </div>
-
-      {/* Competitor List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Competitor List</CardTitle>
-          <CardDescription>
-            Competitor domains will be tagged automatically in AI Overview
-            sources and on the Competitors page.
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="space-y-3.5">
-          <form
-            onSubmit={handleAddCompetitor}
-            className="flex flex-wrap gap-2"
-          >
-            <Input
-              type="text"
-              value={compNameInput}
-              onChange={(e) => setCompNameInput(e.target.value)}
-              placeholder="Competitor name (e.g. Mekari Talenta)"
-              className="min-w-[200px] flex-1"
-              required
-            />
-            <Input
-              type="text"
-              value={compDomainInput}
-              onChange={(e) => setCompDomainInput(e.target.value)}
-              placeholder="Domain (e.g. talenta.co)"
-              className="min-w-[180px] flex-1 font-mono"
-              required
-            />
-            <Button type="submit" size="sm" disabled={isPending}>
-              Save competitor
-            </Button>
-          </form>
-
-          {competitors.length === 0 ? (
-            <p className="text-xs text-[var(--muted)]">
-              No competitors registered yet.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
-              {competitors.map((c) => (
-                <div
-                  key={c.id}
-                  className="flex items-center justify-between rounded-md border border-[var(--line)] bg-[var(--bg)] px-3 py-2 text-xs"
-                >
-                  <div className="truncate">
-                    <div className="font-medium text-[var(--ink)]">{c.name}</div>
-                    <div className="font-mono text-[11px] text-[var(--muted)]">
-                      {c.domain}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    disabled={isPending}
-                    onClick={() => handleDeleteCompetitor(c.id)}
-                    className="ml-2 text-xs font-medium text-[var(--destructive)] hover:underline cursor-pointer"
-                  >
-                    Delete
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Run History & SerpApi Call Usage */}
       <Card>
