@@ -63,6 +63,8 @@ import {
   getSlotWeekNumber,
   getMondaysInMonth,
   getMondayOccurrenceOfMonth,
+  getJakartaDateParts,
+  makeJakartaDate,
   type BatchWithKeywordsCount,
   type BatchScheduleSettingsRecord,
   type BatchScheduleSlotWithBatch,
@@ -188,14 +190,14 @@ export function BatchScheduleCalendar({
   const [showAuditLogs, setShowAuditLogs] = useState(false);
 
   const [now] = useState(() => new Date());
-  const [viewDate, setViewDate] = useState(() => new Date());
+  const nowParts = useMemo(() => getJakartaDateParts(now), [now]);
+  const [viewYear, setViewYear] = useState(() => nowParts.year);
+  const [viewMonthIdx, setViewMonthIdx] = useState(() => nowParts.month);
 
-  const currentYear = now.getFullYear();
-  const currentMonthIdx = now.getMonth();
-  const currentDay = now.getDate();
+  const currentYear = nowParts.year;
+  const currentMonthIdx = nowParts.month;
+  const currentDay = nowParts.date;
 
-  const viewYear = viewDate.getFullYear();
-  const viewMonthIdx = viewDate.getMonth();
   const isViewingCurrentMonth =
     viewYear === currentYear && viewMonthIdx === currentMonthIdx;
 
@@ -207,31 +209,45 @@ export function BatchScheduleCalendar({
 
   // Month navigation handlers
   function handlePrevMonth() {
-    setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    if (viewMonthIdx === 0) {
+      setViewYear((y) => y - 1);
+      setViewMonthIdx(11);
+    } else {
+      setViewMonthIdx((m) => m - 1);
+    }
   }
 
   function handleNextMonth() {
-    setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+    if (viewMonthIdx === 11) {
+      setViewYear((y) => y + 1);
+      setViewMonthIdx(0);
+    } else {
+      setViewMonthIdx((m) => m + 1);
+    }
   }
 
   function handleToday() {
-    setViewDate(new Date());
+    const todayParts = getJakartaDateParts(new Date());
+    setViewYear(todayParts.year);
+    setViewMonthIdx(todayParts.month);
   }
 
   function handleSelectMonth(monthIdx: number) {
-    setViewDate((prev) => new Date(prev.getFullYear(), monthIdx, 1));
+    setViewMonthIdx(monthIdx);
   }
 
   function handleSelectYear(year: number) {
-    setViewDate((prev) => new Date(year, prev.getMonth(), 1));
+    setViewYear(year);
   }
 
-  // Generate calendar days for viewed month & year
+  // Generate calendar days for viewed month & year (Asia/Jakarta timezone)
   const calendarDays = useMemo(() => {
-    const daysInMonth = new Date(viewYear, viewMonthIdx + 1, 0).getDate();
-    const firstDayIndex = new Date(viewYear, viewMonthIdx, 1).getDay(); // 0 is Sun, 1 is Mon
+    const daysInMonth = new Date(Date.UTC(viewYear, viewMonthIdx + 1, 0)).getUTCDate();
+    const firstDayPart = getJakartaDateParts(
+      makeJakartaDate(viewYear, viewMonthIdx, 1, 12, 0, 0)
+    );
     // Shift so Mon is 0, Sun is 6
-    const startOffset = (firstDayIndex + 6) % 7;
+    const startOffset = (firstDayPart.day + 6) % 7;
 
     const days: Array<{
       dayNumber: number;
@@ -244,8 +260,9 @@ export function BatchScheduleCalendar({
     }> = [];
 
     for (let d = 1; d <= daysInMonth; d++) {
-      const dateObj = new Date(viewYear, viewMonthIdx, d);
-      const dayOfWeek = (dateObj.getDay() + 6) % 7; // 0 = Mon
+      const dateObj = makeJakartaDate(viewYear, viewMonthIdx, d, 12, 0, 0);
+      const dayPart = getJakartaDateParts(dateObj);
+      const dayOfWeek = (dayPart.day + 6) % 7; // 0 = Mon
       const weekNum = getActiveWeekOfMonth(dateObj);
 
       let slot: BatchScheduleSlotWithBatch | undefined;

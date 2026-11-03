@@ -1,4 +1,17 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  getJakartaDateParts,
+  makeJakartaDate,
+  getJakartaMonthBoundaries,
+  getMondaysInMonth,
+} from "./timezone.ts";
+
+export {
+  getJakartaDateParts,
+  makeJakartaDate,
+  getJakartaMonthBoundaries,
+  getMondaysInMonth,
+};
 
 export type BatchScheduleMode = "auto" | "manual_frozen";
 
@@ -1130,24 +1143,11 @@ export async function overrideActiveKeywordBatch(
   };
 }
 
-/**
- * Menghitung daftar tanggal hari Senin dalam bulan dan tahun tertentu.
- */
-export function getMondaysInMonth(year: number, month: number): number[] {
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const mondays: number[] = [];
-  for (let d = 1; d <= daysInMonth; d++) {
-    const cur = new Date(year, month, d);
-    if (cur.getDay() === 1) {
-      // 1 = Senin
-      mondays.push(d);
-    }
-  }
-  return mondays;
-}
+
 
 /**
- * Menghitung minggu aktif dalam bulan berdasarkan hari SENIN sebagai titik awal siklus:
+ * Menghitung minggu aktif dalam bulan berdasarkan hari SENIN sebagai titik awal siklus
+ * menurut zona waktu Asia/Jakarta:
  * - Siklus resmi bulan berjalan dimulai pada hari Senin pertama di bulan tersebut (Week 1).
  * - Setiap minggu berjalan utuh dari Senin s/d Minggu (Monday through Sunday).
  * - Tanggal sebelum Senin pertama (jika ada, misal tgl 1 Nov 2026 yang jatuh pada hari Minggu)
@@ -1156,9 +1156,7 @@ export function getMondaysInMonth(year: number, month: number): number[] {
  * - Hari Senin ke-2 s/d Minggu berikutnya adalah Week 2, dst.
  */
 export function getActiveWeekOfMonth(date: Date = new Date()): number {
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const day = date.getDate();
+  const { year, month, date: day } = getJakartaDateParts(date);
   const mondays = getMondaysInMonth(year, month);
 
   if (mondays.length === 0) return 1;
@@ -1188,7 +1186,7 @@ export function getActiveWeekOfMonth(date: Date = new Date()): number {
 }
 
 /**
- * Memetakan nomor minggu aktif ke slot database 1 s/d 4.
+ * Memetakan nomor minggu aktif ke slot database 1 s/d 4 (zona waktu Asia/Jakarta).
  * - Week 0 (hari sebelum Senin pertama) mengarah ke Slot 4 (siklus sebelumnya).
  * - Week 1..4 mengarah ke Slot 1..4.
  * - Week 5 (Senin ke-5) mengarah ke Slot 1 (wrap-around siklus baru).
@@ -1209,28 +1207,22 @@ export interface MondayOccurrenceInfo {
 }
 
 /**
- * Mendeteksi kemunculan hari Senin keberapa dalam bulan kalender berjalan (1 s/d 5).
- * Memudahkan monitoring dan audit log mingguan.
+ * Mendeteksi kemunculan hari Senin keberapa dalam bulan kalender berjalan (1 s/d 5)
+ * berdasarkan zona waktu Asia/Jakarta.
  */
 export function getMondayOccurrenceOfMonth(
   date: Date = new Date()
 ): MondayOccurrenceInfo {
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const day = date.getDate();
-  const isMonday = date.getDay() === 1;
+  const { year, month, date: day, day: dayOfWeek } = getJakartaDateParts(date);
+  const isMonday = dayOfWeek === 1;
 
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  let totalMondays = 0;
+  const mondays = getMondaysInMonth(year, month);
+  const totalMondays = mondays.length;
   let occurrence = 0;
 
-  for (let d = 1; d <= daysInMonth; d++) {
-    const cur = new Date(year, month, d);
-    if (cur.getDay() === 1) {
-      totalMondays++;
-      if (d <= day) {
-        occurrence++;
-      }
+  for (const m of mondays) {
+    if (m <= day) {
+      occurrence++;
     }
   }
 
@@ -1288,27 +1280,21 @@ export function getMondayOccurrenceOfMonth(
 }
 
 /**
- * Menghitung jumlah pemindaian non-demo yang telah dieksekusi dalam bulan kalender berjalan.
+ * Menghitung jumlah pemindaian non-demo yang telah dieksekusi dalam bulan kalender berjalan
+ * menggunakan batas bulan Asia/Jakarta (WIB).
  */
 export async function getMonthlyRunCount(
   supabase: SupabaseClient,
   date: Date = new Date()
 ): Promise<number> {
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const startOfMonth = new Date(
-    Date.UTC(year, month, 1, 0, 0, 0)
-  ).toISOString();
-  const endOfMonth = new Date(
-    Date.UTC(year, month + 1, 0, 23, 59, 59, 999)
-  ).toISOString();
+  const { startIso, endIso } = getJakartaMonthBoundaries(date);
 
   const { data, error } = await supabase
     .from("check_runs")
     .select("id")
     .eq("is_demo", false)
-    .gte("started_at", startOfMonth)
-    .lte("started_at", endOfMonth);
+    .gte("started_at", startIso)
+    .lte("started_at", endIso);
 
   if (error || !data) {
     return 0;

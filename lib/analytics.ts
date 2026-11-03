@@ -6,6 +6,7 @@ import {
   type CheckStatus,
 } from "./detect.ts";
 import { isGoogleDomain } from "./serpapi";
+import { getJakartaDateParts, makeJakartaDate } from "./timezone.ts";
 
 export type HeatmapCellState = 0 | 1 | 2; // 0 = no_ai_overview, 1 = not_detected, 2 = detected
 
@@ -88,9 +89,9 @@ const SHORT_MONTHS = [
 ];
 
 export function formatShortDate(date: Date): string {
-  const day = date.getUTCDate();
-  const month = SHORT_MONTHS[date.getUTCMonth()] ?? "";
-  return `${day} ${month}`;
+  const parts = getJakartaDateParts(date);
+  const month = SHORT_MONTHS[parts.month] ?? "";
+  return `${parts.date} ${month}`;
 }
 
 export const formatIndonesianShortDate = formatShortDate;
@@ -120,8 +121,8 @@ export function formatDetectionTypeLabel(flags: {
 }
 
 /**
- * Membangun 8 rentang minggu terakhir (Senin 00:00 UTC s/d Minggu 23:59:59 UTC)
- * dengan kolom ke-8 (index 7) adalah minggu berjalan dari referenceDate.
+ * Membangun 8 rentang minggu terakhir (Senin 00:00 WIB s/d Minggu 23:59:59 WIB)
+ * dengan kolom ke-8 (index 7) adalah minggu berjalan dari referenceDate (Asia/Jakarta).
  */
 export function buildEightWeekBuckets(referenceDate: Date = new Date()): Array<{
   index: number;
@@ -129,17 +130,19 @@ export function buildEightWeekBuckets(referenceDate: Date = new Date()): Array<{
   startMs: number;
   endMs: number;
 }> {
-  const ref = new Date(
-    Date.UTC(
-      referenceDate.getUTCFullYear(),
-      referenceDate.getUTCMonth(),
-      referenceDate.getUTCDate()
-    )
+  const parts = getJakartaDateParts(referenceDate);
+  // Hari Senin minggu ini menurut kalender Asia/Jakarta (0 = Minggu -> mundur 6 hari; 1 = Senin -> mundur 0 hari)
+  const diffToMonday = parts.day === 0 ? 6 : parts.day - 1;
+  const currentMondayDate = makeJakartaDate(
+    parts.year,
+    parts.month,
+    parts.date - diffToMonday,
+    0,
+    0,
+    0,
+    0
   );
-  // Hari Senin minggu ini (0 = Minggu -> mundur 6 hari; 1 = Senin -> mundur 0 hari)
-  const dayOfWeek = ref.getUTCDay();
-  const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-  const currentMondayMs = ref.getTime() - diffToMonday * 86_400_000;
+  const currentMondayMs = currentMondayDate.getTime();
   const oneWeekMs = 7 * 86_400_000;
 
   const buckets: Array<{
