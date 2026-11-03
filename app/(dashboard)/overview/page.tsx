@@ -27,7 +27,7 @@ function DeltaBadge({
   return (
     <i
       className={`ml-1.5 text-xs font-semibold not-italic ${
-        isPositive ? "text-[var(--cite)]" : "text-[#C0392B]"
+        isPositive ? "text-[var(--success)]" : "text-[var(--destructive)]"
       }`}
     >
       {isPositive ? "+" : ""}

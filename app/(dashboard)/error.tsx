@@ -25,7 +25,7 @@ export default function DashboardError({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="rounded-md border border-[#C0392B]/30 bg-[#C0392B]/10 px-3 py-2 text-xs text-[#C0392B]">
+        <p className="rounded-md border border-[var(--destructive-border)] bg-[var(--destructive-bg)] px-3 py-2 text-xs font-medium text-[var(--destructive-text)]">
           {error.message || "Unknown error occurred."}
         </p>
         <Button type="button" variant="primary" onClick={() => reset()}>

@@ -677,7 +677,7 @@ export function KeywordManagerClient({
                 />
 
                 {csvPreview && (
-                  <div className="space-y-2.5 rounded-md border border-[var(--line)] bg-white p-3">
+                  <div className="space-y-2.5 rounded-md border border-[var(--line)] bg-[var(--surface)] p-3 shadow-xs">
                     <div className="flex flex-wrap items-center gap-2 text-xs">
                       <span className="font-semibold text-[var(--ink)]">
                         Import Preview:
@@ -700,18 +700,18 @@ export function KeywordManagerClient({
                     </div>
 
                     {csvPreview.exceededMaxRows && (
-                      <p className="text-xs font-medium text-[#C0392B]">
+                      <p className="rounded-md border border-[var(--destructive-border)] bg-[var(--destructive-bg)] px-3 py-2 text-xs font-semibold text-[var(--destructive-text)]">
                         Row count exceeds maximum limit of {MAX_CSV_IMPORT_ROWS}{" "}
                         rows per import. Reduce row count before saving.
                       </p>
                     )}
 
                     {csvPreview.duplicateRows.length > 0 && (
-                      <div className="max-h-28 overflow-y-auto rounded border border-[var(--line)] bg-[#FFFBEB] p-2 text-xs">
-                        <div className="mb-1 font-semibold text-[#92400E]">
+                      <div className="max-h-28 overflow-y-auto rounded-md border border-[var(--warning-border)] bg-[var(--warning-bg)] p-2.5 text-xs">
+                        <div className="mb-1 font-semibold text-[var(--warning-text)]">
                           Duplicate Rows ({csvPreview.duplicateRows.length} skipped):
                         </div>
-                        <ul className="space-y-0.5 text-[#B45309]">
+                        <ul className="space-y-0.5 text-[var(--warning-text)]">
                           {csvPreview.duplicateRows.slice(0, 15).map((d) => (
                             <li key={`${d.lineNumber}-${d.keyword}`}>
                               Line {d.lineNumber}:{" "}
@@ -730,11 +730,11 @@ export function KeywordManagerClient({
                     )}
 
                     {csvPreview.invalidRows.length > 0 && (
-                      <div className="max-h-28 overflow-y-auto rounded border border-[#FECACA] bg-[#FEF2F2] p-2 text-xs">
-                        <div className="mb-1 font-semibold text-[#991B1B]">
+                      <div className="max-h-28 overflow-y-auto rounded-md border border-[var(--destructive-border)] bg-[var(--destructive-bg)] p-2.5 text-xs">
+                        <div className="mb-1 font-semibold text-[var(--destructive-text)]">
                           Invalid Rows ({csvPreview.invalidRows.length}):
                         </div>
-                        <ul className="space-y-0.5 text-[#B91C1C]">
+                        <ul className="space-y-0.5 text-[var(--destructive-text)]">
                           {csvPreview.invalidRows.slice(0, 15).map((inv, i) => (
                             <li key={`${inv.lineNumber}-${i}`}>
                               Line {inv.lineNumber}:{" "}

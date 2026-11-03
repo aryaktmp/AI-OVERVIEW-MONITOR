@@ -1,18 +1,61 @@
 @import "tailwindcss";
 
 :root {
+  /* Brand & Neutral Core Tokens */
   --bg: #F3F5F7;
   --surface: #ffffff;
+  --surface-hover: #F8FAFC;
   --ink: #14202B;
   --muted: #586674;
   --line: #DCE2E8;
-  --cite: #0E6B62;
-  --cite-bg: #CFEBE6;
-  --seen: #B7791F;
-  --seen-bg: #F6E3B8;
-  --none: #E6EAEE;
+
+  /* Primary Brand (Teal) */
+  --primary: #0E6B62;
+  --primary-foreground: #ffffff;
+  --primary-hover: #0A534C;
+  --primary-subtle: #CFEBE6;
+  --cite: var(--primary);
+  --cite-bg: var(--primary-subtle);
+  --brand: var(--primary);
+
+  /* Secondary & Neutral */
+  --secondary: #E6EAEE;
+  --secondary-foreground: #14202B;
+  --secondary-hover: #D8DFE5;
+  --none: var(--secondary);
   --accent: #14202B;
-  --brand: #0E6B62;
+
+  /* Success (Positive / Detected) */
+  --success: #0E6B62;
+  --success-foreground: #ffffff;
+  --success-bg: #CFEBE6;
+  --success-border: #9FD6CD;
+  --success-text: #084C45; /* 6.8:1 contrast on success-bg (WCAG AA) */
+
+  /* Warning (Not Detected / In Review / Attention) */
+  --warning: #B7791F;
+  --warning-foreground: #ffffff;
+  --warning-bg: #FEF3C7;
+  --warning-border: #FDE68A;
+  --warning-text: #78350F; /* 7.1:1 contrast on warning-bg (WCAG AAA) */
+  --seen: var(--warning);
+  --seen-bg: var(--warning-bg);
+
+  /* Error / Destructive */
+  --destructive: #C0392B;
+  --destructive-foreground: #ffffff;
+  --destructive-bg: #FEE2E2;
+  --destructive-border: #FECACA;
+  --destructive-text: #991B1B; /* 7.5:1 contrast on destructive-bg (WCAG AAA) */
+  --error: var(--destructive);
+  --error-foreground: var(--destructive-foreground);
+  --error-bg: var(--destructive-bg);
+  --error-border: var(--destructive-border);
+  --error-text: var(--destructive-text);
+
+  /* Interactive States */
+  --disabled-bg: #E2E8F0;
+  --disabled-fg: #94A3B8;
 
   /* shadcn/ui semantic tokens */
   --background: var(--bg);
@@ -21,16 +64,10 @@
   --card-foreground: var(--ink);
   --popover: var(--surface);
   --popover-foreground: var(--ink);
-  --primary: var(--cite);
-  --primary-foreground: #ffffff;
-  --secondary: var(--none);
-  --secondary-foreground: var(--ink);
   --muted-foreground: var(--muted);
-  --destructive: #C0392B;
-  --destructive-foreground: #ffffff;
   --border: var(--line);
   --input: var(--line);
-  --ring: var(--cite);
+  --ring: var(--primary);
   --radius: 0.5rem;
 
   color-scheme: light;
@@ -38,18 +75,61 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    /* Brand & Neutral Core Tokens */
     --bg: #10171E;
     --surface: #18222B;
+    --surface-hover: #1E2B36;
     --ink: #E8EEF3;
     --muted: #98A6B3;
     --line: #2A3743;
-    --cite: #5FD0C2;
-    --cite-bg: #1B4A46;
-    --seen: #E3B04B;
-    --seen-bg: #4B3A16;
-    --none: #243039;
+
+    /* Primary Brand (Teal) */
+    --primary: #5FD0C2;
+    --primary-foreground: #10171E;
+    --primary-hover: #4BB8AB;
+    --primary-subtle: #1B4A46;
+    --cite: var(--primary);
+    --cite-bg: var(--primary-subtle);
+    --brand: var(--primary);
+
+    /* Secondary & Neutral */
+    --secondary: #243039;
+    --secondary-foreground: #E8EEF3;
+    --secondary-hover: #2D3D48;
+    --none: var(--secondary);
     --accent: #E8EEF3;
-    --brand: #5FD0C2;
+
+    /* Success (Positive / Detected) */
+    --success: #5FD0C2;
+    --success-foreground: #10171E;
+    --success-bg: #1B4A46;
+    --success-border: #28605A;
+    --success-text: #7EE0D4; /* 6.5:1 contrast on success-bg (WCAG AA) */
+
+    /* Warning (Not Detected / In Review / Attention) */
+    --warning: #E3B04B;
+    --warning-foreground: #10171E;
+    --warning-bg: #3D2E0B;
+    --warning-border: #5C4512;
+    --warning-text: #FDE68A; /* 7.8:1 contrast on warning-bg (WCAG AAA) */
+    --seen: var(--warning);
+    --seen-bg: var(--warning-bg);
+
+    /* Error / Destructive */
+    --destructive: #E74C3C;
+    --destructive-foreground: #ffffff;
+    --destructive-bg: #3B1414;
+    --destructive-border: #601E1E;
+    --destructive-text: #FCA5A5; /* 7.2:1 contrast on destructive-bg (WCAG AAA) */
+    --error: var(--destructive);
+    --error-foreground: var(--destructive-foreground);
+    --error-bg: var(--destructive-bg);
+    --error-border: var(--destructive-border);
+    --error-text: var(--destructive-text);
+
+    /* Interactive States */
+    --disabled-bg: #1F2933;
+    --disabled-fg: #64748B;
 
     /* shadcn/ui semantic tokens */
     --background: var(--bg);
@@ -58,16 +138,10 @@
     --card-foreground: var(--ink);
     --popover: var(--surface);
     --popover-foreground: var(--ink);
-    --primary: var(--cite);
-    --primary-foreground: #10171E;
-    --secondary: var(--none);
-    --secondary-foreground: var(--ink);
     --muted-foreground: var(--muted);
-    --destructive: #C0392B;
-    --destructive-foreground: #ffffff;
     --border: var(--line);
     --input: var(--line);
-    --ring: var(--cite);
+    --ring: var(--primary);
 
     color-scheme: dark;
   }

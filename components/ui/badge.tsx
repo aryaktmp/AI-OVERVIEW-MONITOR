@@ -12,14 +12,14 @@ const badgeVariants = cva(
         secondary:
           "border-transparent bg-[var(--none)] text-[var(--ink)] hover:opacity-90",
         destructive:
-          "border-transparent bg-[#C0392B] text-white hover:opacity-90",
+          "border-transparent bg-[var(--destructive)] text-[var(--destructive-foreground)] hover:opacity-90",
         outline:
           "border border-[var(--line)] text-[var(--ink)]",
-        cited: "bg-[var(--cite-bg)] text-[var(--cite)]",
-        detected: "bg-[var(--cite-bg)] text-[var(--cite)]",
-        brand: "bg-[#EFF6FF] text-[#1D4ED8] dark:bg-[#1E3A8A]/30 dark:text-[#93C5FD]",
-        notDetected: "bg-[var(--seen-bg)] text-[var(--seen)]",
-        none: "bg-[var(--none)] text-[var(--muted)]",
+        cited: "border border-[var(--success-border)] bg-[var(--success-bg)] text-[var(--success-text)] font-medium",
+        detected: "border border-[var(--success-border)] bg-[var(--success-bg)] text-[var(--success-text)] font-medium",
+        brand: "border border-[var(--primary-subtle)] bg-[var(--primary-subtle)] text-[var(--primary)] font-medium",
+        notDetected: "border border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning-text)] font-medium",
+        none: "border border-[var(--line)] bg-[var(--none)] text-[var(--muted)] font-medium",
       },
     },
     defaultVariants: {

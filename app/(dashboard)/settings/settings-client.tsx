@@ -643,7 +643,7 @@ export function SettingsClient({
             max={databaseStorage.quotaMb}
             indicatorClassName={
               databaseStorage.percentUsed > 80
-                ? "bg-[#DC2626]"
+                ? "bg-[var(--destructive)]"
                 : databaseStorage.percentUsed > 50
                   ? "bg-[var(--seen)]"
                   : "bg-[var(--cite)]"
@@ -707,7 +707,7 @@ export function SettingsClient({
                           type="button"
                           disabled={isPending}
                           onClick={() => handleDeleteBrandTerm(bt.id)}
-                          className="text-xs font-medium text-[#DC2626] hover:underline cursor-pointer"
+                          className="text-xs font-medium text-[var(--destructive)] hover:underline cursor-pointer"
                         >
                           Delete
                         </button>
@@ -878,7 +878,7 @@ export function SettingsClient({
                     type="button"
                     disabled={isPending}
                     onClick={() => handleDeleteCompetitor(c.id)}
-                    className="ml-2 text-xs font-medium text-[#DC2626] hover:underline cursor-pointer"
+                    className="ml-2 text-xs font-medium text-[var(--destructive)] hover:underline cursor-pointer"
                   >
                     Delete
                   </button>

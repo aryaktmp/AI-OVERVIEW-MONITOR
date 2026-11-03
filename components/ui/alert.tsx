@@ -10,13 +10,13 @@ const alertVariants = cva(
         default:
           "border-[var(--line)] bg-[var(--surface)] text-[var(--ink)]",
         destructive:
-          "border-[#C0392B]/30 bg-[#C0392B]/10 text-[#C0392B] dark:border-[#C0392B]/40 dark:bg-[#C0392B]/20 [&>svg]:text-[#C0392B]",
+          "border-[var(--destructive-border)] bg-[var(--destructive-bg)] text-[var(--destructive-text)] [&>svg]:text-[var(--destructive)]",
         success:
-          "border-[var(--cite)]/30 bg-[var(--cite-bg)] text-[var(--cite)] dark:border-[var(--cite)]/40 dark:bg-[var(--cite-bg)]/20 [&>svg]:text-[var(--cite)]",
+          "border-[var(--success-border)] bg-[var(--success-bg)] text-[var(--success-text)] [&>svg]:text-[var(--success)]",
         warning:
-          "border-[var(--seen)]/40 bg-[var(--seen-bg)] text-[var(--seen)] dark:border-[#B7791F]/40 dark:bg-[#4B3A16] [&>svg]:text-[var(--seen)]",
+          "border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning-text)] [&>svg]:text-[var(--warning)]",
         info:
-          "border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200 [&>svg]:text-blue-600",
+          "border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] [&>svg]:text-[var(--primary)]",
       },
     },
     defaultVariants: {

@@ -14,16 +14,25 @@ Sumber kebenaran desain UI. Token berasal dari `app/globals.css`; komponen dari 
 |---|---|---|---|
 | `--bg` | `#F3F5F7` | `#10171E` | Latar halaman |
 | `--surface` | `#FFFFFF` | `#18222B` | Kartu, input, popover |
+| `--surface-hover` | `#F8FAFC` | `#1E2B36` | State hover kartu & dropdown |
 | `--ink` | `#14202B` | `#E8EEF3` | Teks utama |
 | `--muted` | `#586674` | `#98A6B3` | Teks sekunder, label |
 | `--line` | `#DCE2E8` | `#2A3743` | Border, pemisah |
-| `--cite` / `--brand` | `#0E6B62` | `#5FD0C2` | Aksen utama, tombol primary, fokus, "terdeteksi" |
-| `--cite-bg` | `#CFEBE6` | `#1B4A46` | Latar status terdeteksi |
-| `--seen` | `#B7791F` | `#E3B04B` | Peringatan / AI Overview tanpa kutipan |
-| `--seen-bg` | `#F6E3B8` | `#4B3A16` | Latar status peringatan |
-| `--none` | `#E6EAEE` | `#243039` | Latar netral, hover, sel kosong |
+| `--primary` / `--cite` / `--brand` | `#0E6B62` | `#5FD0C2` | Aksen utama, tombol primary, fokus, "terdeteksi" |
+| `--primary-subtle` / `--cite-bg` | `#CFEBE6` | `#1B4A46` | Latar status terdeteksi |
+| `--success-text` | `#084C45` | `#7EE0D4` | Teks sukses berdaya kontras tinggi (WCAG AA/AAA) |
+| `--warning` / `--seen` | `#B7791F` | `#E3B04B` | Peringatan / AI Overview tanpa kutipan |
+| `--warning-bg` / `--seen-bg` | `#FEF3C7` | `#3D2E0B` | Latar status peringatan |
+| `--warning-border` | `#FDE68A` | `#5C4512` | Border status peringatan |
+| `--warning-text` | `#78350F` | `#FDE68A` | Teks peringatan kontras tinggi (WCAG AAA >= 7:1) |
+| `--destructive` / `--error` | `#C0392B` | `#E74C3C` | Aksi berbahaya, galat |
+| `--destructive-bg` | `#FEE2E2` | `#3B1414` | Latar galat / invalid |
+| `--destructive-border` | `#FECACA` | `#601E1E` | Border galat / invalid |
+| `--destructive-text` | `#991B1B` | `#FCA5A5` | Teks galat kontras tinggi (WCAG AAA >= 7:1) |
+| `--secondary` / `--none` | `#E6EAEE` | `#243039` | Latar netral, hover, sel kosong |
 | `--accent` | `#14202B` | `#E8EEF3` | Tombol default / badge default (kontras tinggi) |
-| `--destructive` | `#C0392B` | `#C0392B` | Aksi berbahaya, galat |
+| `--disabled-bg` | `#E2E8F0` | `#1F2933` | Latar elemen nonaktif |
+| `--disabled-fg` | `#94A3B8` | `#64748B` | Teks elemen nonaktif |
 
 - Token semantik shadcn (`--background`, `--primary`, `--border`, `--ring`, …) memetakan ke token di atas — jangan menimpanya terpisah.
 - Dark mode otomatis via `prefers-color-scheme` (kecuali `data-theme="light"`); setiap warna baru **wajib** punya pasangan dark.
@@ -68,9 +77,9 @@ Sumber kebenaran desain UI. Token berasal dari `app/globals.css`; komponen dari 
 - URL rute: bahasa Indonesia (`/ringkasan`, `/keyword`, `/kompetitor`, `/pengaturan`); label nav: Overview, Keywords & Batches, Competitors, Settings.
 
 ## 9. Ketidakkonsistenan Diketahui (utang desain)
-Perbaiki bertahap saat menyentuh berkas terkait; jangan memperluasnya.
-- Warna destruktif di-hardcode `#C0392B` di `button`, `badge`, `alert`, `DeltaBadge` → pakai token `--destructive`.
-- Varian `Badge.brand` dan `Alert.info` memakai palet biru Tailwind di luar token → definisikan token info/brand atau ganti ke token yang ada.
+- ~~Warna destruktif di-hardcode `#C0392B` di `button`, `badge`, `alert`, `DeltaBadge`~~ → Sekarang memakai token `--destructive`, `--destructive-bg`, `--destructive-text`.
+- ~~Varian `Badge.brand` dan `Alert.info` memakai palet biru Tailwind di luar token~~ → Sekarang memakai token semantik `--primary-subtle` dan `--primary`.
+- ~~Tambahkan varian dark untuk `--destructive` bila kontras kurang~~ → Telah ditambahkan `--destructive: #E74C3C`, `--destructive-bg: #3B1414`, `--destructive-text: #FCA5A5` (kontras WCAG AAA).
 - Dua badge `cited` dan `detected` identik; konsolidasikan.
 - Mojibake pada beberapa string (mis. "linovhr.com A� Google Indonesia", panah di `DemoDataBanner`) → pastikan UTF-8 (`·`, `→`).
 - Tambahkan varian dark untuk `--destructive` bila kontras kurang.
