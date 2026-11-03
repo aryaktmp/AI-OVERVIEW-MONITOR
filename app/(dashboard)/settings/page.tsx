@@ -36,9 +36,6 @@ export default async function PengaturanPage() {
         brandDomain={brandDomain}
         databaseStorage={data.databaseStorage}
         initialRunningRun={data.runningRun}
-        batches={data.batches}
-        scheduleSettings={data.scheduleSettings}
-        batchAuditLogs={data.batchAuditLogs}
       />
     </div>
   );

@@ -453,9 +453,6 @@ export async function getSettingsPageData(): Promise<{
   hasDemoData: boolean;
   databaseStorage: DatabaseStorageStats;
   runningRun: RunHistoryRow | null;
-  batches: BatchWithKeywordsCount[];
-  scheduleSettings: BatchScheduleSettingsRecord;
-  batchAuditLogs: BatchAuditLogRecord[];
 }> {
   const supabase = createSupabaseAdminClient();
   const store = createSupabaseQueueStore(supabase);
@@ -473,9 +470,6 @@ export async function getSettingsPageData(): Promise<{
     { count: totalSourcesCount },
     hourlyCallsUsed,
     dbSizeRpc,
-    batchesData,
-    scheduleSettingsData,
-    auditLogsData,
   ] = await Promise.all([
     supabase
       .from("brand_terms")
@@ -499,15 +493,6 @@ export async function getSettingsPageData(): Promise<{
     supabase.from("check_sources").select("id", { count: "exact" }).limit(0),
     store.getHourlySerpApiCalls(oneHourAgoIso),
     supabase.rpc("get_database_size_bytes"),
-    listKeywordBatchesWithCounts(supabase).catch(() => [] as BatchWithKeywordsCount[]),
-    getBatchScheduleSettings(supabase).catch(() => ({
-      id: 1,
-      mode: "auto" as const,
-      max_runs_per_month: 4,
-      override_until: null,
-      updated_at: "",
-    })),
-    listBatchAuditLogs(supabase, 20).catch(() => [] as BatchAuditLogRecord[]),
   ]);
 
   // Baca tabel settings (dengan fallback jika tabel settings belum dimigrasi)
@@ -665,8 +650,5 @@ export async function getSettingsPageData(): Promise<{
       percentUsed,
     },
     runningRun,
-    batches: (batchesData ?? []) as BatchWithKeywordsCount[],
-    scheduleSettings: scheduleSettingsData as BatchScheduleSettingsRecord,
-    batchAuditLogs: (auditLogsData ?? []) as BatchAuditLogRecord[],
   };
 }
