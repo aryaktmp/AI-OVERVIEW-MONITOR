@@ -22,6 +22,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -121,6 +122,16 @@ export function BatchScheduleCalendar({
   const [newBatchName, setNewBatchName] = useState("");
   const [newBatchDescription, setNewBatchDescription] = useState("");
   const [newBatchColor, setNewBatchColor] = useState(PRESET_COLORS[0]);
+  const [newBatchKeywords, setNewBatchKeywords] = useState("");
+
+  const parsedKeywordCount = useMemo(() => {
+    if (!newBatchKeywords.trim()) return 0;
+    const items = newBatchKeywords
+      .split(/[\r\n,]+/)
+      .map((k) => k.trim())
+      .filter((k) => k.length >= 2 && k.length <= 200);
+    return new Set(items.map((k) => k.toLowerCase())).size;
+  }, [newBatchKeywords]);
 
   // Audit trail accordion
   const [showAuditLogs, setShowAuditLogs] = useState(false);
@@ -370,21 +381,29 @@ export function BatchScheduleCalendar({
     setFeedback(null);
     startTransition(async () => {
       try {
-        const res = await createBatchAction(newBatchName.trim(), newBatchDescription.trim() || undefined);
+        const res = await createBatchAction(
+          newBatchName.trim(),
+          newBatchDescription.trim() || undefined,
+          newBatchColor,
+          newBatchKeywords.trim() || undefined
+        );
         if (res.ok && res.batch) {
+          const addedCount = res.keywordsCount ?? 0;
           const newBatchItem: BatchWithKeywordsCount = {
             ...res.batch,
             color: newBatchColor,
-            totalKeywords: 0,
-            activeKeywords: 0,
+            totalKeywords: addedCount,
+            activeKeywords: addedCount,
           };
           setBatches((prev) => [...prev, newBatchItem]);
           setShowCreateDialog(false);
           setNewBatchName("");
           setNewBatchDescription("");
+          setNewBatchKeywords("");
+          const countInfo = addedCount > 0 ? ` with ${addedCount} keyword(s)` : "";
           setFeedback({
             type: "success",
-            text: `Batch '${newBatchItem.name}' created successfully.`,
+            text: `Batch '${newBatchItem.name}' created successfully${countInfo}.`,
           });
         }
       } catch (err) {
@@ -1296,8 +1315,18 @@ export function BatchScheduleCalendar({
       </Dialog>
 
       {/* Create New Batch Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="sm:max-w-[440px]">
+      <Dialog
+        open={showCreateDialog}
+        onOpenChange={(open) => {
+          setShowCreateDialog(open);
+          if (!open) {
+            setNewBatchName("");
+            setNewBatchDescription("");
+            setNewBatchKeywords("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Plus className="h-4 w-4 text-[var(--cite)]" />
@@ -1349,6 +1378,30 @@ export function BatchScheduleCalendar({
                   />
                 ))}
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="new-batch-keywords" className="text-xs font-semibold">
+                  Initial Keywords (Optional)
+                </Label>
+                {parsedKeywordCount > 0 && (
+                  <Badge variant="outline" className="text-[10px] font-mono text-[var(--cite)] border-[var(--cite)]/30">
+                    {parsedKeywordCount} keyword{parsedKeywordCount === 1 ? "" : "s"} detected
+                  </Badge>
+                )}
+              </div>
+              <Textarea
+                id="new-batch-keywords"
+                value={newBatchKeywords}
+                onChange={(e) => setNewBatchKeywords(e.target.value)}
+                placeholder={"software hris terbaik\naplikasi payroll online\nsistem manajemen sdm"}
+                rows={4}
+                className="font-mono text-xs leading-relaxed"
+              />
+              <p className="text-[11px] text-[var(--muted)]">
+                Add keywords directly to this batch. Separate with new lines or commas.
+              </p>
             </div>
           </div>
 

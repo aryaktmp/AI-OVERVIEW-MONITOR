@@ -5,6 +5,8 @@ import {
   overrideActiveKeywordBatch,
   setBatchScheduleMode,
   listKeywordBatchesWithCounts,
+  createKeywordBatch,
+  parseKeywordsInput,
   type KeywordBatchRecord,
   type BatchScheduleSettingsRecord,
   type BatchAuditLogRecord,
@@ -203,6 +205,21 @@ function createMockSupabase() {
                 single: async () => ({ data: row, error: null }),
               }),
             };
+          }
+          if (table === "keywords") {
+            const items = Array.isArray(data) ? data : [data];
+            for (const item of items) {
+              const row = {
+                id: `k-${keywords.length + 1}`,
+                active: true,
+                batch_id: null,
+                is_demo: false,
+                created_at: "2026-11-01T00:00:00Z",
+                ...(item as Record<string, unknown>),
+              } as MockKeyword;
+              keywords.push(row);
+            }
+            return Promise.resolve({ data: items, error: null });
           }
           return Promise.resolve({ data, error: null });
         },
@@ -418,5 +435,74 @@ describe("Fase Logika: Rotasi, Kontrol Manual, & Search Filtering", () => {
     const keywordsBatch3 = await store.getActiveKeywords();
     expect(keywordsBatch3).toHaveLength(1);
     expect(keywordsBatch3.map((k) => k.id)).toEqual(["k-5"]);
+  });
+
+  it("9. parseKeywordsInput mem-parse format newline/koma, deduplikasi, dan membuang item tidak valid", () => {
+    // Null/undefined/empty
+    expect(parseKeywordsInput(null)).toEqual([]);
+    expect(parseKeywordsInput("")).toEqual([]);
+
+    // Comma and newline separated with duplicate ignoring case and trimming
+    const raw = `
+      software hris indonesia,
+      SOFTWARE HRIS INDONESIA,
+      aplikasi payroll online
+      a
+      linovhr attendance
+    `;
+    const parsed = parseKeywordsInput(raw);
+    expect(parsed).toEqual([
+      "software hris indonesia",
+      "aplikasi payroll online",
+      "linovhr attendance",
+    ]);
+
+    // Array input
+    const fromArray = parseKeywordsInput([
+      "  software hris ",
+      "aplikasi payroll",
+      "SOFTWARE HRIS",
+      "x",
+    ]);
+    expect(fromArray).toEqual(["software hris", "aplikasi payroll"]);
+  });
+
+  it("10. createKeywordBatch dapat langsung menambahkan keyword baru dan menautkan keyword yang sudah ada", async () => {
+    // Awal: k-1 "software hris" ada di b-1
+    expect(ctx.keywords[0].batch_id).toBe("b-1");
+
+    // Buat Batch 4 dengan 1 keyword existing ("software hris") dan 2 keyword baru
+    const result = await createKeywordBatch(ctx.client, {
+      name: "Batch 4 - New Generation",
+      description: "Batch baru dengan keyword langsung",
+      keywords: [
+        "Software HRIS", // Existing keyword (case insensitive)
+        "aplikasi performance appraisal", // Keyword baru 1
+        "software reimbursement", // Keyword baru 2
+      ],
+    });
+
+    expect(result.id).toBe("b-4");
+    expect(result.name).toBe("Batch 4 - New Generation");
+    expect(result.order_index).toBe(4);
+    expect(result.keywordsCount).toBe(3);
+
+    // Keyword existing (k-1) harus dipindahkan ke batch baru (b-4)
+    expect(ctx.keywords[0].batch_id).toBe("b-4");
+
+    // Keyword baru harus terdaftar di tabel keywords dengan batch_id b-4 dan active = true
+    const newKw1 = ctx.keywords.find(
+      (k) => k.text === "aplikasi performance appraisal"
+    );
+    expect(newKw1).toBeDefined();
+    expect(newKw1?.batch_id).toBe("b-4");
+    expect(newKw1?.active).toBe(true);
+
+    const newKw2 = ctx.keywords.find(
+      (k) => k.text === "software reimbursement"
+    );
+    expect(newKw2).toBeDefined();
+    expect(newKw2?.batch_id).toBe("b-4");
+    expect(newKw2?.active).toBe(true);
   });
 });

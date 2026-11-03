@@ -259,7 +259,32 @@ export async function assignKeywordsToBatch(
 }
 
 /**
- * Membuat entitas batch baru.
+ * Mem-parse input string atau array keyword menjadi daftar keyword yang valid dan unik.
+ * Mendukung pemisah baris baru (\n) dan koma (,).
+ */
+export function parseKeywordsInput(raw?: string | string[] | null): string[] {
+  if (!raw) return [];
+  const items = Array.isArray(raw) ? raw : raw.split(/[\r\n,]+/);
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const item of items) {
+    if (typeof item !== "string") continue;
+    const trimmed = item.trim();
+    if (trimmed.length >= 2 && trimmed.length <= 200) {
+      const lower = trimmed.toLowerCase();
+      if (!seen.has(lower)) {
+        seen.add(lower);
+        result.push(trimmed);
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Membuat entitas batch baru dan opsional langsung menautkan/menambahkan daftar keyword awal.
  */
 export async function createKeywordBatch(
   supabase: SupabaseClient,
@@ -268,8 +293,9 @@ export async function createKeywordBatch(
     description?: string | null;
     orderIndex?: number;
     isEnabled?: boolean;
+    keywords?: string[] | string | null;
   }
-): Promise<KeywordBatchRecord> {
+): Promise<KeywordBatchRecord & { keywordsCount: number }> {
   let orderIndex = payload.orderIndex;
 
   if (typeof orderIndex !== "number") {
@@ -294,7 +320,65 @@ export async function createKeywordBatch(
     throw new Error(`Gagal membuat batch baru: ${error.message}`);
   }
 
-  return data as KeywordBatchRecord;
+  const batch = data as KeywordBatchRecord;
+  const parsedKeywords = parseKeywordsInput(payload.keywords);
+  let keywordsCount = 0;
+
+  if (parsedKeywords.length > 0) {
+    const { data: existingRows } = await supabase
+      .from("keywords")
+      .select("id, text");
+
+    const existingByLower = new Map<string, string>();
+    if (Array.isArray(existingRows)) {
+      for (const row of existingRows as Array<{ id: string; text: string }>) {
+        existingByLower.set(row.text.toLowerCase().trim(), row.id);
+      }
+    }
+
+    const toReassignIds: string[] = [];
+    const toInsert: Array<{ text: string; batch_id: string; active: boolean }> = [];
+
+    for (const kw of parsedKeywords) {
+      const existingId = existingByLower.get(kw.toLowerCase());
+      if (existingId) {
+        toReassignIds.push(existingId);
+      } else {
+        toInsert.push({
+          text: kw,
+          batch_id: batch.id,
+          active: true,
+        });
+      }
+    }
+
+    if (toReassignIds.length > 0) {
+      const { error: reassignErr } = await supabase
+        .from("keywords")
+        .update({ batch_id: batch.id })
+        .in("id", toReassignIds);
+      if (reassignErr) {
+        console.error("Gagal menautkan keyword yang sudah ada ke batch baru:", reassignErr.message);
+      }
+    }
+
+    if (toInsert.length > 0) {
+      const { error: insertErr } = await supabase
+        .from("keywords")
+        .insert(toInsert);
+      if (insertErr) {
+        console.error("Gagal menambahkan keyword baru ke batch:", insertErr.message);
+      }
+    }
+
+    keywordsCount = parsedKeywords.length;
+    invalidateActiveKeywordBatchCache();
+  }
+
+  return {
+    ...batch,
+    keywordsCount,
+  };
 }
 
 /**

@@ -753,7 +753,9 @@ export async function toggleBatchEnabledAction(
 
 export async function createBatchAction(
   name: string,
-  description?: string
+  description?: string,
+  color?: string,
+  keywordsText?: string | string[]
 ) {
   await requireAllowedAdminUser();
   const supabase = createSupabaseAdminClient();
@@ -761,10 +763,11 @@ export async function createBatchAction(
   const result = await createKeywordBatch(supabase, {
     name,
     description,
+    keywords: keywordsText,
   });
 
   revalidateAllDashboardRoutes();
-  return { ok: true, batch: result };
+  return { ok: true, batch: result, keywordsCount: result.keywordsCount };
 }
 
 export async function assignBatchToSlotAction(

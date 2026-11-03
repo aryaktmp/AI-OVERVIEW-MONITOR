@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import {
   AlertCircle,
   Calendar,
@@ -17,6 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -83,6 +84,16 @@ export function BatchSchedulerCard({
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newBatchName, setNewBatchName] = useState("");
   const [newBatchDescription, setNewBatchDescription] = useState("");
+  const [newBatchKeywords, setNewBatchKeywords] = useState("");
+
+  const parsedKeywordCount = useMemo(() => {
+    if (!newBatchKeywords.trim()) return 0;
+    const items = newBatchKeywords
+      .split(/[\r\n,]+/)
+      .map((k) => k.trim())
+      .filter((k) => k.length >= 2 && k.length <= 200);
+    return new Set(items.map((k) => k.toLowerCase())).size;
+  }, [newBatchKeywords]);
 
   const activeBatch = batches.find((b) => b.is_active) ?? null;
 
@@ -199,21 +210,29 @@ export function BatchSchedulerCard({
     setFeedback(null);
     startTransition(async () => {
       try {
-        const res = await createBatchAction(newBatchName, newBatchDescription);
+        const res = await createBatchAction(
+          newBatchName,
+          newBatchDescription,
+          undefined,
+          newBatchKeywords.trim() || undefined
+        );
         setShowCreateDialog(false);
         setNewBatchName("");
         setNewBatchDescription("");
+        setNewBatchKeywords("");
+        const addedCount = res.keywordsCount ?? 0;
         setBatches((prev) => [
           ...prev,
           {
             ...res.batch,
-            totalKeywords: 0,
-            activeKeywords: 0,
+            totalKeywords: addedCount,
+            activeKeywords: addedCount,
           },
         ]);
+        const countInfo = addedCount > 0 ? ` with ${addedCount} keyword(s)` : "";
         setFeedback({
           type: "success",
-          text: `Batch "${res.batch.name}" created successfully.`,
+          text: `Batch "${res.batch.name}" created successfully${countInfo}.`,
         });
       } catch (err) {
         setFeedback({
@@ -559,8 +578,18 @@ export function BatchSchedulerCard({
       </Dialog>
 
       {/* Create Batch Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent>
+      <Dialog
+        open={showCreateDialog}
+        onOpenChange={(open) => {
+          setShowCreateDialog(open);
+          if (!open) {
+            setNewBatchName("");
+            setNewBatchDescription("");
+            setNewBatchKeywords("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle>Create New Batch</DialogTitle>
             <DialogDescription>
@@ -587,6 +616,28 @@ export function BatchSchedulerCard({
                 value={newBatchDescription}
                 onChange={(e) => setNewBatchDescription(e.target.value)}
               />
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="new-batch-keywords">Initial Keywords (Optional)</Label>
+                {parsedKeywordCount > 0 && (
+                  <Badge variant="outline" className="text-[10px] font-mono text-[var(--cite)] border-[var(--cite)]/30">
+                    {parsedKeywordCount} keyword{parsedKeywordCount === 1 ? "" : "s"} detected
+                  </Badge>
+                )}
+              </div>
+              <Textarea
+                id="new-batch-keywords"
+                placeholder={"software hris terbaik\naplikasi payroll online\nsistem manajemen sdm"}
+                rows={4}
+                className="font-mono text-xs leading-relaxed"
+                value={newBatchKeywords}
+                onChange={(e) => setNewBatchKeywords(e.target.value)}
+              />
+              <p className="text-[11px] text-[var(--muted)]">
+                Add keywords directly to this batch. Separate with new lines or commas.
+              </p>
             </div>
           </div>
 
