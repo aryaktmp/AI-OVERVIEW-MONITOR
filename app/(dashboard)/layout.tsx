@@ -4,6 +4,7 @@ import { isEmailAllowed } from "@/lib/auth";
 import { logoutAction } from "@/app/(auth)/login/actions";
 import { DashboardNav } from "@/components/dashboard-nav";
 import { Button } from "@/components/ui/button";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export default async function DashboardLayout({
   children,
@@ -50,7 +51,9 @@ export default async function DashboardLayout({
 
       {/* Main Content Area */}
       <div className="mx-auto max-w-[1040px] px-4 pt-5 pb-12">
-        <main>{children}</main>
+        <TooltipProvider delayDuration={150}>
+          <main>{children}</main>
+        </TooltipProvider>
       </div>
     </div>
   );

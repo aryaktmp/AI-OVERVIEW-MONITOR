@@ -25,7 +25,7 @@ import {
   addCompetitorAction,
   deleteCompetitorAction,
 } from "@/app/(dashboard)/actions";
-import { SimpleTooltip } from "@/components/ui/tooltip";
+import { SimpleTooltip, TooltipProvider } from "@/components/ui/tooltip";
 
 export interface CompetitorItem {
   id: string;
@@ -122,7 +122,8 @@ export function CompetitorManagerCard({
   }
 
   return (
-    <Card id="competitor-list">
+    <TooltipProvider delayDuration={150}>
+      <Card id="competitor-list">
       <CardHeader>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
@@ -249,5 +250,6 @@ export function CompetitorManagerCard({
         )}
       </CardContent>
     </Card>
+    </TooltipProvider>
   );
 }
