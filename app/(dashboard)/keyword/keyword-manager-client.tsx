@@ -760,6 +760,13 @@ export function KeywordManagerClient({
         }
         monthlyRunCount={monthlyRunCount}
         initialAuditLogs={auditLogs}
+        availableKeywords={rows.map((r) => ({
+          id: r.id,
+          text: r.keyword,
+          batch_id: r.batchId ?? null,
+          batch_name: r.batchName ?? null,
+          active: r.active,
+        }))}
       />
     </TabsContent>
 

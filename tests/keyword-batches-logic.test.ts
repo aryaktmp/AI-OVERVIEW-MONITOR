@@ -6,6 +6,7 @@ import {
   setBatchScheduleMode,
   listKeywordBatchesWithCounts,
   createKeywordBatch,
+  listKeywordsForBatchSelection,
   parseKeywordsInput,
   type KeywordBatchRecord,
   type BatchScheduleSettingsRecord,
@@ -106,6 +107,14 @@ function createMockSupabase() {
       is_demo: false,
       created_at: "2026-11-01T00:00:00Z",
     },
+    {
+      id: "k-6",
+      text: "aplikasi timesheet online",
+      active: true,
+      batch_id: null,
+      is_demo: false,
+      created_at: "2026-11-01T00:00:00Z",
+    },
   ];
 
   let settings: BatchScheduleSettingsRecord = {
@@ -125,6 +134,7 @@ function createMockSupabase() {
       let filterIsActive: boolean | null = null;
       let filterId: string | number | null = null;
       let filterStatus: string | null = null;
+      let filterIds: string[] | null = null;
 
       const builder = {
         select: () => builder,
@@ -137,6 +147,7 @@ function createMockSupabase() {
           return builder;
         },
         in: (col: string, vals: unknown[]) => {
+          if (col === "id") filterIds = vals as string[];
           return builder;
         },
         order: () => builder,
@@ -173,6 +184,7 @@ function createMockSupabase() {
           }
           if (table === "keywords") {
             const filtered = keywords.filter((k) => {
+              if (filterIds !== null && !filterIds.includes(k.id)) return false;
               if (filterBatchId !== null && k.batch_id !== filterBatchId) return false;
               if (filterActive !== null && k.active !== filterActive) return false;
               return true;
@@ -467,16 +479,17 @@ describe("Fase Logika: Rotasi, Kontrol Manual, & Search Filtering", () => {
     expect(fromArray).toEqual(["software hris", "aplikasi payroll"]);
   });
 
-  it("10. createKeywordBatch dapat langsung menambahkan keyword baru dan menautkan keyword yang sudah ada", async () => {
-    // Awal: k-1 "software hris" ada di b-1
-    expect(ctx.keywords[0].batch_id).toBe("b-1");
+  it("10. createKeywordBatch dapat memilih keyword unassigned via keywordIds (multi-select) dan menambahkan keyword baru", async () => {
+    // Awal: k-6 belum punya batch (unassigned)
+    const k6 = ctx.keywords.find((k) => k.id === "k-6");
+    expect(k6?.batch_id).toBeNull();
 
-    // Buat Batch 4 dengan 1 keyword existing ("software hris") dan 2 keyword baru
+    // Buat Batch 4 dengan memilih k-6 (unassigned) dan menambahkan 2 keyword baru
     const result = await createKeywordBatch(ctx.client, {
       name: "Batch 4 - New Generation",
-      description: "Batch baru dengan keyword langsung",
+      description: "Batch baru dengan multi-select keyword unassigned",
+      keywordIds: ["k-6"],
       keywords: [
-        "Software HRIS", // Existing keyword (case insensitive)
         "aplikasi performance appraisal", // Keyword baru 1
         "software reimbursement", // Keyword baru 2
       ],
@@ -487,8 +500,8 @@ describe("Fase Logika: Rotasi, Kontrol Manual, & Search Filtering", () => {
     expect(result.order_index).toBe(4);
     expect(result.keywordsCount).toBe(3);
 
-    // Keyword existing (k-1) harus dipindahkan ke batch baru (b-4)
-    expect(ctx.keywords[0].batch_id).toBe("b-4");
+    // Keyword unassigned (k-6) berhasil ditautkan ke batch baru (b-4)
+    expect(k6?.batch_id).toBe("b-4");
 
     // Keyword baru harus terdaftar di tabel keywords dengan batch_id b-4 dan active = true
     const newKw1 = ctx.keywords.find(
@@ -504,5 +517,36 @@ describe("Fase Logika: Rotasi, Kontrol Manual, & Search Filtering", () => {
     expect(newKw2).toBeDefined();
     expect(newKw2?.batch_id).toBe("b-4");
     expect(newKw2?.active).toBe(true);
+  });
+
+  it("11. createKeywordBatch MENOLAK seleksi keyword yang sudah masuk ke batch lain", async () => {
+    // k-1 ("software hris") sudah masuk di b-1
+    expect(ctx.keywords[0].batch_id).toBe("b-1");
+
+    // Coba buat batch baru dengan memilih k-1
+    await expect(
+      createKeywordBatch(ctx.client, {
+        name: "Batch Invalid Selection",
+        keywordIds: ["k-1"],
+      })
+    ).rejects.toThrowError(
+      /Tidak dapat memilih keyword yang sudah masuk ke batch lain/
+    );
+
+    // Pastikan k-1 tetap berada di b-1 dan tidak berpindah
+    expect(ctx.keywords[0].batch_id).toBe("b-1");
+  });
+
+  it("12. listKeywordsForBatchSelection membaca daftar seluruh keyword dan membedakan batch yang aktif/unassigned", async () => {
+    const list = await listKeywordsForBatchSelection(ctx.client);
+    expect(list.length).toBeGreaterThanOrEqual(6);
+
+    const kw1 = list.find((k) => k.id === "k-1");
+    expect(kw1?.batch_id).toBe("b-1");
+    expect(kw1?.batch_name).toBe("Batch 1");
+
+    const kw6 = list.find((k) => k.id === "k-6");
+    expect(kw6?.batch_id).toBeNull();
+    expect(kw6?.batch_name).toBeNull();
   });
 });

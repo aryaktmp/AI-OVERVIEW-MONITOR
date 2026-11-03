@@ -283,8 +283,54 @@ export function parseKeywordsInput(raw?: string | string[] | null): string[] {
   return result;
 }
 
+export interface SelectableKeywordItem {
+  id: string;
+  text: string;
+  batch_id: string | null;
+  batch_name?: string | null;
+  active: boolean;
+}
+
 /**
- * Membuat entitas batch baru dan opsional langsung menautkan/menambahkan daftar keyword awal.
+ * Membaca seluruh keyword untuk keperluan seleksi multi-select batch,
+ * termasuk nama batch saat ini jika sudah diasosiasikan.
+ */
+export async function listKeywordsForBatchSelection(
+  supabase: SupabaseClient
+): Promise<SelectableKeywordItem[]> {
+  const [{ data: kws, error: kwErr }, { data: batches }] =
+    await Promise.all([
+      supabase
+        .from("keywords")
+        .select("id, text, batch_id, active")
+        .order("text", { ascending: true }),
+      supabase.from("keyword_batches").select("id, name"),
+    ]);
+
+  if (kwErr) {
+    throw new Error(`Gagal membaca daftar keyword: ${kwErr.message}`);
+  }
+
+  const batchMap = new Map<string, string>();
+  if (Array.isArray(batches)) {
+    for (const b of batches as Array<{ id: string; name: string }>) {
+      batchMap.set(b.id, b.name);
+    }
+  }
+
+  return ((kws ?? []) as Array<{ id: string; text: string; batch_id: string | null; active: boolean }>).map((k) => ({
+    id: k.id,
+    text: k.text,
+    batch_id: k.batch_id ?? null,
+    batch_name: k.batch_id ? batchMap.get(k.batch_id) ?? null : null,
+    active: k.active ?? true,
+  }));
+}
+
+/**
+ * Membuat entitas batch baru dan opsional langsung menautkan keyword yang dipilih (multi-select)
+ * atau menambahkan daftar keyword baru.
+ * Menjamin keyword yang sudah menjadi bagian dari batch lain TIDAK BISA diambil/dipilih.
  */
 export async function createKeywordBatch(
   supabase: SupabaseClient,
@@ -293,6 +339,7 @@ export async function createKeywordBatch(
     description?: string | null;
     orderIndex?: number;
     isEnabled?: boolean;
+    keywordIds?: string[];
     keywords?: string[] | string | null;
   }
 ): Promise<KeywordBatchRecord & { keywordsCount: number }> {
@@ -321,18 +368,59 @@ export async function createKeywordBatch(
   }
 
   const batch = data as KeywordBatchRecord;
-  const parsedKeywords = parseKeywordsInput(payload.keywords);
   let keywordsCount = 0;
 
+  // 1. Proses keywordIds dari multi-select dropdown
+  if (payload.keywordIds && payload.keywordIds.length > 0) {
+    const { data: selectedRows, error: selErr } = await supabase
+      .from("keywords")
+      .select("id, text, batch_id")
+      .in("id", payload.keywordIds);
+
+    if (selErr) {
+      throw new Error(`Gagal membaca keyword yang dipilih: ${selErr.message}`);
+    }
+
+    // Validasi ketat: tidak boleh memilih keyword yang sudah masuk ke batch lain!
+    const alreadyInOtherBatch = (selectedRows ?? []).filter(
+      (k) => k.batch_id !== null && k.batch_id !== undefined
+    );
+    if (alreadyInOtherBatch.length > 0) {
+      throw new Error(
+        `Tidak dapat memilih keyword yang sudah masuk ke batch lain: ${alreadyInOtherBatch
+          .map((k) => `"${k.text}"`)
+          .join(", ")}`
+      );
+    }
+
+    const validIds = (selectedRows ?? []).map((k) => k.id);
+    if (validIds.length > 0) {
+      const { error: assignErr } = await supabase
+        .from("keywords")
+        .update({ batch_id: batch.id })
+        .in("id", validIds);
+
+      if (assignErr) {
+        throw new Error(`Gagal menautkan keyword ke batch baru: ${assignErr.message}`);
+      }
+      keywordsCount += validIds.length;
+    }
+  }
+
+  // 2. Proses keyword teks tambahan (opsional)
+  const parsedKeywords = parseKeywordsInput(payload.keywords);
   if (parsedKeywords.length > 0) {
     const { data: existingRows } = await supabase
       .from("keywords")
-      .select("id, text");
+      .select("id, text, batch_id");
 
-    const existingByLower = new Map<string, string>();
+    const existingByLower = new Map<string, { id: string; batch_id: string | null }>();
     if (Array.isArray(existingRows)) {
-      for (const row of existingRows as Array<{ id: string; text: string }>) {
-        existingByLower.set(row.text.toLowerCase().trim(), row.id);
+      for (const row of existingRows as Array<{ id: string; text: string; batch_id: string | null }>) {
+        existingByLower.set(row.text.toLowerCase().trim(), {
+          id: row.id,
+          batch_id: row.batch_id ?? null,
+        });
       }
     }
 
@@ -340,9 +428,12 @@ export async function createKeywordBatch(
     const toInsert: Array<{ text: string; batch_id: string; active: boolean }> = [];
 
     for (const kw of parsedKeywords) {
-      const existingId = existingByLower.get(kw.toLowerCase());
-      if (existingId) {
-        toReassignIds.push(existingId);
+      const existing = existingByLower.get(kw.toLowerCase());
+      if (existing) {
+        // Hanya tautkan jika keyword tersebut BELUM masuk ke batch mana pun!
+        if (!existing.batch_id) {
+          toReassignIds.push(existing.id);
+        }
       } else {
         toInsert.push({
           text: kw,
@@ -358,8 +449,9 @@ export async function createKeywordBatch(
         .update({ batch_id: batch.id })
         .in("id", toReassignIds);
       if (reassignErr) {
-        console.error("Gagal menautkan keyword yang sudah ada ke batch baru:", reassignErr.message);
+        console.error("Gagal menautkan keyword unassigned ke batch baru:", reassignErr.message);
       }
+      keywordsCount += toReassignIds.length;
     }
 
     if (toInsert.length > 0) {
@@ -369,9 +461,11 @@ export async function createKeywordBatch(
       if (insertErr) {
         console.error("Gagal menambahkan keyword baru ke batch:", insertErr.message);
       }
+      keywordsCount += toInsert.length;
     }
+  }
 
-    keywordsCount = parsedKeywords.length;
+  if (keywordsCount > 0) {
     invalidateActiveKeywordBatchCache();
   }
 

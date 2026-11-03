@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import {
   AlertCircle,
   Calendar,
@@ -48,7 +48,12 @@ import {
   updateBatchScheduleModeAction,
   toggleBatchEnabledAction,
   createBatchAction,
+  getSelectableKeywordsAction,
 } from "@/app/(dashboard)/actions";
+import {
+  KeywordMultiSelectDropdown,
+  type SelectableKeyword,
+} from "@/components/keyword-multi-select-dropdown";
 import type {
   BatchWithKeywordsCount,
   BatchScheduleSettingsRecord,
@@ -85,6 +90,20 @@ export function BatchSchedulerCard({
   const [newBatchName, setNewBatchName] = useState("");
   const [newBatchDescription, setNewBatchDescription] = useState("");
   const [newBatchKeywords, setNewBatchKeywords] = useState("");
+
+  const [allKeywords, setAllKeywords] = useState<SelectableKeyword[]>([]);
+  const [selectedKeywordIds, setSelectedKeywordIds] = useState<string[]>([]);
+  const [isLoadingKeywords, setIsLoadingKeywords] = useState(false);
+
+  useEffect(() => {
+    if (showCreateDialog && allKeywords.length === 0 && !isLoadingKeywords) {
+      setIsLoadingKeywords(true);
+      getSelectableKeywordsAction()
+        .then((kws) => setAllKeywords(kws))
+        .catch((err) => console.error("Failed to load selectable keywords:", err))
+        .finally(() => setIsLoadingKeywords(false));
+    }
+  }, [showCreateDialog, allKeywords.length, isLoadingKeywords]);
 
   const parsedKeywordCount = useMemo(() => {
     if (!newBatchKeywords.trim()) return 0;
@@ -214,11 +233,13 @@ export function BatchSchedulerCard({
           newBatchName,
           newBatchDescription,
           undefined,
+          selectedKeywordIds,
           newBatchKeywords.trim() || undefined
         );
         setShowCreateDialog(false);
         setNewBatchName("");
         setNewBatchDescription("");
+        setSelectedKeywordIds([]);
         setNewBatchKeywords("");
         const addedCount = res.keywordsCount ?? 0;
         setBatches((prev) => [
@@ -229,6 +250,17 @@ export function BatchSchedulerCard({
             activeKeywords: addedCount,
           },
         ]);
+
+        if (selectedKeywordIds.length > 0) {
+          setAllKeywords((prev) =>
+            prev.map((k) =>
+              selectedKeywordIds.includes(k.id)
+                ? { ...k, batch_id: res.batch.id, batch_name: res.batch.name }
+                : k
+            )
+          );
+        }
+
         const countInfo = addedCount > 0 ? ` with ${addedCount} keyword(s)` : "";
         setFeedback({
           type: "success",
@@ -585,11 +617,12 @@ export function BatchSchedulerCard({
           if (!open) {
             setNewBatchName("");
             setNewBatchDescription("");
+            setSelectedKeywordIds([]);
             setNewBatchKeywords("");
           }
         }}
       >
-        <DialogContent className="sm:max-w-[480px]">
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Create New Batch</DialogTitle>
             <DialogDescription>
@@ -618,25 +651,48 @@ export function BatchSchedulerCard({
               />
             </div>
 
+            {/* Multi-Select Dropdown for Existing Keywords */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="new-batch-keywords">Initial Keywords (Optional)</Label>
+                <Label className="text-xs font-semibold">
+                  Select Existing Keywords
+                </Label>
+                <span className="text-[11px] text-[var(--muted)]">
+                  Only unassigned keywords can be selected
+                </span>
+              </div>
+              <KeywordMultiSelectDropdown
+                keywords={allKeywords}
+                selectedIds={selectedKeywordIds}
+                onChange={setSelectedKeywordIds}
+                disabled={isPending}
+                placeholder="Choose unassigned keywords..."
+              />
+              <p className="text-[11px] text-[var(--muted)]">
+                Keywords already assigned to another batch are locked and cannot be selected.
+              </p>
+            </div>
+
+            {/* Optional: Add Brand New Keywords */}
+            <div className="space-y-1.5 pt-2 border-t border-[var(--line)]/50">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="new-batch-keywords">Or Add Brand New Keywords (Optional)</Label>
                 {parsedKeywordCount > 0 && (
                   <Badge variant="outline" className="text-[10px] font-mono text-[var(--cite)] border-[var(--cite)]/30">
-                    {parsedKeywordCount} keyword{parsedKeywordCount === 1 ? "" : "s"} detected
+                    {parsedKeywordCount} new keyword{parsedKeywordCount === 1 ? "" : "s"}
                   </Badge>
                 )}
               </div>
               <Textarea
                 id="new-batch-keywords"
                 placeholder={"software hris terbaik\naplikasi payroll online\nsistem manajemen sdm"}
-                rows={4}
+                rows={3}
                 className="font-mono text-xs leading-relaxed"
                 value={newBatchKeywords}
                 onChange={(e) => setNewBatchKeywords(e.target.value)}
               />
               <p className="text-[11px] text-[var(--muted)]">
-                Add keywords directly to this batch. Separate with new lines or commas.
+                Add new keywords that are not yet in the database. Separate with new lines or commas.
               </p>
             </div>
           </div>

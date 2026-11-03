@@ -20,6 +20,7 @@ import {
   assignKeywordsToBatch,
   updateKeywordBatch,
   createKeywordBatch,
+  listKeywordsForBatchSelection,
   deleteKeywordBatch,
   assignBatchToSlot,
   resetSlotsToDefault,
@@ -755,6 +756,7 @@ export async function createBatchAction(
   name: string,
   description?: string,
   color?: string,
+  keywordIds?: string[],
   keywordsText?: string | string[]
 ) {
   await requireAllowedAdminUser();
@@ -763,11 +765,18 @@ export async function createBatchAction(
   const result = await createKeywordBatch(supabase, {
     name,
     description,
+    keywordIds: keywordIds ?? [],
     keywords: keywordsText,
   });
 
   revalidateAllDashboardRoutes();
   return { ok: true, batch: result, keywordsCount: result.keywordsCount };
+}
+
+export async function getSelectableKeywordsAction() {
+  await requireAllowedAdminUser();
+  const supabase = createSupabaseAdminClient();
+  return listKeywordsForBatchSelection(supabase);
 }
 
 export async function assignBatchToSlotAction(
