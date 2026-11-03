@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useMemo, useRef, useState, useEffect } from "react";
-import { Check, ChevronDown, Lock, Search, X } from "lucide-react";
+import { Check, ChevronDown, Loader2, Lock, Search, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ interface KeywordMultiSelectDropdownProps {
   selectedIds: string[];
   onChange: (selectedIds: string[]) => void;
   disabled?: boolean;
+  isLoading?: boolean;
   placeholder?: string;
 }
 
@@ -28,6 +29,7 @@ export function KeywordMultiSelectDropdown({
   selectedIds,
   onChange,
   disabled = false,
+  isLoading = false,
   placeholder = "Select unassigned keywords...",
 }: KeywordMultiSelectDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -150,7 +152,12 @@ export function KeywordMultiSelectDropdown({
         )}
       >
         <div className="flex flex-wrap items-center gap-1.5 flex-1 pr-2">
-          {selectedIds.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center gap-2 text-[var(--muted)]">
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--cite)]" />
+              <span>Loading available keywords from server...</span>
+            </div>
+          ) : selectedIds.length === 0 ? (
             <span className="text-[var(--muted)]">
               {placeholder} ({unassignedKeywords.length} unassigned available)
             </span>
@@ -300,7 +307,12 @@ export function KeywordMultiSelectDropdown({
 
           {/* Keywords List */}
           <div className="max-h-56 overflow-y-auto p-1 divide-y divide-[var(--line)]/30">
-            {filteredKeywords.length === 0 ? (
+            {isLoading ? (
+              <div className="py-8 flex flex-col items-center justify-center gap-2 text-xs text-[var(--muted)]">
+                <Loader2 className="h-5 w-5 animate-spin text-[var(--cite)]" />
+                <span>Loading available keywords from server...</span>
+              </div>
+            ) : filteredKeywords.length === 0 ? (
               <div className="py-6 text-center text-xs text-[var(--muted)]">
                 {searchQuery
                   ? "No keywords match your search query."

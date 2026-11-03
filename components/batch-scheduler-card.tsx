@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Clock,
   Layers,
+  Loader2,
   Plus,
   RefreshCw,
   Sliders,
@@ -80,6 +81,7 @@ export function BatchSchedulerCard({
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(
     null
   );
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
 
   // Dialog states
   const [showOverrideDialog, setShowOverrideDialog] = useState(false);
@@ -118,6 +120,7 @@ export function BatchSchedulerCard({
 
   function handleRotateNow() {
     setFeedback(null);
+    setPendingAction("rotate");
     startTransition(async () => {
       try {
         const res = await rotateBatchNowAction();
@@ -146,6 +149,8 @@ export function BatchSchedulerCard({
           type: "error",
           text: err instanceof Error ? err.message : "Failed to rotate batch.",
         });
+      } finally {
+        setPendingAction(null);
       }
     });
   }
@@ -153,6 +158,7 @@ export function BatchSchedulerCard({
   function handleModeToggle(checked: boolean) {
     const nextMode: BatchScheduleMode = checked ? "auto" : "manual_frozen";
     setFeedback(null);
+    setPendingAction("mode");
     startTransition(async () => {
       try {
         const res = await updateBatchScheduleModeAction(nextMode);
@@ -166,6 +172,8 @@ export function BatchSchedulerCard({
           type: "error",
           text: err instanceof Error ? err.message : "Failed to change schedule mode.",
         });
+      } finally {
+        setPendingAction(null);
       }
     });
   }
@@ -173,6 +181,7 @@ export function BatchSchedulerCard({
   function handleExecuteOverride() {
     if (!selectedOverrideBatchId) return;
     setFeedback(null);
+    setPendingAction("override");
     startTransition(async () => {
       try {
         const res = await overrideActiveBatchAction(
@@ -199,12 +208,15 @@ export function BatchSchedulerCard({
           type: "error",
           text: err instanceof Error ? err.message : "Failed to override active batch.",
         });
+      } finally {
+        setPendingAction(null);
       }
     });
   }
 
   function handleToggleEnabled(batchId: string, currentEnabled: boolean) {
     setFeedback(null);
+    setPendingAction(`toggle-${batchId}`);
     startTransition(async () => {
       try {
         await toggleBatchEnabledAction(batchId, !currentEnabled);
@@ -220,6 +232,8 @@ export function BatchSchedulerCard({
           type: "error",
           text: err instanceof Error ? err.message : "Failed to update batch.",
         });
+      } finally {
+        setPendingAction(null);
       }
     });
   }
@@ -227,6 +241,7 @@ export function BatchSchedulerCard({
   function handleCreateBatch() {
     if (!newBatchName.trim()) return;
     setFeedback(null);
+    setPendingAction("create");
     startTransition(async () => {
       try {
         const res = await createBatchAction(
@@ -271,6 +286,8 @@ export function BatchSchedulerCard({
           type: "error",
           text: err instanceof Error ? err.message : "Failed to create batch.",
         });
+      } finally {
+        setPendingAction(null);
       }
     });
   }
@@ -310,8 +327,17 @@ export function BatchSchedulerCard({
                 disabled={isPending}
                 className="bg-[var(--accent)] text-white hover:bg-[var(--accent)]/90 text-[12px]"
               >
-                <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${isPending ? "animate-spin" : ""}`} />
-                Rotate Next Now
+                {pendingAction === "rotate" ? (
+                  <>
+                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                    Rotating...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+                    Rotate Next Now
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -447,8 +473,11 @@ export function BatchSchedulerCard({
                             onCheckedChange={() => handleToggleEnabled(b.id, b.is_enabled)}
                             disabled={isPending}
                           />
-                          <span className="text-[12px] text-[var(--muted)]">
+                          <span className="text-[12px] text-[var(--muted)] flex items-center gap-1">
                             {b.is_enabled ? "Enabled" : "Disabled"}
+                            {pendingAction === `toggle-${b.id}` && (
+                              <Loader2 className="h-3 w-3 animate-spin text-[var(--cite)]" />
+                            )}
                           </span>
                         </div>
                       </TableCell>
@@ -603,7 +632,14 @@ export function BatchSchedulerCard({
               disabled={!selectedOverrideBatchId || isPending}
               className="bg-[var(--accent)] text-white hover:bg-[var(--accent)]/90"
             >
-              {isPending ? "Switching..." : "Set as Active Batch"}
+              {pendingAction === "override" ? (
+                <>
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                  Switching...
+                </>
+              ) : (
+                "Set as Active Batch"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -666,6 +702,7 @@ export function BatchSchedulerCard({
                 selectedIds={selectedKeywordIds}
                 onChange={setSelectedKeywordIds}
                 disabled={isPending}
+                isLoading={isLoadingKeywords}
                 placeholder="Choose unassigned keywords..."
               />
               <p className="text-[11px] text-[var(--muted)]">
@@ -711,7 +748,14 @@ export function BatchSchedulerCard({
               disabled={!newBatchName.trim() || isPending}
               className="bg-[var(--accent)] text-white hover:bg-[var(--accent)]/90"
             >
-              {isPending ? "Creating..." : "Create Batch"}
+              {pendingAction === "create" ? (
+                <>
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create Batch"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

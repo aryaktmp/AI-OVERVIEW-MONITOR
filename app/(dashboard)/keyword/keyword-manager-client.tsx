@@ -10,6 +10,7 @@ import {
   FileSpreadsheet,
   FolderTree,
   Key,
+  Loader2,
   Plus,
   Trash2,
   Power,
@@ -114,6 +115,7 @@ export function KeywordManagerClient({
     text: string;
   } | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [pendingActionId, setPendingActionId] = useState<string | null>(null);
 
   const existingKeywords = useMemo(
     () => rows.map((r) => r.keyword),
@@ -164,16 +166,21 @@ export function KeywordManagerClient({
     const fd = new FormData();
     fd.set("csvText", csvText);
 
+    setPendingActionId("import-csv");
     startTransition(async () => {
-      const res = await importKeywordsCsvAction(fd);
-      setFeedback({
-        type: res.ok ? "success" : "error",
-        text: res.message,
-      });
-      if (res.ok) {
-        setCsvText("");
-        setCsvFileName("");
-        setShowCsvPanel(false);
+      try {
+        const res = await importKeywordsCsvAction(fd);
+        setFeedback({
+          type: res.ok ? "success" : "error",
+          text: res.message,
+        });
+        if (res.ok) {
+          setCsvText("");
+          setCsvFileName("");
+          setShowCsvPanel(false);
+        }
+      } finally {
+        setPendingActionId(null);
       }
     });
   }
@@ -277,57 +284,81 @@ export function KeywordManagerClient({
         header: "Actions",
         cell: (info) => {
           const row = info.row.original;
+          const isToggling = pendingActionId === `toggle-${row.id}`;
+          const isDeleting = pendingActionId === `delete-${row.id}`;
           return (
             <div className="flex items-center gap-1.5">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                disabled={isPending}
+                disabled={isPending || isToggling}
                 onClick={() => {
+                  setPendingActionId(`toggle-${row.id}`);
                   startTransition(async () => {
-                    const res = await toggleKeywordActiveAction(
-                      row.id,
-                      !row.active
-                    );
-                    if (!res.ok) {
-                      setFeedback({
-                        type: "error",
-                        text: res.message ?? "Failed to update keyword status.",
-                      });
+                    try {
+                      const res = await toggleKeywordActiveAction(
+                        row.id,
+                        !row.active
+                      );
+                      if (!res.ok) {
+                        setFeedback({
+                          type: "error",
+                          text: res.message ?? "Failed to update keyword status.",
+                        });
+                      }
+                    } finally {
+                      setPendingActionId(null);
                     }
                   });
                 }}
               >
-                <Power className="h-3.5 w-3.5" />
-                {row.active ? "Deactivate keyword" : "Activate keyword"}
+                {isToggling ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                ) : (
+                  <Power className="h-3.5 w-3.5 mr-1" />
+                )}
+                {isToggling
+                  ? "Updating..."
+                  : row.active
+                  ? "Deactivate keyword"
+                  : "Activate keyword"}
               </Button>
               <Button
                 type="button"
                 variant="destructive"
                 size="sm"
-                disabled={isPending}
+                disabled={isPending || isDeleting}
                 onClick={() => {
+                  setPendingActionId(`delete-${row.id}`);
                   startTransition(async () => {
-                    const res = await deleteKeywordAction(row.id);
-                    if (!res.ok) {
-                      setFeedback({
-                        type: "error",
-                        text: res.message ?? "Failed to delete keyword.",
-                      });
+                    try {
+                      const res = await deleteKeywordAction(row.id);
+                      if (!res.ok) {
+                        setFeedback({
+                          type: "error",
+                          text: res.message ?? "Failed to delete keyword.",
+                        });
+                      }
+                    } finally {
+                      setPendingActionId(null);
                     }
                   });
                 }}
               >
-                <Trash2 className="h-3.5 w-3.5" />
-                Delete keyword
+                {isDeleting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                ) : (
+                  <Trash2 className="h-3.5 w-3.5 mr-1" />
+                )}
+                {isDeleting ? "Deleting..." : "Delete keyword"}
               </Button>
             </div>
           );
         },
       }),
     ],
-    [isPending, batches]
+    [isPending, pendingActionId, batches]
   );
 
   const table = useReactTable({
@@ -457,12 +488,17 @@ export function KeywordManagerClient({
           <CardContent className="space-y-4">
             <form
               action={(formData) => {
+                setPendingActionId("add-keyword");
                 startTransition(async () => {
-                  const res = await addKeywordAction(formData);
-                  setFeedback({
-                    type: res.ok ? "success" : "error",
-                    text: res.message,
-                  });
+                  try {
+                    const res = await addKeywordAction(formData);
+                    setFeedback({
+                      type: res.ok ? "success" : "error",
+                      text: res.message,
+                    });
+                  } finally {
+                    setPendingActionId(null);
+                  }
                 });
               }}
               className="flex flex-wrap items-end gap-2.5"
@@ -474,7 +510,7 @@ export function KeywordManagerClient({
                   name="text"
                   placeholder="e.g. best payroll software"
                   required
-                  disabled={isPending}
+                  disabled={isPending || pendingActionId === "add-keyword"}
                 />
               </div>
 
@@ -483,8 +519,8 @@ export function KeywordManagerClient({
                 <select
                   id="kw-group"
                   name="groupId"
-                  disabled={isPending}
-                  className="flex h-9 w-full rounded-md border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-sm text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--cite)] cursor-pointer"
+                  disabled={isPending || pendingActionId === "add-keyword"}
+                  className="flex h-9 w-full rounded-md border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-sm text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--cite)] cursor-pointer disabled:opacity-50"
                 >
                   <option value="">No group</option>
                   {groups.map((grp) => (
@@ -500,9 +536,9 @@ export function KeywordManagerClient({
                 <select
                   id="kw-batch"
                   name="batchId"
-                  disabled={isPending}
+                  disabled={isPending || pendingActionId === "add-keyword"}
                   defaultValue={batches?.find((b) => b.is_active)?.id ?? ""}
-                  className="flex h-9 w-full rounded-md border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-sm text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--cite)] cursor-pointer"
+                  className="flex h-9 w-full rounded-md border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-sm text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--cite)] cursor-pointer disabled:opacity-50"
                 >
                   <option value="">No batch</option>
                   {batches?.map((b) => (
@@ -519,13 +555,26 @@ export function KeywordManagerClient({
                   id="kw-new-group"
                   name="newGroupName"
                   placeholder="New group name"
-                  disabled={isPending}
+                  disabled={isPending || pendingActionId === "add-keyword"}
                 />
               </div>
 
-              <Button type="submit" variant="primary" disabled={isPending}>
-                <Plus className="h-4 w-4" />
-                Save keyword
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={isPending || pendingActionId === "add-keyword"}
+              >
+                {pendingActionId === "add-keyword" ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    Saving keyword...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Save keyword
+                  </>
+                )}
               </Button>
             </form>
 
@@ -652,20 +701,26 @@ export function KeywordManagerClient({
                         size="sm"
                         disabled={
                           isPending ||
+                          pendingActionId === "import-csv" ||
                           csvPreview.validRows.length === 0 ||
                           csvPreview.exceededMaxRows
                         }
                         onClick={handleConfirmCsvImport}
                       >
-                        {isPending
-                          ? "Saving..."
-                          : `Save ${csvPreview.validRows.length} new keywords`}
+                        {pendingActionId === "import-csv" ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                            Importing {csvPreview.validRows.length} keywords...
+                          </>
+                        ) : (
+                          `Save ${csvPreview.validRows.length} new keywords`
+                        )}
                       </Button>
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        disabled={isPending}
+                        disabled={isPending || pendingActionId === "import-csv"}
                         onClick={() => {
                           setCsvText("");
                           setCsvFileName("");
@@ -825,12 +880,17 @@ export function KeywordManagerClient({
         <CardContent className="space-y-4">
           <form
             action={(formData) => {
+              setPendingActionId("add-group");
               startTransition(async () => {
-                const res = await addKeywordGroupAction(formData);
-                setFeedback({
-                  type: res.ok ? "success" : "error",
-                  text: res.message,
-                });
+                try {
+                  const res = await addKeywordGroupAction(formData);
+                  setFeedback({
+                    type: res.ok ? "success" : "error",
+                    text: res.message,
+                  });
+                } finally {
+                  setPendingActionId(null);
+                }
               });
             }}
             className="flex max-w-md gap-2"
@@ -839,11 +899,24 @@ export function KeywordManagerClient({
               name="name"
               placeholder="New group name (e.g. Payroll System)"
               required
-              disabled={isPending}
+              disabled={isPending || pendingActionId === "add-group"}
             />
-            <Button type="submit" variant="primary" disabled={isPending}>
-              <Plus className="h-4 w-4 mr-1" />
-              Save group
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={isPending || pendingActionId === "add-group"}
+            >
+              {pendingActionId === "add-group" ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  Saving group...
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Save group
+                </>
+              )}
             </Button>
           </form>
 
@@ -855,6 +928,7 @@ export function KeywordManagerClient({
             ) : (
               groups.map((grp) => {
                 const countInGroup = rows.filter((r) => r.groupName === grp.name).length;
+                const isDeletingThisGroup = pendingActionId === `delete-group-${grp.id}`;
                 return (
                   <div
                     key={grp.id}
@@ -868,16 +942,25 @@ export function KeywordManagerClient({
                       type="button"
                       variant="ghost"
                       size="sm"
-                      disabled={isPending}
+                      disabled={isPending || isDeletingThisGroup}
                       onClick={() => {
+                        setPendingActionId(`delete-group-${grp.id}`);
                         startTransition(async () => {
-                          await deleteKeywordGroupAction(grp.id);
+                          try {
+                            await deleteKeywordGroupAction(grp.id);
+                          } finally {
+                            setPendingActionId(null);
+                          }
                         });
                       }}
                       className="h-8 w-8 p-0 text-[var(--muted)] hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 cursor-pointer"
                       title="Delete group"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      {isDeletingThisGroup ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-red-500" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 );

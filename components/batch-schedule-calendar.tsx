@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Clock,
   Layers,
+  Loader2,
   Plus,
   RefreshCw,
   RotateCcw,
@@ -119,6 +120,7 @@ export function BatchScheduleCalendar({
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(
     null
   );
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
 
   // Dialog states
   const [showOverrideDialog, setShowOverrideDialog] = useState(false);
@@ -260,6 +262,7 @@ export function BatchScheduleCalendar({
   // Action handlers
   function handleRotateNow() {
     setFeedback(null);
+    setPendingAction("rotate");
     startTransition(async () => {
       try {
         const res = await rotateBatchNowAction();
@@ -287,6 +290,8 @@ export function BatchScheduleCalendar({
           type: "error",
           text: err instanceof Error ? err.message : "Failed to rotate active batch.",
         });
+      } finally {
+        setPendingAction(null);
       }
     });
   }
@@ -294,6 +299,7 @@ export function BatchScheduleCalendar({
   function handleModeToggle(checked: boolean) {
     const nextMode = checked ? "auto" : "manual_frozen";
     setFeedback(null);
+    setPendingAction("mode");
     startTransition(async () => {
       try {
         const res = await updateBatchScheduleModeAction(nextMode);
@@ -309,12 +315,15 @@ export function BatchScheduleCalendar({
           type: "error",
           text: err instanceof Error ? err.message : "Failed to update schedule mode.",
         });
+      } finally {
+        setPendingAction(null);
       }
     });
   }
 
   function handleSlotAssignment(weekNumber: number, batchId: string | null) {
     setFeedback(null);
+    setPendingAction(`slot-${weekNumber}`);
     startTransition(async () => {
       try {
         const res = await assignBatchToSlotAction(weekNumber, batchId, true);
@@ -349,12 +358,15 @@ export function BatchScheduleCalendar({
           type: "error",
           text: err instanceof Error ? err.message : "Failed to assign batch to slot.",
         });
+      } finally {
+        setPendingAction(null);
       }
     });
   }
 
   function handleResetSlots() {
     setFeedback(null);
+    setPendingAction("reset");
     startTransition(async () => {
       try {
         const res = await resetSlotsToDefaultAction();
@@ -376,6 +388,8 @@ export function BatchScheduleCalendar({
           type: "error",
           text: err instanceof Error ? err.message : "Failed to reset slots.",
         });
+      } finally {
+        setPendingAction(null);
       }
     });
   }
@@ -383,6 +397,7 @@ export function BatchScheduleCalendar({
   function handleToggleEnabled(batch: BatchWithKeywordsCount) {
     const nextVal = !batch.is_enabled;
     setFeedback(null);
+    setPendingAction(`batch-toggle-${batch.id}`);
     startTransition(async () => {
       try {
         const res = await toggleBatchEnabledAction(batch.id, nextVal);
@@ -400,6 +415,8 @@ export function BatchScheduleCalendar({
           type: "error",
           text: err instanceof Error ? err.message : "Failed to toggle batch status.",
         });
+      } finally {
+        setPendingAction(null);
       }
     });
   }
@@ -407,6 +424,7 @@ export function BatchScheduleCalendar({
   function handleCreateBatch() {
     if (!newBatchName.trim()) return;
     setFeedback(null);
+    setPendingAction("create");
     startTransition(async () => {
       try {
         const res = await createBatchAction(
@@ -453,6 +471,8 @@ export function BatchScheduleCalendar({
           type: "error",
           text: err instanceof Error ? err.message : "Failed to create batch.",
         });
+      } finally {
+        setPendingAction(null);
       }
     });
   }
@@ -460,6 +480,7 @@ export function BatchScheduleCalendar({
   function handleApplyOverride() {
     if (!selectedOverrideBatchId) return;
     setFeedback(null);
+    setPendingAction("override");
     startTransition(async () => {
       try {
         const res = await overrideActiveBatchAction(selectedOverrideBatchId, overrideFreezeMode);
@@ -484,6 +505,8 @@ export function BatchScheduleCalendar({
           type: "error",
           text: err instanceof Error ? err.message : "Failed to override active batch.",
         });
+      } finally {
+        setPendingAction(null);
       }
     });
   }
@@ -657,8 +680,17 @@ export function BatchScheduleCalendar({
             disabled={isPending}
             className="cursor-pointer font-semibold shadow-xs"
           >
-            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isPending ? "animate-spin" : ""}`} />
-            Rotate Next Now
+            {pendingAction === "rotate" ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin text-[var(--cite)]" />
+                Rotating...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                Rotate Next Now
+              </>
+            )}
           </Button>
 
           <Button
@@ -686,8 +718,17 @@ export function BatchScheduleCalendar({
             className="cursor-pointer text-xs text-[var(--muted)] hover:text-[var(--ink)]"
             title="Reset custom slot assignments to automatic sequence"
           >
-            <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
-            Reset Slots to Default
+            {pendingAction === "reset" ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin text-[var(--cite)]" />
+                Resetting...
+              </>
+            ) : (
+              <>
+                <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                Reset Slots to Default
+              </>
+            )}
           </Button>
         </div>
 
@@ -986,9 +1027,17 @@ export function BatchScheduleCalendar({
                 <CardContent className="p-4 pt-1 space-y-3">
                   {/* Select Batch Dropdown */}
                   <div className="space-y-1">
-                    <Label className="text-[11px] text-[var(--muted)] font-medium">
-                      Assigned Batch
-                    </Label>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[11px] text-[var(--muted)] font-medium">
+                        Assigned Batch
+                      </Label>
+                      {pendingAction === `slot-${slot.week_number}` && (
+                        <span className="flex items-center gap-1 text-[10px] text-[var(--cite)] font-mono">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Saving...
+                        </span>
+                      )}
+                    </div>
                     <select
                       value={slot.batch_id ?? ""}
                       onChange={(e) =>
@@ -999,7 +1048,7 @@ export function BatchScheduleCalendar({
                       }
                       disabled={isPending}
                       aria-label={`Assign batch for Week ${slot.week_number}`}
-                      className="w-full h-8.5 rounded-md border border-[var(--line)] bg-[var(--surface)] px-2 py-1 text-xs font-medium text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--cite)] cursor-pointer"
+                      className="w-full h-8.5 rounded-md border border-[var(--line)] bg-[var(--surface)] px-2 py-1 text-xs font-medium text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--cite)] cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <option value="">(Unassigned)</option>
                       {batches
@@ -1049,8 +1098,11 @@ export function BatchScheduleCalendar({
                         type="button"
                         onClick={() => handleSlotAssignment(slot.week_number, null)}
                         disabled={isPending}
-                        className="text-[10px] text-[var(--muted)] hover:text-[var(--ink)] underline cursor-pointer"
+                        className="text-[10px] text-[var(--muted)] hover:text-[var(--ink)] underline cursor-pointer inline-flex items-center gap-1"
                       >
+                        {pendingAction === `slot-${slot.week_number}` && (
+                          <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                        )}
                         Reset Slot
                       </button>
                     </div>
@@ -1164,12 +1216,17 @@ export function BatchScheduleCalendar({
                       )}
                     </TableCell>
                     <TableCell>
-                      <Switch
-                        checked={batch.is_enabled}
-                        onCheckedChange={() => handleToggleEnabled(batch)}
-                        disabled={isPending || batch.is_active}
-                        aria-label={`Toggle auto-rotation for ${batch.name}`}
-                      />
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={batch.is_enabled}
+                          onCheckedChange={() => handleToggleEnabled(batch)}
+                          disabled={isPending || batch.is_active}
+                          aria-label={`Toggle auto-rotation for ${batch.name}`}
+                        />
+                        {pendingAction === `batch-toggle-${batch.id}` && (
+                          <Loader2 className="h-3 w-3 animate-spin text-[var(--cite)]" />
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       {!batch.is_active && (
@@ -1350,7 +1407,14 @@ export function BatchScheduleCalendar({
               onClick={handleApplyOverride}
               disabled={isPending || !selectedOverrideBatchId}
             >
-              Apply Override
+              {pendingAction === "override" ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                  Applying Override...
+                </>
+              ) : (
+                "Apply Override"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1438,6 +1502,7 @@ export function BatchScheduleCalendar({
                 selectedIds={selectedKeywordIds}
                 onChange={setSelectedKeywordIds}
                 disabled={isPending}
+                isLoading={isLoadingKeywords}
                 placeholder="Choose unassigned keywords..."
               />
               <p className="text-[11px] text-[var(--muted)]">
@@ -1488,7 +1553,14 @@ export function BatchScheduleCalendar({
               onClick={handleCreateBatch}
               disabled={isPending || !newBatchName.trim()}
             >
-              Create Batch
+              {pendingAction === "create" ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                  Creating Batch...
+                </>
+              ) : (
+                "Create Batch"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
