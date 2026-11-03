@@ -16,7 +16,7 @@ export function DashboardNav() {
   return (
     <nav
       aria-label="Main navigation"
-      className="my-5 flex gap-1 overflow-x-auto border-b border-[var(--line)]"
+      className="mt-2.5 flex gap-1 overflow-x-auto -mb-[1px]"
     >
       {navItems.map((item) => {
         const isActive =
@@ -29,7 +29,7 @@ export function DashboardNav() {
             key={item.href}
             href={item.href}
             aria-current={isActive ? "page" : undefined}
-            className={`whitespace-nowrap border-b-[3px] px-3.5 py-2.5 text-sm font-semibold transition-colors ${
+            className={`whitespace-nowrap border-b-[2.5px] px-3.5 py-2 text-sm font-semibold transition-colors ${
               isActive
                 ? "border-[var(--accent)] text-[var(--ink)]"
                 : "border-transparent text-[var(--muted)] hover:text-[var(--ink)]"

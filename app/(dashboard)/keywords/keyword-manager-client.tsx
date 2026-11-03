@@ -453,10 +453,10 @@ export function KeywordManagerClient({
           onValueChange={handleTabChange}
           className="space-y-4"
         >
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--line)] pb-4">
+        <div className="sticky top-[var(--top-nav-height,100px)] z-30 -mx-4 px-4 py-3 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--line)] mb-4 transition-all flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-[20px] font-semibold tracking-[-0.01em] text-[var(--ink)]">
+              <h1 className="text-[18px] sm:text-[20px] font-semibold tracking-[-0.01em] text-[var(--ink)]">
                 Keyword &amp; Batch Hub
               </h1>
               <Badge
@@ -468,7 +468,7 @@ export function KeywordManagerClient({
                 {activeTab === "groups" && `${groups.length} Groups`}
               </Badge>
             </div>
-            <p className="mt-1 text-[13px] text-[var(--muted)] transition-opacity duration-200">
+            <p className="mt-0.5 text-[12px] sm:text-[13px] text-[var(--muted)] transition-opacity duration-200">
               {activeTab === "keywords" && "Manage monitored search keywords, active states, and assignment to rotation batches."}
               {activeTab === "schedule" && "Explore multi-month schedule, automated Monday rotations, and batch calendar slots."}
               {activeTab === "groups" && "Organize keywords into LinovHR product modules and business department groupings."}
@@ -861,9 +861,9 @@ export function KeywordManagerClient({
                           className={cn(
                             "whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-[var(--muted)] bg-[var(--surface)] border-b border-[var(--line)]",
                             isWeeklyStates &&
-                              "sticky right-[104px] z-30 w-[116px] min-w-[116px] border-l border-[var(--line)] shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]",
+                              "sticky right-[104px] z-20 w-[116px] min-w-[116px] border-l border-[var(--line)] shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]",
                             isActions &&
-                              "sticky right-0 z-30 w-[104px] min-w-[104px] text-center shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.04)]",
+                              "sticky right-0 z-20 w-[104px] min-w-[104px] text-center shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.04)]",
                             !isWeeklyStates &&
                               !isActions &&
                               (header.column.id === "keyword"
@@ -916,9 +916,9 @@ export function KeywordManagerClient({
                             className={cn(
                               "whitespace-nowrap px-3 py-2 text-sm border-b border-[var(--line)]",
                               isWeeklyStates &&
-                                "sticky right-[104px] z-20 w-[116px] min-w-[116px] bg-[var(--surface)] group-hover:bg-[var(--surface)] border-l border-[var(--line)] shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]",
+                                "sticky right-[104px] z-10 w-[116px] min-w-[116px] bg-[var(--surface)] group-hover:bg-[var(--surface)] border-l border-[var(--line)] shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]",
                               isActions &&
-                                "sticky right-0 z-20 w-[104px] min-w-[104px] bg-[var(--surface)] group-hover:bg-[var(--surface)] shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.04)]",
+                                "sticky right-0 z-10 w-[104px] min-w-[104px] bg-[var(--surface)] group-hover:bg-[var(--surface)] shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.04)]",
                               !isWeeklyStates &&
                                 !isActions &&
                                 (cell.column.id === "keyword"

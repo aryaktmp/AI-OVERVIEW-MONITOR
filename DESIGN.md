@@ -45,9 +45,10 @@ Sumber kebenaran desain UI. Token berasal dari `app/globals.css`; komponen dari 
 - Hanya bobot 400/500/600/800; hindari ukuran/bobot baru.
 
 ## 4. Layout & Spasi
-- Kontainer: `mx-auto max-w-[1040px] px-4 pt-6 pb-12` (lihat `app/(dashboard)/layout.tsx`).
-- Header: judul kiri, email + `Sign out` (outline/sm) kanan, `flex-wrap`.
-- Navigasi tab bergaris bawah (`components/dashboard-nav.tsx`): aktif `border-b-[3px]` warna `--accent`, `overflow-x-auto`.
+- Kontainer: `mx-auto max-w-[1040px] px-4` (lihat `app/(dashboard)/layout.tsx`).
+- Header & Navigasi Utama Sticky: `sticky top-0 z-40 w-full border-b border-[var(--line)] bg-[var(--bg)]/95 backdrop-blur-md` (tinggi ~100px, token `--top-nav-height`). Judul kiri, email + `Sign out` (outline/sm) kanan, navigasi tab bergaris bawah (`components/dashboard-nav.tsx`) aktif `border-b-[2.5px]` warna `--accent`, `overflow-x-auto`.
+- Sub-Tab Hub Sticky: Pada halaman dengan sub-tab (mis. Keywords & Batches Hub), header title dan sub-tab list menggunakan `sticky top-[var(--top-nav-height,100px)] z-30 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--line)]` sehingga tetap menempel tepat di bawah navigasi utama saat di-scroll.
+- Layering Z-Index: Modals/Dialogs (`z-50`) > Top Nav Header (`z-40`) > Sub-Tab Hub Header (`z-30`) > Frozen Table Headers (`z-20`) > Frozen Table Body Cells (`z-10`).
 - Ritme vertikal: `space-y-5` antar blok; grid KPI `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3`; padding kartu KPI `p-4`.
 - Mobile-first; tabel lebar dibungkus `overflow-auto`.
 
