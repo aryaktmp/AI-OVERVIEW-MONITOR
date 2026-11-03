@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Download, FileSpreadsheet, FileText } from "lucide-react";
+import {
+  Download,
+  FileSpreadsheet,
+  FileText,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,6 +44,8 @@ export function ExportDataDialog({
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"latest" | "history">("latest");
   const [format, setFormat] = useState<"xlsx" | "csv">("xlsx");
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   const defaultToDate = new Date().toISOString().slice(0, 10);
   const defaultFromDate = new Date(Date.now() - 56 * 24 * 60 * 60 * 1000)
@@ -58,8 +66,72 @@ export function ExportDataDialog({
     return `/api/export?${params.toString()}`;
   }
 
+  async function handleDownload() {
+    try {
+      setIsExporting(true);
+      setExportError(null);
+
+      const url = buildExportUrl();
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        let message = "Failed to export data. Please try again.";
+        try {
+          const errData = (await response.json()) as { error?: string };
+          if (errData?.error) {
+            message = errData.error;
+          }
+        } catch {
+          // Abaikan jika respons bukan JSON
+        }
+        throw new Error(message);
+      }
+
+      // Ambil nama file dari header Content-Disposition jika ada
+      const disposition = response.headers.get("Content-Disposition");
+      let filename = `ai-overview-report_${new Date().toISOString().slice(0, 10)}.${format}`;
+      if (disposition && disposition.includes("filename=")) {
+        const match = disposition.match(/filename="?([^";]+)"?/);
+        if (match?.[1]) {
+          filename = match[1].trim();
+        }
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+      // Tutup dialog setelah berhasil unduh
+      setOpen(false);
+    } catch (err) {
+      setExportError(
+        err instanceof Error
+          ? err.message
+          : "An unexpected error occurred while exporting data."
+      );
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!isExporting) {
+          setOpen(next);
+          if (next) {
+            setExportError(null);
+          }
+        }
+      }}
+    >
       <DialogTrigger asChild>
         <Button
           type="button"
@@ -83,6 +155,29 @@ export function ExportDataDialog({
         </DialogHeader>
 
         <div className="space-y-3.5 py-1 text-xs">
+          {/* Error Message if any */}
+          {exportError && (
+            <div className="flex items-center gap-2 rounded-lg border border-[var(--destructive-border)] bg-[var(--destructive-bg)] p-2.5 text-[var(--destructive-text)]">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <div className="text-xs font-medium">{exportError}</div>
+            </div>
+          )}
+
+          {/* Loading Indicator Banner */}
+          {isExporting && (
+            <div className="flex items-center gap-2.5 rounded-lg border border-[var(--line)] bg-[var(--surface-hover)] p-2.5 text-[var(--ink)]">
+              <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[var(--cite)]" />
+              <div className="space-y-0.5">
+                <div className="font-semibold text-xs">
+                  Generating {format === "xlsx" ? "Excel (.xlsx)" : "CSV"}...
+                </div>
+                <div className="text-[11px] text-[var(--muted)]">
+                  Retrieving records and formatting workbook. Please wait...
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Summary Preview if available */}
           {summaryMetrics && (
             <div className="grid grid-cols-3 gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface-hover)] p-2.5 text-center">
@@ -123,9 +218,11 @@ export function ExportDataDialog({
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
+                disabled={isExporting}
                 onClick={() => setFormat("xlsx")}
                 className={cn(
-                  "flex items-center gap-2 p-2.5 rounded-lg border text-left cursor-pointer transition-all",
+                  "flex items-center gap-2 p-2.5 rounded-lg border text-left transition-all",
+                  isExporting ? "opacity-60 cursor-not-allowed" : "cursor-pointer",
                   format === "xlsx"
                     ? "border-[var(--cite)] bg-[var(--cite-bg)]/25 text-[var(--ink)] ring-1 ring-[var(--cite)]"
                     : "border-[var(--line)] bg-[var(--surface)] text-[var(--muted)] hover:bg-[var(--surface-hover)]"
@@ -142,9 +239,11 @@ export function ExportDataDialog({
 
               <button
                 type="button"
+                disabled={isExporting}
                 onClick={() => setFormat("csv")}
                 className={cn(
-                  "flex items-center gap-2 p-2.5 rounded-lg border text-left cursor-pointer transition-all",
+                  "flex items-center gap-2 p-2.5 rounded-lg border text-left transition-all",
+                  isExporting ? "opacity-60 cursor-not-allowed" : "cursor-pointer",
                   format === "csv"
                     ? "border-[var(--cite)] bg-[var(--cite-bg)]/25 text-[var(--ink)] ring-1 ring-[var(--cite)]"
                     : "border-[var(--line)] bg-[var(--surface)] text-[var(--muted)] hover:bg-[var(--surface-hover)]"
@@ -166,13 +265,15 @@ export function ExportDataDialog({
             </Label>
             <div className="space-y-2">
               <label className={cn(
-                "flex items-start gap-2.5 rounded-lg border p-2.5 cursor-pointer transition-colors",
+                "flex items-start gap-2.5 rounded-lg border p-2.5 transition-colors",
+                isExporting ? "opacity-60 cursor-not-allowed" : "cursor-pointer",
                 mode === "latest" ? "border-[var(--cite)] bg-[var(--cite-bg)]/15" : "border-[var(--line)] hover:bg-[var(--none)]/30"
               )}>
                 <input
                   type="radio"
                   name="export-dialog-mode"
                   value="latest"
+                  disabled={isExporting}
                   checked={mode === "latest"}
                   onChange={() => setMode("latest")}
                   className="mt-0.5 accent-[var(--cite)]"
@@ -188,13 +289,15 @@ export function ExportDataDialog({
               </label>
 
               <label className={cn(
-                "flex items-start gap-2.5 rounded-lg border p-2.5 cursor-pointer transition-colors",
+                "flex items-start gap-2.5 rounded-lg border p-2.5 transition-colors",
+                isExporting ? "opacity-60 cursor-not-allowed" : "cursor-pointer",
                 mode === "history" ? "border-[var(--cite)] bg-[var(--cite-bg)]/15" : "border-[var(--line)] hover:bg-[var(--none)]/30"
               )}>
                 <input
                   type="radio"
                   name="export-dialog-mode"
                   value="history"
+                  disabled={isExporting}
                   checked={mode === "history"}
                   onChange={() => setMode("history")}
                   className="mt-0.5 accent-[var(--cite)]"
@@ -221,6 +324,7 @@ export function ExportDataDialog({
                 <Input
                   id="export-from-date"
                   type="date"
+                  disabled={isExporting}
                   value={fromDate}
                   onChange={(e) => setFromDate(e.target.value)}
                   className="h-8 text-xs bg-[var(--surface)]"
@@ -233,6 +337,7 @@ export function ExportDataDialog({
                 <Input
                   id="export-to-date"
                   type="date"
+                  disabled={isExporting}
                   value={toDate}
                   onChange={(e) => setToDate(e.target.value)}
                   className="h-8 text-xs bg-[var(--surface)]"
@@ -247,21 +352,30 @@ export function ExportDataDialog({
             type="button"
             variant="outline"
             size="sm"
+            disabled={isExporting}
             onClick={() => setOpen(false)}
           >
             Cancel
           </Button>
           <Button
-            asChild
+            type="button"
             variant="primary"
             size="sm"
-            onClick={() => setOpen(false)}
-            className="gap-1.5"
+            disabled={isExporting}
+            onClick={handleDownload}
+            className="gap-1.5 min-w-[130px]"
           >
-            <a href={buildExportUrl()} download>
-              <Download className="h-3.5 w-3.5" />
-              Download {format === "xlsx" ? "Excel (.xlsx)" : "CSV"}
-            </a>
+            {isExporting ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <span>Generating...</span>
+              </>
+            ) : (
+              <>
+                <Download className="h-3.5 w-3.5" />
+                <span>Download {format === "xlsx" ? "Excel (.xlsx)" : "CSV"}</span>
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
