@@ -67,7 +67,7 @@ Sumber kebenaran desain UI. Token berasal dari `app/globals.css`; komponen dari 
   - Baris KPI 4 kartu (Keywords monitored, Active Rotation Batch, AI Overview present, LinovHR detection rate).
   - Widget status batch mingguan (`OverviewActiveBatchWidget`: batch aktif, interval rotasi, alokasi kuota bulanan, timeline 4 slot mingguan).
   - Dua chart interaktif Recharts berdampingan (`grid-cols-1 lg:grid-cols-2`): tren detection rate mingguan (Line Chart) dan perbandingan sitasi per grup modul LinovHR (Bar Chart).
-  - Heatmap per grup keyword 8 minggu terakhir (sel `h-[22px] rounded-[3px]`: 2 = `--cite`, 1 = `--seen-bg` + ring `--seen`, 0 = `--none`) + tombol ekspor matriks.
+  - Heatmap per grup keyword 8 minggu terakhir (`OverviewHeatmapCard`: dilengkapi pencarian keyword real-time, filter grup produk & status, paginasi standar 15 baris per halaman, mode accordion terkelompok, sel `h-[22px] rounded-[3px]`: 2 = `--cite`, 1 = `--seen-bg` + ring `--seen`, 0 = `--none`, serta tombol ekspor matriks).
 - **Empty state**: `Card` dengan judul + deskripsi + 1–2 tombol aksi (primary + outline).
 - **Loading & Komunikasi Backend**: Wajib ada loading behavior di SETIAP proses atau komunikasi ke Backend (*"Zero Silent BE Operations"*): (1) Skeleton `loading.tsx` untuk pemuatan rute halaman awal, (2) Spinner `Loader2 animate-spin` + teks status aktif ("Saving...", "Generating...") + kontrol `disabled` pada tombol & input untuk mencegah submit ganda, (3) Spinner baris lokal (`pendingActionId`) untuk aksi in-line tabel, dan (4) Umpan balik galat eksplisit jika komunikasi backend gagal.
 - **Error**: `error.tsx` per segmen dengan pesan ramah + aksi coba lagi.

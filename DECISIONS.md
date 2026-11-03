@@ -247,9 +247,3 @@ Menerapkan antarmuka pengguna optimal untuk manajemen batch dan pemantauan kalen
    - **Tabel Seluruh Batch**: Daftar batch dengan toggle aktivasi rotasi otomatis (`toggleBatchEnabledAction`) dan tombol aktivasi instan (`Activate Now`).
 3. **Pembaruan Navigasi Global (`components/dashboard-nav.tsx`)**:
    - Memperbarui label menu navigasi utama menjadi `Keywords & Batches` untuk kejelasan navigasi modul.
-
-
-
-
-
-

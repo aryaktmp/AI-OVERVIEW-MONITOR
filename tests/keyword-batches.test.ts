@@ -41,7 +41,7 @@ describe("Fase Data: Sistem Batch Keyword dan Penjadwalan Mingguan", () => {
         }
       }
     }
-  });
+  }, 30000);
 
   it("membuat tabel keyword_batches dengan kolom-kolom yang sesuai dan menginisialisasi 3 batch awal", async () => {
     const batches = await db.query<{

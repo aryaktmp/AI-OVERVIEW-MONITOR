@@ -11,6 +11,7 @@ import { ExportDataDialog } from "@/components/export-csv-button";
 import { WeeklyTrendChart } from "@/components/weekly-trend-chart";
 import { GroupCitationBarChart } from "@/components/group-citation-bar-chart";
 import { OverviewActiveBatchWidget } from "@/components/overview-active-batch-widget";
+import { OverviewHeatmapCard } from "@/components/overview-heatmap-card";
 import {
   Card,
   CardContent,
@@ -20,7 +21,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getSlotWeekNumber } from "@/lib/keyword-batches";
-import type { HeatmapCellState, KeywordWeeklyRow } from "@/lib/analytics";
 
 export const dynamic = "force-dynamic";
 
@@ -43,16 +43,6 @@ function DeltaBadge({
       {suffix} vs last week
     </i>
   );
-}
-
-function cellClassName(state: HeatmapCellState): string {
-  if (state === 2) {
-    return "h-[22px] rounded-[3px] bg-[var(--cite)]";
-  }
-  if (state === 1) {
-    return "h-[22px] rounded-[3px] bg-[var(--seen-bg)] inset-ring inset-ring-[var(--seen)]";
-  }
-  return "h-[22px] rounded-[3px] bg-[var(--none)]";
 }
 
 export default async function OverviewPage() {
@@ -88,20 +78,6 @@ export default async function OverviewPage() {
 
   const activeBatch = batches.find((b) => b.is_active);
   const currentSlotWeek = getSlotWeekNumber(new Date());
-
-  // Kelompokkan baris keyword berdasarkan grup
-  const sortedRows = [...analytics.keywordRows].sort((a, b) => {
-    const grpCmp = a.groupName.localeCompare(b.groupName);
-    if (grpCmp !== 0) return grpCmp;
-    return a.keyword.localeCompare(b.keyword);
-  });
-
-  const rowsByGroup = new Map<string, KeywordWeeklyRow[]>();
-  for (const row of sortedRows) {
-    const list = rowsByGroup.get(row.groupName) ?? [];
-    list.push(row);
-    rowsByGroup.set(row.groupName, list);
-  }
 
   return (
     <div className="space-y-5">
@@ -259,94 +235,14 @@ export default async function OverviewPage() {
         </Card>
       </div>
 
-      {/* Row 4: Heatmap Sitasi 8 Minggu Terakhir */}
-      <Card className="shadow-xs">
-        <CardHeader>
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <div>
-              <CardTitle>Keyword status over the last 8 weeks</CardTitle>
-              <CardDescription>
-                Each column represents one week. The rightmost column is this week.
-              </CardDescription>
-            </div>
-            <ExportDataDialog
-              buttonLabel="Export Matrix"
-              summaryMetrics={{
-                totalKeywords: analytics.totalKeywords,
-                detectedCount: analytics.currentDetectedCount,
-                detectionRate: analytics.currentDetectionRate,
-              }}
-            />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <div className="grid min-w-[520px] grid-cols-[minmax(190px,1.6fr)_repeat(8,minmax(34px,1fr))] items-center gap-[3px]">
-              <div />
-              {analytics.weeks.map((w) => {
-                const [day, month] = w.label.split(" ");
-                return (
-                  <div
-                    key={w.index}
-                    className="text-center text-[11px] leading-tight text-[var(--muted)]"
-                  >
-                    {day}
-                    <br />
-                    {month}
-                  </div>
-                );
-              })}
-
-              {Array.from(rowsByGroup.entries()).map(([groupName, rows]) => (
-                <div key={groupName} className="contents">
-                  <div className="col-span-full mt-2.5 text-[13px] font-extrabold text-[var(--ink)]">
-                    {groupName}
-                  </div>
-                  {rows.map((row) => (
-                    <div key={row.id} className="contents">
-                      <Link
-                        href={`/keywords/${row.id}`}
-                        title={row.keyword}
-                        className="truncate text-[13px] hover:underline text-[var(--ink)]"
-                      >
-                        {row.keyword}
-                      </Link>
-                      {row.weeklyStates.map((st, idx) => (
-                        <div
-                          key={idx}
-                          className={cellClassName(st)}
-                          title={`${row.keyword} (${analytics.weeks[idx]?.label}): ${
-                            st === 2
-                              ? "LinovHR detected"
-                              : st === 1
-                                ? "AI Overview present, LinovHR not detected"
-                                : "AI Overview not present"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-3.5 flex flex-wrap gap-4 text-xs text-[var(--muted)]">
-            <span className="inline-flex items-center gap-1.5">
-              <span className="inline-block h-3 w-3 rounded-[3px] bg-[var(--cite)]" />
-              LinovHR detected
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <span className="inline-block h-3 w-3 rounded-[3px] bg-[var(--seen-bg)] inset-ring inset-ring-[var(--seen)]" />
-              AI Overview present, LinovHR not detected
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <span className="inline-block h-3 w-3 rounded-[3px] bg-[var(--none)]" />
-              AI Overview not present
-            </span>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Row 4: Heatmap Sitasi 8 Minggu Terakhir dengan Paginasi & Search */}
+      <OverviewHeatmapCard
+        weeks={analytics.weeks}
+        keywordRows={analytics.keywordRows}
+        totalKeywords={analytics.totalKeywords}
+        detectedCount={analytics.currentDetectedCount}
+        detectionRate={analytics.currentDetectionRate}
+      />
     </div>
   );
 }
