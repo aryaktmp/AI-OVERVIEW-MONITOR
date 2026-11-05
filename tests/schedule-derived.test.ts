@@ -221,7 +221,10 @@ describe("Jadwal Turunan Batch Mingguan (Asia/Jakarta)", () => {
 
       // Mock Supabase admin client untuk route cron start-run
       const mockSupabase = {
-        from: (): MockQueryBuilder => queryBuilder,
+        from: (table: string): MockQueryBuilder => {
+          expect(table).toBe("check_runs");
+          return queryBuilder;
+        },
       };
 
       // Simulasikan logika idempotensi start-run
@@ -287,7 +290,10 @@ describe("Jadwal Turunan Batch Mingguan (Asia/Jakarta)", () => {
       };
 
       const mockSupabaseWithFailedRun = {
-        from: (): MockFailedQueryBuilder => queryBuilder,
+        from: (table: string): MockFailedQueryBuilder => {
+          expect(table).toBe("check_runs");
+          return queryBuilder;
+        },
       };
 
       const now = new Date("2026-11-04T05:00:00.000Z");
