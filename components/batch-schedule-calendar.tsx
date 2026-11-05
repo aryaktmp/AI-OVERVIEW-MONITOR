@@ -14,7 +14,6 @@ import {
   Pencil,
   Plus,
   RefreshCw,
-  RotateCcw,
   Sliders,
   Sparkles,
 } from "lucide-react";
@@ -50,8 +49,6 @@ import {
   toggleBatchEnabledAction,
   createBatchAction,
   updateBatchWithKeywordsAction,
-  assignBatchToSlotAction,
-  resetSlotsToDefaultAction,
   getSelectableKeywordsAction,
 } from "@/app/(dashboard)/actions";
 import {
@@ -59,12 +56,12 @@ import {
   type SelectableKeyword,
 } from "@/components/keyword-multi-select-dropdown";
 import {
-  getActiveWeekOfMonth,
-  getSlotWeekNumber,
   getMondaysInMonth,
   getMondayOccurrenceOfMonth,
   getJakartaDateParts,
   makeJakartaDate,
+  getScheduledBatchForDate,
+  getJakartaWeekBoundaries,
   type BatchWithKeywordsCount,
   type BatchScheduleSettingsRecord,
   type BatchScheduleSlotWithBatch,
@@ -73,11 +70,18 @@ import {
 
 interface BatchScheduleCalendarProps {
   initialBatches: BatchWithKeywordsCount[];
-  initialSlots: BatchScheduleSlotWithBatch[];
+  initialSlots?: BatchScheduleSlotWithBatch[];
   initialSettings: BatchScheduleSettingsRecord;
   monthlyRunCount: number;
   initialAuditLogs: BatchAuditLogRecord[];
   availableKeywords?: SelectableKeyword[];
+  recentCheckRuns?: Array<{
+    id: string;
+    started_at: string;
+    status: string;
+    total: number;
+    done: number;
+  }>;
 }
 
 const MONTH_NAMES = [
@@ -110,14 +114,13 @@ const PRESET_COLORS = [
 
 export function BatchScheduleCalendar({
   initialBatches,
-  initialSlots,
   initialSettings,
   monthlyRunCount,
   initialAuditLogs,
   availableKeywords = [],
+  recentCheckRuns = [],
 }: BatchScheduleCalendarProps) {
   const [batches, setBatches] = useState<BatchWithKeywordsCount[]>(initialBatches);
-  const [slots, setSlots] = useState<BatchScheduleSlotWithBatch[]>(initialSlots);
   const [settings, setSettings] = useState<BatchScheduleSettingsRecord>(initialSettings);
   const [auditLogs] = useState<BatchAuditLogRecord[]>(initialAuditLogs);
 
@@ -131,6 +134,7 @@ export function BatchScheduleCalendar({
   const [showOverrideDialog, setShowOverrideDialog] = useState(false);
   const [selectedOverrideBatchId, setSelectedOverrideBatchId] = useState("");
   const [overrideFreezeMode, setOverrideFreezeMode] = useState(false);
+  const [overrideDuration, setOverrideDuration] = useState<"1_week" | "2_weeks" | "permanent">("1_week");
 
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newBatchName, setNewBatchName] = useState("");
@@ -201,8 +205,8 @@ export function BatchScheduleCalendar({
   const isViewingCurrentMonth =
     viewYear === currentYear && viewMonthIdx === currentMonthIdx;
 
-  const currentActiveWeek = getSlotWeekNumber(now);
   const mondayInfo = useMemo(() => getMondayOccurrenceOfMonth(now), [now]);
+  const currentActiveWeek = mondayInfo.occurrence;
 
   const activeBatch = batches.find((b) => b.is_active) ?? null;
   const hasEmptyActiveBatch = Boolean(activeBatch && activeBatch.activeKeywords === 0);
@@ -251,51 +255,158 @@ export function BatchScheduleCalendar({
 
     const days: Array<{
       dayNumber: number;
-      weekNumber: number;
       isToday: boolean;
       isMonday: boolean;
-      slot: BatchScheduleSlotWithBatch | undefined;
       batchColor: string;
       batchName: string;
+      targetWeekMonday: string;
+      isOverride: boolean;
     }> = [];
 
     for (let d = 1; d <= daysInMonth; d++) {
       const dateObj = makeJakartaDate(viewYear, viewMonthIdx, d, 12, 0, 0);
       const dayPart = getJakartaDateParts(dateObj);
       const dayOfWeek = (dayPart.day + 6) % 7; // 0 = Mon
-      const weekNum = getActiveWeekOfMonth(dateObj);
+      const scheduled = getScheduledBatchForDate(dateObj, batches, settings);
 
-      let slot: BatchScheduleSlotWithBatch | undefined;
-      let batchColor: string;
-      let batchName: string;
-
-      if (weekNum === 0) {
-        // Pra-siklus sebelum hari Senin pertama
-        slot = undefined;
-        batchColor = "var(--line)";
-        batchName = "Prior Cycle";
-      } else {
-        const slotWeek = weekNum > 4 ? ((weekNum - 1) % 4) + 1 : weekNum;
-        slot = slots.find((s) => s.week_number === slotWeek);
-        batchColor = slot?.batch?.color || "#6366f1";
-        batchName = slot?.batch?.name || "Unassigned";
-      }
-
+      const batchColor = scheduled.batch?.color || "var(--line)";
+      const batchName = scheduled.batch?.name || "Unassigned";
       const isToday = isViewingCurrentMonth && d === currentDay;
 
       days.push({
         dayNumber: d,
-        weekNumber: weekNum,
         isToday,
         isMonday: dayOfWeek === 0,
-        slot,
         batchColor,
         batchName,
+        targetWeekMonday: scheduled.targetWeekMonday,
+        isOverride: scheduled.isOverride,
       });
     }
 
     return { days, startOffset, daysInMonth };
-  }, [viewYear, viewMonthIdx, isViewingCurrentMonth, currentDay, slots]);
+  }, [viewYear, viewMonthIdx, isViewingCurrentMonth, currentDay, batches, settings]);
+
+  // Mondays in viewed month
+  const monthMondays = useMemo(
+    () => getMondaysInMonth(viewYear, viewMonthIdx),
+    [viewYear, viewMonthIdx]
+  );
+
+  // Cards per Monday for viewed month
+  const monthMondayCards = useMemo(() => {
+    const nowMs = now.getTime();
+    return monthMondays.map((m, idx) => {
+      const mondayDate = makeJakartaDate(viewYear, viewMonthIdx, m, 12, 0, 0);
+      const bounds = getJakartaWeekBoundaries(mondayDate);
+      const scheduled = getScheduledBatchForDate(mondayDate, batches, settings);
+      const sundayDate = new Date(bounds.endMs);
+      const isCurrent = nowMs >= bounds.startMs && nowMs <= bounds.endMs;
+      const isPast = nowMs > bounds.endMs;
+
+      const runInWeek = (recentCheckRuns ?? []).find(
+        (r) => r.started_at >= bounds.startIso && r.started_at <= bounds.endIso
+      );
+
+      let statusLabel = "Upcoming";
+      let statusVariant: "default" | "outline" | "detected" | "notDetected" | "none" = "outline";
+      let checksCountText: string | null = null;
+
+      if (runInWeek) {
+        if (runInWeek.status === "done") {
+          statusLabel = "Run completed";
+          statusVariant = "detected";
+          checksCountText = `${runInWeek.done} checks`;
+        } else if (runInWeek.status === "running") {
+          statusLabel = "Running";
+          statusVariant = "notDetected";
+          checksCountText = `${runInWeek.done}/${runInWeek.total} checks`;
+        } else {
+          statusLabel = "Failed";
+          statusVariant = "none";
+          checksCountText = `${runInWeek.done}/${runInWeek.total} checks`;
+        }
+      } else if (isPast) {
+        statusLabel = "Skipped";
+        statusVariant = "none";
+      } else if (isCurrent) {
+        statusLabel = "Not yet run";
+        statusVariant = "outline";
+      }
+
+      return {
+        weekIndex: idx + 1,
+        mondayDay: m,
+        mondayDateString: bounds.mondayDateString,
+        dateRangeLabel: `${bounds.mondayDate.getDate()} ${MONTH_NAMES[bounds.mondayDate.getMonth()].slice(0, 3)} – ${sundayDate.getDate()} ${MONTH_NAMES[sundayDate.getMonth()].slice(0, 3)} ${sundayDate.getFullYear()}`,
+        batch: scheduled.batch,
+        isCurrent,
+        isPast,
+        isOverride: scheduled.isOverride,
+        statusLabel,
+        statusVariant,
+        checksCountText,
+        runInWeek,
+      };
+    });
+  }, [monthMondays, viewYear, viewMonthIdx, batches, settings, now, recentCheckRuns]);
+
+  // Upcoming 8 Weeks Schedule
+  const upcoming8Weeks = useMemo(() => {
+    const currentBounds = getJakartaWeekBoundaries(now);
+    const nowMs = now.getTime();
+    return Array.from({ length: 8 }, (_, i) => {
+      const mondayMs = currentBounds.startMs + i * 7 * 24 * 60 * 60 * 1000;
+      const mondayDate = new Date(mondayMs);
+      const bounds = getJakartaWeekBoundaries(mondayDate);
+      const scheduled = getScheduledBatchForDate(mondayDate, batches, settings);
+      const sundayDate = new Date(bounds.endMs);
+      const isCurrent = i === 0;
+      const isPast = nowMs > bounds.endMs;
+
+      const runInWeek = (recentCheckRuns ?? []).find(
+        (r) => r.started_at >= bounds.startIso && r.started_at <= bounds.endIso
+      );
+
+      let statusLabel = "Upcoming";
+      let statusVariant: "default" | "outline" | "detected" | "notDetected" | "none" = "outline";
+      let checksCountText: string | null = null;
+
+      if (runInWeek) {
+        if (runInWeek.status === "done") {
+          statusLabel = "Run completed";
+          statusVariant = "detected";
+          checksCountText = `${runInWeek.done} checks`;
+        } else if (runInWeek.status === "running") {
+          statusLabel = "Running";
+          statusVariant = "notDetected";
+          checksCountText = `${runInWeek.done}/${runInWeek.total} checks`;
+        } else {
+          statusLabel = "Failed";
+          statusVariant = "none";
+          checksCountText = `${runInWeek.done}/${runInWeek.total} checks`;
+        }
+      } else if (isPast) {
+        statusLabel = "Skipped";
+        statusVariant = "none";
+      } else if (isCurrent) {
+        statusLabel = "Not yet run";
+        statusVariant = "outline";
+      }
+
+      return {
+        offset: i,
+        mondayDateString: bounds.mondayDateString,
+        dateRangeLabel: `${bounds.mondayDate.getDate()} ${MONTH_NAMES[bounds.mondayDate.getMonth()].slice(0, 3)} – ${sundayDate.getDate()} ${MONTH_NAMES[sundayDate.getMonth()].slice(0, 3)}`,
+        batch: scheduled.batch,
+        isCurrent,
+        isOverride: scheduled.isOverride,
+        statusLabel,
+        statusVariant,
+        checksCountText,
+      };
+    });
+  }, [now, batches, settings, recentCheckRuns]);
 
   // Action handlers
   function handleRotateNow() {
@@ -304,10 +415,10 @@ export function BatchScheduleCalendar({
     startTransition(async () => {
       try {
         const res = await rotateBatchNowAction();
-        if (res.status === "rotated") {
+        if (res.status === "synchronized" || res.status === "unchanged") {
           setFeedback({
             type: "success",
-            text: `Rotated active batch to ${res.newBatch?.name ?? "next batch"}. ${res.message}`,
+            text: res.message,
           });
           if (res.newBatch) {
             setBatches((prev) =>
@@ -352,79 +463,6 @@ export function BatchScheduleCalendar({
         setFeedback({
           type: "error",
           text: err instanceof Error ? err.message : "Failed to update schedule mode.",
-        });
-      } finally {
-        setPendingAction(null);
-      }
-    });
-  }
-
-  function handleSlotAssignment(weekNumber: number, batchId: string | null) {
-    setFeedback(null);
-    setPendingAction(`slot-${weekNumber}`);
-    startTransition(async () => {
-      try {
-        const res = await assignBatchToSlotAction(weekNumber, batchId, true);
-        if (res.ok) {
-          setFeedback({ type: "success", text: res.message });
-          // Update local state
-          const targetBatch = batches.find((b) => b.id === batchId) ?? null;
-          setSlots((prev) =>
-            prev.map((s) =>
-              s.week_number === weekNumber
-                ? {
-                    ...s,
-                    batch_id: batchId,
-                    is_override: true,
-                    batch: targetBatch,
-                  }
-                : s
-            )
-          );
-          // If current week, reflect active batch
-          if (weekNumber === currentActiveWeek && targetBatch && settings.mode !== "manual_frozen") {
-            setBatches((prev) =>
-              prev.map((b) => ({
-                ...b,
-                is_active: b.id === targetBatch.id,
-              }))
-            );
-          }
-        }
-      } catch (err) {
-        setFeedback({
-          type: "error",
-          text: err instanceof Error ? err.message : "Failed to assign batch to slot.",
-        });
-      } finally {
-        setPendingAction(null);
-      }
-    });
-  }
-
-  function handleResetSlots() {
-    setFeedback(null);
-    setPendingAction("reset");
-    startTransition(async () => {
-      try {
-        const res = await resetSlotsToDefaultAction();
-        if (res.ok) {
-          setFeedback({
-            type: "success",
-            text: res.message,
-          });
-          // Update slots local state to non-override
-          setSlots((prev) =>
-            prev.map((s) => ({
-              ...s,
-              is_override: false,
-            }))
-          );
-        }
-      } catch (err) {
-        setFeedback({
-          type: "error",
-          text: err instanceof Error ? err.message : "Failed to reset slots.",
         });
       } finally {
         setPendingAction(null);
@@ -615,7 +653,27 @@ export function BatchScheduleCalendar({
     setPendingAction("override");
     startTransition(async () => {
       try {
-        const res = await overrideActiveBatchAction(selectedOverrideBatchId, overrideFreezeMode);
+        let overrideUntil: string | null = null;
+        let freeze = overrideFreezeMode;
+
+        if (overrideDuration === "1_week") {
+          const bounds = getJakartaWeekBoundaries(new Date());
+          overrideUntil = new Date(bounds.endMs + 1000).toISOString();
+        } else if (overrideDuration === "2_weeks") {
+          const bounds = getJakartaWeekBoundaries(new Date());
+          overrideUntil = new Date(
+            bounds.endMs + 1000 + 7 * 24 * 60 * 60 * 1000
+          ).toISOString();
+        } else {
+          freeze = true;
+          overrideUntil = null;
+        }
+
+        const res = await overrideActiveBatchAction(
+          selectedOverrideBatchId,
+          freeze,
+          overrideUntil
+        );
         if (res.ok) {
           setBatches((prev) =>
             prev.map((b) => ({
@@ -623,9 +681,11 @@ export function BatchScheduleCalendar({
               is_active: b.id === selectedOverrideBatchId,
             }))
           );
-          if (overrideFreezeMode) {
-            setSettings((prev) => ({ ...prev, mode: "manual_frozen" }));
-          }
+          setSettings((prev) => ({
+            ...prev,
+            mode: freeze ? "manual_frozen" : "auto",
+            override_until: overrideUntil,
+          }));
           setShowOverrideDialog(false);
           setFeedback({
             type: "success",
@@ -641,23 +701,6 @@ export function BatchScheduleCalendar({
         setPendingAction(null);
       }
     });
-  }
-
-  // Week date range helper: dihitung dari hari Senin s/d Minggu untuk bulan yang sedang dilihat
-  function getWeekDateRange(weekNum: number, yr = viewYear, mo = viewMonthIdx): string {
-    const month = MONTH_NAMES[mo];
-    const mondays = getMondaysInMonth(yr, mo);
-    if (weekNum < 1 || weekNum > mondays.length) {
-      return `${month} Week ${weekNum}`;
-    }
-    const startMon = mondays[weekNum - 1]!;
-    const endSun = startMon + 6;
-    const daysInMonth = new Date(yr, mo + 1, 0).getDate();
-
-    if (endSun <= daysInMonth) {
-      return `${month} ${startMon} – ${endSun}`;
-    }
-    return `${month} ${startMon} – ${daysInMonth}`;
   }
 
   return (
@@ -820,7 +863,7 @@ export function BatchScheduleCalendar({
             ) : (
               <>
                 <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-                Rotate Next Now
+                Sync Scheduled Batch
               </>
             )}
           </Button>
@@ -839,28 +882,6 @@ export function BatchScheduleCalendar({
           >
             <Sliders className="h-3.5 w-3.5 mr-1.5 text-[var(--cite)]" />
             Manual Override
-          </Button>
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleResetSlots}
-            disabled={isPending}
-            className="cursor-pointer text-xs text-[var(--muted)] hover:text-[var(--ink)]"
-            title="Reset custom slot assignments to automatic sequence"
-          >
-            {pendingAction === "reset" ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin text-[var(--cite)]" />
-                Resetting...
-              </>
-            ) : (
-              <>
-                <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
-                Reset Slots to Default
-              </>
-            )}
           </Button>
         </div>
 
@@ -980,22 +1001,26 @@ export function BatchScheduleCalendar({
           {/* Color Legend */}
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs pt-3 mt-1 border-t border-[var(--line)]/50">
             <div className="flex flex-wrap items-center gap-3">
-              {slots.map((s) => (
-                <div key={s.week_number} className="flex items-center gap-1.5">
-                  <span
-                    className="h-2.5 w-2.5 rounded-full"
-                    style={{ backgroundColor: s.batch?.color || "#94a3b8" }}
-                  />
-                  <span className="font-medium text-[var(--ink)]">
-                    W{s.week_number}: {s.batch?.name ?? "Unassigned"}
-                  </span>
-                </div>
-              ))}
+              {batches
+                .filter((b) => b.is_enabled)
+                .map((b) => (
+                  <div key={b.id} className="flex items-center gap-1.5">
+                    <span
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: b.color || "var(--cite)" }}
+                    />
+                    <span className="font-medium text-[var(--ink)]">
+                      {b.name} ({b.activeKeywords} kw)
+                    </span>
+                  </div>
+                ))}
             </div>
 
             <div className="flex items-center gap-2 text-[var(--muted)]">
-              <span className="h-2.5 w-2.5 rounded-xs border border-dashed border-[var(--muted)]" />
-              <span>Prior: Days before 1st Monday</span>
+              <span className="inline-flex items-center gap-1">
+                <span className="h-2 w-2 rounded-full bg-[var(--cite)]" />
+                <span>Run day: Monday 00:00 WIB</span>
+              </span>
             </div>
           </div>
         </CardHeader>
@@ -1026,22 +1051,17 @@ export function BatchScheduleCalendar({
 
             {/* Days in Month */}
             {calendarDays.days.map((item) => {
-              const isCurrentWeek = item.weekNumber === currentActiveWeek;
-              const isPreCycle = item.weekNumber === 0;
-
               return (
                 <div
                   key={`day-${item.dayNumber}`}
                   className={`relative h-16 rounded-md p-1.5 border transition-all flex flex-col justify-between ${
                     item.isToday
                       ? "border-[var(--cite)] ring-2 ring-[var(--cite)]/30 bg-[var(--surface)] shadow-xs"
-                      : isPreCycle
-                      ? "border-dashed border-[var(--line)] bg-[var(--surface)]/40 opacity-75"
                       : "border-[var(--line)] bg-[var(--surface)]/70 hover:border-[var(--muted)]"
                   }`}
                   style={{
                     borderLeftWidth: "4px",
-                    borderLeftColor: isPreCycle ? "var(--line)" : item.batchColor,
+                    borderLeftColor: item.batchColor,
                   }}
                 >
                   <div className="flex items-start justify-between">
@@ -1049,8 +1069,6 @@ export function BatchScheduleCalendar({
                       className={`text-xs font-semibold leading-none ${
                         item.isToday
                           ? "bg-[var(--cite)] text-white px-1.5 py-0.5 rounded-full font-bold"
-                          : isPreCycle
-                          ? "text-[var(--muted)]"
                           : "text-[var(--ink)]"
                       }`}
                     >
@@ -1063,9 +1081,9 @@ export function BatchScheduleCalendar({
                       </span>
                     )}
 
-                    {isPreCycle && (
-                      <span className="inline-flex items-center rounded px-1 py-0.2 text-[8px] font-medium text-[var(--muted)] border border-[var(--line)]">
-                        Prior
+                    {item.isOverride && (
+                      <span className="inline-flex items-center rounded px-1 py-0.2 text-[8px] font-medium text-amber-700 dark:text-amber-300 bg-amber-500/10">
+                        Ovr
                       </span>
                     )}
                   </div>
@@ -1073,16 +1091,12 @@ export function BatchScheduleCalendar({
                   <div className="truncate text-[10px]">
                     <span
                       className="inline-block truncate max-w-full font-medium"
-                      style={{ color: isPreCycle ? "var(--muted)" : item.batchColor }}
-                      title={isPreCycle ? "Prior Cycle before 1st Monday" : `Week ${item.weekNumber}: ${item.batchName}`}
+                      style={{ color: item.batchColor }}
+                      title={`${item.targetWeekMonday}: ${item.batchName}`}
                     >
                       {item.batchName}
                     </span>
                   </div>
-
-                  {isCurrentWeek && !isPreCycle && (
-                    <span className="absolute bottom-0 right-0 h-1.5 w-1.5 rounded-full bg-emerald-500 m-1" />
-                  )}
                 </div>
               );
             })}
@@ -1090,161 +1104,191 @@ export function BatchScheduleCalendar({
         </CardContent>
       </Card>
 
-      {/* 4 Weekly Schedule Slot Cards */}
+      {/* Weekly Schedule & Execution Status Cards for the Viewed Month */}
       <div>
         <div className="mb-3 flex items-center justify-between">
           <div>
             <h3 className="text-sm font-bold tracking-tight text-[var(--ink)] flex items-center gap-1.5">
               <Layers className="h-4 w-4 text-[var(--cite)]" />
-              4-Week Schedule Slot Assignments ({MONTH_NAMES[viewMonthIdx]} {viewYear})
+              Weekly Schedule &amp; Execution Status ({MONTH_NAMES[viewMonthIdx]} {viewYear})
             </h3>
             <p className="text-xs text-[var(--muted)]">
-              Customize which batch runs each week of the month. Slot changes apply automatically.
+              Scheduled batch and run execution status for every Monday in the selected month.
             </p>
           </div>
           <span className="text-xs font-medium text-[var(--muted)]">
-            Cycle: Week 1 &rarr; Week 2 &rarr; Week 3 &rarr; Week 4
+            Run day: Monday 00:00 WIB
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {slots.map((slot) => {
-            const isCurrent =
-              isViewingCurrentMonth && slot.week_number === currentActiveWeek;
-            const isPast =
-              viewYear < currentYear ||
-              (viewYear === currentYear && viewMonthIdx < currentMonthIdx) ||
-              (isViewingCurrentMonth && slot.week_number < currentActiveWeek);
-            const assignedBatch = batches.find((b) => b.id === slot.batch_id);
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          {monthMondayCards.map((week) => (
+            <Card
+              key={week.mondayDateString}
+              className={`relative border transition-all shadow-xs ${
+                week.isCurrent
+                  ? "border-[var(--cite)] ring-2 ring-[var(--cite)]/20 bg-[var(--surface)]"
+                  : "border-[var(--line)] bg-[var(--surface)]"
+              }`}
+            >
+              <div
+                className="h-1.5 w-full rounded-t-md"
+                style={{ backgroundColor: week.batch?.color || "#94a3b8" }}
+              />
 
-            return (
-              <Card
-                key={slot.week_number}
-                className={`relative border transition-all shadow-xs ${
-                  isCurrent
-                    ? "border-[var(--cite)] ring-2 ring-[var(--cite)]/20 bg-[var(--surface)]"
-                    : "border-[var(--line)] bg-[var(--surface)]"
-                }`}
-              >
-                <div
-                  className="h-1.5 w-full rounded-t-md"
-                  style={{ backgroundColor: assignedBatch?.color || "#94a3b8" }}
-                />
+              <CardHeader className="p-3.5 pb-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)] font-mono">
+                    Mon, {week.mondayDateString.slice(5)}
+                  </span>
+                  <Badge
+                    variant={week.statusVariant}
+                    className="text-[10px] font-semibold"
+                  >
+                    {week.statusLabel}
+                  </Badge>
+                </div>
 
-                <CardHeader className="p-4 pb-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
-                      Week {slot.week_number}
-                    </span>
-                    {isCurrent ? (
-                      <Badge className="bg-emerald-500 text-white text-[10px] font-bold px-1.5 py-0">
-                        Active Now
-                      </Badge>
-                    ) : isPast ? (
-                      <Badge variant="none" className="text-[10px]">
-                        Past
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-[10px] text-[var(--muted)]">
-                        Upcoming
-                      </Badge>
-                    )}
+                <CardTitle className="text-xs font-bold text-[var(--ink)] mt-1 truncate">
+                  {week.dateRangeLabel}
+                </CardTitle>
+              </CardHeader>
+
+              <CardContent className="p-3.5 pt-1 space-y-2">
+                {week.batch ? (
+                  <div className="rounded-md border border-[var(--line)] bg-[var(--bg)]/50 p-2 space-y-1">
+                    <div className="flex items-center justify-between text-xs font-medium text-[var(--ink)]">
+                      <span className="flex items-center gap-1.5 truncate">
+                        <span
+                          className="h-2 w-2 rounded-full shrink-0"
+                          style={{ backgroundColor: week.batch.color || "#3b82f6" }}
+                        />
+                        <span className="font-semibold truncate">
+                          {week.batch.name}
+                        </span>
+                      </span>
+                      <span className="text-[11px] text-[var(--muted)] font-mono shrink-0">
+                        {week.batch.activeKeywords} kw
+                      </span>
+                    </div>
                   </div>
+                ) : (
+                  <div className="rounded-md border border-dashed border-[var(--line)] p-2 text-center text-xs text-[var(--muted)]">
+                    No batch scheduled
+                  </div>
+                )}
 
-                  <CardTitle className="text-sm font-bold text-[var(--ink)] mt-1">
-                    {getWeekDateRange(slot.week_number, viewYear, viewMonthIdx)}
-                  </CardTitle>
-                </CardHeader>
+                <div className="flex items-center justify-between text-[11px] text-[var(--muted)] pt-0.5">
+                  <span>
+                    {week.checksCountText
+                      ? week.checksCountText
+                      : week.isCurrent
+                      ? "In progress / scheduled"
+                      : week.isPast
+                      ? "No checks executed"
+                      : "Scheduled"}
+                  </span>
+                  {week.isOverride && (
+                    <Badge variant="outline" className="text-[9px] text-amber-700 dark:text-amber-300 border-amber-500/30 bg-amber-500/10">
+                      Override
+                    </Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
 
-                <CardContent className="p-4 pt-1 space-y-3">
-                  {/* Select Batch Dropdown */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-[11px] text-[var(--muted)] font-medium">
-                        Assigned Batch
-                      </Label>
-                      {pendingAction === `slot-${slot.week_number}` && (
-                        <span className="flex items-center gap-1 text-[10px] text-[var(--cite)] font-mono">
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                          Saving...
+      {/* Upcoming 8 Weeks Schedule */}
+      <Card className="border-[var(--line)] bg-[var(--surface)] shadow-xs">
+        <CardHeader className="pb-3 border-b border-[var(--line)]">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <CardTitle className="text-sm font-bold flex items-center gap-1.5 text-[var(--ink)]">
+                <Clock className="h-4 w-4 text-[var(--cite)]" />
+                <span>Upcoming 8-Week Schedule (Daftar 8 Minggu ke Depan)</span>
+              </CardTitle>
+              <CardDescription className="text-xs text-[var(--muted)]">
+                Continuous deterministic schedule projected for the next 8 weeks in Asia/Jakarta timezone.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[120px]">Timeline</TableHead>
+                <TableHead>Monday Run Date</TableHead>
+                <TableHead>Scheduled Batch</TableHead>
+                <TableHead className="text-right">Keywords</TableHead>
+                <TableHead>Execution Status</TableHead>
+                <TableHead className="text-right">Schedule Type</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {upcoming8Weeks.map((item) => (
+                <TableRow
+                  key={item.mondayDateString}
+                  className={item.isCurrent ? "bg-[var(--cite-bg)]/15" : undefined}
+                >
+                  <TableCell className="font-semibold text-xs">
+                    {item.isCurrent ? (
+                      <span className="text-[var(--cite)] font-bold">This Week</span>
+                    ) : (
+                      <span className="text-[var(--muted)] font-mono">+{item.offset} W</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-xs font-mono">
+                    <span className="font-semibold text-[var(--ink)]">{item.mondayDateString}</span>
+                    <span className="text-[var(--muted)] block text-[11px]">{item.dateRangeLabel}</span>
+                  </TableCell>
+                  <TableCell>
+                    {item.batch ? (
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className="h-2.5 w-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: item.batch.color || "var(--cite)" }}
+                        />
+                        <span className="font-semibold text-xs text-[var(--ink)]">
+                          {item.batch.name}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-[var(--muted)] italic">No batch</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right font-mono text-xs text-[var(--muted)]">
+                    {item.batch ? item.batch.activeKeywords : 0}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={item.statusVariant} className="text-[10px]">
+                        {item.statusLabel}
+                      </Badge>
+                      {item.checksCountText && (
+                        <span className="text-[11px] text-[var(--muted)] font-mono">
+                          {item.checksCountText}
                         </span>
                       )}
                     </div>
-                    <select
-                      value={slot.batch_id ?? ""}
-                      onChange={(e) =>
-                        handleSlotAssignment(
-                          slot.week_number,
-                          e.target.value ? e.target.value : null
-                        )
-                      }
-                      disabled={isPending}
-                      aria-label={`Assign batch for Week ${slot.week_number}`}
-                      className="w-full h-8.5 rounded-md border border-[var(--line)] bg-[var(--surface)] px-2 py-1 text-xs font-medium text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--cite)] cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      <option value="">(Unassigned)</option>
-                      {batches
-                        .filter((b) => b.is_enabled)
-                        .map((b) => (
-                          <option key={b.id} value={b.id}>
-                            {b.name} ({b.activeKeywords} kw)
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-
-                  {/* Batch Details */}
-                  {assignedBatch ? (
-                    <div className="rounded-md border border-[var(--line)] bg-[var(--bg)]/50 p-2 space-y-1">
-                      <div className="flex items-center justify-between text-xs font-medium text-[var(--ink)]">
-                        <span className="flex items-center gap-1.5">
-                          <span
-                            className="h-2 w-2 rounded-full"
-                            style={{ backgroundColor: assignedBatch.color || "#3b82f6" }}
-                          />
-                          <span className="font-semibold truncate max-w-[110px]">
-                            {assignedBatch.name}
-                          </span>
-                        </span>
-                        <span className="text-[11px] text-[var(--muted)] font-mono">
-                          {assignedBatch.activeKeywords}/{assignedBatch.totalKeywords} kw
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="rounded-md border border-dashed border-[var(--line)] p-2 text-center text-xs text-[var(--muted)]">
-                      No batch assigned
-                    </div>
-                  )}
-
-                  {/* Override Indicator */}
-                  {slot.is_override && (
-                    <div className="flex items-center justify-between pt-1">
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] font-medium border-amber-500/30 text-amber-700 dark:text-amber-300 bg-amber-500/10"
-                      >
-                        Custom Override
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {item.isOverride ? (
+                      <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-700 dark:text-amber-300 bg-amber-500/10">
+                        Manual Override
                       </Badge>
-                      <button
-                        type="button"
-                        onClick={() => handleSlotAssignment(slot.week_number, null)}
-                        disabled={isPending}
-                        className="text-[10px] text-[var(--muted)] hover:text-[var(--ink)] underline cursor-pointer inline-flex items-center gap-1"
-                      >
-                        {pendingAction === `slot-${slot.week_number}` && (
-                          <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                        )}
-                        Reset Slot
-                      </button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      </div>
+                    ) : (
+                      <span className="text-[11px] text-[var(--muted)]">Derived</span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       {/* Batch Entities Management Table */}
       <Card className="border-[var(--line)] bg-[var(--surface)] shadow-xs">
@@ -1277,7 +1321,7 @@ export function BatchScheduleCalendar({
                 <TableHead>Batch Name</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Keywords</TableHead>
-                <TableHead>Assigned Slot(s)</TableHead>
+                <TableHead>Schedule Order</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="w-[120px]">Auto Rotation</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -1285,10 +1329,6 @@ export function BatchScheduleCalendar({
             </TableHeader>
             <TableBody>
               {batches.map((batch) => {
-                const assignedWeeks = slots
-                  .filter((s) => s.batch_id === batch.id)
-                  .map((s) => `Week ${s.week_number}`);
-
                 return (
                   <TableRow key={batch.id}>
                     <TableCell>
@@ -1315,22 +1355,10 @@ export function BatchScheduleCalendar({
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell className="text-xs">
-                      {assignedWeeks.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {assignedWeeks.map((w) => (
-                            <Badge
-                              key={w}
-                              variant="outline"
-                              className="text-[10px] font-medium border-[var(--line)]"
-                            >
-                              {w}
-                            </Badge>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-[var(--muted)]">—</span>
-                      )}
+                    <TableCell className="text-xs font-mono">
+                      <Badge variant="outline" className="text-[10px] font-semibold">
+                        Order #{batch.order_index}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       {batch.is_active ? (
@@ -1514,6 +1542,31 @@ export function BatchScheduleCalendar({
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="override-duration-select" className="text-xs font-semibold">
+                Override Duration (Masa Berlaku)
+              </Label>
+              <select
+                id="override-duration-select"
+                value={overrideDuration}
+                onChange={(e) =>
+                  setOverrideDuration(
+                    e.target.value as "1_week" | "2_weeks" | "permanent"
+                  )
+                }
+                className="w-full h-9 rounded-md border border-[var(--line)] bg-[var(--surface)] px-2.5 text-xs text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--cite)] cursor-pointer"
+              >
+                <option value="1_week">Until next Monday 00:00 WIB (1 Week)</option>
+                <option value="2_weeks">Until 2 Mondays 00:00 WIB (2 Weeks)</option>
+                <option value="permanent">Indefinite freeze (Manual Frozen Mode)</option>
+              </select>
+              <p className="text-[11px] text-[var(--muted)]">
+                {overrideDuration === "permanent"
+                  ? "Automatic rotation is frozen until toggled back on."
+                  : "After expiration, system automatically returns to derived schedule."}
+              </p>
             </div>
 
             <div className="rounded-lg border border-[var(--line)] bg-[var(--bg)] p-3 space-y-2">

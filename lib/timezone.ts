@@ -107,3 +107,49 @@ export function getMondaysInMonth(year: number, month: number): number[] {
   }
   return mondays;
 }
+
+/**
+ * Mendapatkan batas awal (Senin 00:00:00.000 WIB) dan akhir (Minggu 23:59:59.999 WIB)
+ * dari minggu kalender Asia/Jakarta berjalan.
+ */
+export function getJakartaWeekBoundaries(date: Date = new Date()): {
+  mondayDate: Date;
+  startIso: string;
+  endIso: string;
+  startMs: number;
+  endMs: number;
+  mondayDateString: string; // YYYY-MM-DD (WIB)
+} {
+  const parts = getJakartaDateParts(date);
+  const diffToMonday = parts.day === 0 ? 6 : parts.day - 1;
+  const monday = makeJakartaDate(
+    parts.year,
+    parts.month,
+    parts.date - diffToMonday,
+    0,
+    0,
+    0,
+    0
+  );
+  const sunday = makeJakartaDate(
+    parts.year,
+    parts.month,
+    parts.date - diffToMonday + 6,
+    23,
+    59,
+    59,
+    999
+  );
+  const mondayParts = getJakartaDateParts(monday);
+  const mMonth = String(mondayParts.month + 1).padStart(2, "0");
+  const mDay = String(mondayParts.date).padStart(2, "0");
+
+  return {
+    mondayDate: monday,
+    startIso: monday.toISOString(),
+    endIso: sunday.toISOString(),
+    startMs: monday.getTime(),
+    endMs: sunday.getTime(),
+    mondayDateString: `${mondayParts.year}-${mMonth}-${mDay}`,
+  };
+}

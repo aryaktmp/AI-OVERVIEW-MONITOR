@@ -14,7 +14,6 @@ import { clearAllDemoData } from "@/lib/demo-data";
 import { MAX_CSV_IMPORT_ROWS, parseKeywordCsvPreview } from "@/lib/csv-import";
 import { isDryRun } from "@/lib/dry-run";
 import {
-  rotateActiveKeywordBatch,
   overrideActiveKeywordBatch,
   setBatchScheduleMode,
   assignKeywordsToBatch,
@@ -26,6 +25,12 @@ import {
   assignBatchToSlot,
   resetSlotsToDefault,
   rotateActiveBatchBySlot,
+  listKeywordBatches,
+  getBatchScheduleSettings,
+  getScheduledBatchForDate,
+  activateKeywordBatch,
+  syncScheduledKeywordBatch,
+  getJakartaWeekBoundaries,
   type BatchScheduleMode,
 } from "@/lib/keyword-batches";
 
@@ -602,19 +607,96 @@ export async function saveSearchSettingsAction(formData: FormData) {
   };
 }
 
-export async function runCheckNowAction() {
+export async function runCheckNowAction(options?: { force?: boolean }) {
   await requireAllowedAdminUser();
 
   const supabase = createSupabaseAdminClient();
   const store = createSupabaseQueueStore(supabase);
 
-  const started = await startCheckRun(store);
+  const now = new Date();
+  const isDemo = isDryRun();
+
+  // 1. Tentukan batch terjadwal minggu ini (atau override aktif)
+  const [allBatches, scheduleSettings] = await Promise.all([
+    listKeywordBatches(supabase),
+    getBatchScheduleSettings(supabase),
+  ]);
+
+  const activeBatch = allBatches.find((b) => b.is_active) ?? null;
+  const scheduled = getScheduledBatchForDate(now, allBatches, {
+    mode: scheduleSettings.mode,
+    override_until: scheduleSettings.override_until,
+    activeBatchId: activeBatch?.id,
+  });
+
+  const targetBatch = scheduled.batch;
+
+  // 2. Sinkronkan batch aktif bila berbeda (agar UI sinkron)
+  if (targetBatch && !targetBatch.is_active) {
+    await activateKeywordBatch(supabase, targetBatch.id, {
+      actorId: "admin:manual_run",
+      notes: scheduled.isOverride
+        ? `Aktivasi manual override (${targetBatch.name})`
+        : `Aktivasi jadwal turunan minggu ${scheduled.targetWeekMonday} (${targetBatch.name})`,
+    }).catch(() => null);
+  }
+
+  // 3. Idempoten per minggu Jakarta jika bukan force dan bukan demo
+  if (!options?.force && !isDemo) {
+    const { startIso, endIso } = getJakartaWeekBoundaries(now);
+    const { data: existingRuns } = await supabase
+      .from("check_runs")
+      .select("id, status, total, started_at, is_demo")
+      .eq("is_demo", false)
+      .in("status", ["running", "done"])
+      .gte("started_at", startIso)
+      .lte("started_at", endIso)
+      .order("started_at", { ascending: false })
+      .limit(1);
+
+    if (existingRuns && existingRuns.length > 0) {
+      const existing = existingRuns[0]!;
+      revalidateAllDashboardRoutes();
+      return {
+        ok: true,
+        runId: existing.id,
+        isExisting: true,
+        skipped: "already_ran_this_week" as const,
+        message: `A check run has already run this week (run ID: ${existing.id}).`,
+        total: existing.total,
+        done: 0,
+        pending: 0,
+        errors: 0,
+        processedCount: 0,
+        succeededCount: 0,
+        serpApiCallsUsed: 0,
+      };
+    }
+  }
+
+  // 4. Mulai check run
+  const started = await startCheckRun(store, now, {
+    batchId: targetBatch?.id,
+    isDemo,
+  });
+
   if (started.skipped) {
     revalidateAllDashboardRoutes();
+    let message = "No active keywords found to check.";
+    if (started.skipped === "empty_batch") {
+      message = `The scheduled batch "${targetBatch?.name ?? "Current batch"}" has no active keywords.`;
+    } else if (started.skipped === "monthly_budget") {
+      message = "Monthly SerpApi budget limit reached. Check skipped.";
+    } else if (started.skipped === "no_active_batch") {
+      message = "No active batch found.";
+    } else if (started.skipped === "already_ran_this_week") {
+      message = "A check run has already run this week.";
+    }
+
     return {
       ok: true,
       skipped: started.skipped,
-      message: "No active keywords found to check.",
+      message,
       total: 0,
       done: 0,
       pending: 0,
@@ -780,18 +862,23 @@ export async function rotateBatchNowAction() {
   const user = await requireAllowedAdminUser();
   const supabase = createSupabaseAdminClient();
 
-  const result = await rotateActiveKeywordBatch(supabase, {
+  const result = await syncScheduledKeywordBatch(supabase, {
     actorId: user.email ?? "admin",
     force: true,
   });
 
   revalidateAllDashboardRoutes();
-  return result;
+  return {
+    status: result.status,
+    newBatch: result.scheduledBatch,
+    message: result.message,
+  };
 }
 
 export async function overrideActiveBatchAction(
   targetBatchId: string,
-  freezeMode: boolean = false
+  freezeMode: boolean = false,
+  overrideUntil?: string | null
 ) {
   const user = await requireAllowedAdminUser();
   const supabase = createSupabaseAdminClient();
@@ -799,6 +886,7 @@ export async function overrideActiveBatchAction(
   const result = await overrideActiveKeywordBatch(supabase, targetBatchId, {
     actorId: user.email ?? "admin",
     freezeMode,
+    overrideUntil,
   });
 
   revalidateAllDashboardRoutes();

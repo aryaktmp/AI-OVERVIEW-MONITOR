@@ -22,7 +22,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getSlotWeekNumber } from "@/lib/keyword-batches";
 
 export const dynamic = "force-dynamic";
 
@@ -55,6 +54,9 @@ export default async function OverviewPage() {
     scheduleSettings,
     monthlyRunCount,
     unbatchedActiveKeywordsCount,
+    scheduledBatchInfo,
+    isScheduledBatchEmpty,
+    recentCheckRuns,
   } = await getDashboardOverviewData();
 
   if (analytics.totalKeywords === 0) {
@@ -80,7 +82,6 @@ export default async function OverviewPage() {
   }
 
   const activeBatch = batches.find((b) => b.is_active);
-  const currentSlotWeek = getSlotWeekNumber(new Date());
 
   return (
     <div className="space-y-5">
@@ -107,6 +108,24 @@ export default async function OverviewPage() {
       </div>
 
       <DemoDataBanner visible={analytics.hasDemoData} />
+
+      {isScheduledBatchEmpty && scheduledBatchInfo.batch && (
+        <Alert variant="warning" className="mb-4">
+          <AlertTriangle className="h-4 w-4" />
+          <div className="flex flex-wrap items-center justify-between gap-2 w-full">
+            <AlertDescription className="font-medium">
+              <strong>Empty scheduled batch:</strong> The batch scheduled for this week (
+              <strong>{scheduledBatchInfo.batch.name}</strong>) has no active keywords. Scheduled runs will be skipped.
+            </AlertDescription>
+            <Link
+              href="/keywords"
+              className="text-xs font-bold underline hover:opacity-80"
+            >
+              Add keywords to batch →
+            </Link>
+          </div>
+        </Alert>
+      )}
 
       {unbatchedActiveKeywordsCount > 0 && (
         <Alert variant="warning" className="mb-4">
@@ -159,20 +178,31 @@ export default async function OverviewPage() {
             <span className="text-xs font-semibold">Active Rotation Batch</span>
             <Layers
               className="h-4 w-4"
-              style={{ color: activeBatch?.color || "var(--cite)" }}
+              style={{
+                color:
+                  scheduledBatchInfo.batch?.color ||
+                  activeBatch?.color ||
+                  "var(--cite)",
+              }}
             />
           </div>
           <div className="mt-2 flex items-baseline justify-between truncate">
             <span className="text-[22px] sm:text-[24px] font-extrabold leading-none tracking-tight text-[var(--ink)] truncate">
-              {activeBatch ? activeBatch.name : "None"}
+              {scheduledBatchInfo.batch
+                ? scheduledBatchInfo.batch.name
+                : activeBatch
+                ? activeBatch.name
+                : "None"}
             </span>
             <span className="text-xs font-semibold text-[var(--cite)] font-mono">
-              Week {currentSlotWeek}
+              {scheduledBatchInfo.isOverride ? "Override" : "Scheduled"}
             </span>
           </div>
           <div className="mt-1 text-[11px] text-[var(--muted)] truncate">
-            {activeBatch
-              ? `${activeBatch.activeKeywords} active (${activeBatch.totalKeywords} total) in current rotation`
+            {scheduledBatchInfo.batch
+              ? `${scheduledBatchInfo.batch.activeKeywords} active in current rotation`
+              : activeBatch
+              ? `${activeBatch.activeKeywords} active (${activeBatch.totalKeywords} total)`
               : "No batch currently assigned"}
           </div>
         </Card>
@@ -220,6 +250,8 @@ export default async function OverviewPage() {
         slots={slots}
         scheduleSettings={scheduleSettings}
         monthlyRunCount={monthlyRunCount}
+        scheduledBatchInfo={scheduledBatchInfo}
+        recentCheckRuns={recentCheckRuns}
       />
 
       {/* Row 3: Dua Chart Interaktif Berdampingan */}

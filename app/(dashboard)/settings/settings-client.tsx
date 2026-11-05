@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import {
   AlertCircle,
+  AlertTriangle,
   CheckCircle2,
   Database,
   Info,
@@ -80,6 +81,9 @@ interface SettingsClientProps {
   brandDomain: string;
   databaseStorage: DatabaseStorageStats;
   initialRunningRun: RunHistoryRow | null;
+  runThisWeek?: RunHistoryRow | null;
+  hasRunThisWeek?: boolean;
+  scheduledBatch?: { id: string; name: string; activeKeywords?: number; color?: string | null } | null;
 }
 
 export function SettingsClient({
@@ -97,6 +101,9 @@ export function SettingsClient({
   brandDomain,
   databaseStorage,
   initialRunningRun,
+  runThisWeek = null,
+  hasRunThisWeek = false,
+  scheduledBatch = null,
 }: SettingsClientProps) {
   const [isPending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<{
@@ -106,6 +113,7 @@ export function SettingsClient({
   } | null>(null);
 
   const [showRunConfirm, setShowRunConfirm] = useState(false);
+  const [confirmRepeatRun, setConfirmRepeatRun] = useState(false);
   const [showClearDemoConfirm, setShowClearDemoConfirm] = useState(false);
 
   const [liveRun, setLiveRun] = useState<LiveRunProgressState | null>(() => {
@@ -211,8 +219,11 @@ export function SettingsClient({
     setFeedback(null);
     startTransition(async () => {
       try {
-        const res = await runCheckNowAction();
+        const res = await runCheckNowAction({
+          force: Boolean(hasRunThisWeek && confirmRepeatRun),
+        });
         setShowRunConfirm(false);
+        setConfirmRepeatRun(false);
 
         if (res.skipped) {
           setFeedback({
@@ -351,18 +362,53 @@ export function SettingsClient({
       )}
 
       {/* Dialog Confirmation: Run Checks Now */}
-      <Dialog open={showRunConfirm} onOpenChange={setShowRunConfirm}>
+      <Dialog
+        open={showRunConfirm}
+        onOpenChange={(open) => {
+          setShowRunConfirm(open);
+          if (!open) setConfirmRepeatRun(false);
+        }}
+      >
         <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle>Confirm Run Checks Now</DialogTitle>
             <DialogDescription>
               You are about to start a check run for{" "}
-              <strong>{activeKeywordsCount} active keywords</strong>.
+              <strong>{activeKeywordsCount} active keywords</strong> in the
+              scheduled batch{" "}
+              <strong>{scheduledBatch ? `"${scheduledBatch.name}"` : "(active batch)"}</strong>.
             </DialogDescription>
           </DialogHeader>
 
+          {hasRunThisWeek && runThisWeek && (
+            <Alert variant="warning" className="border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200">
+              <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <AlertDescription className="text-xs space-y-1">
+                <div>
+                  <strong>A check run already ran this week:</strong> Run ID #{runThisWeek.id.slice(0, 8)} started on{" "}
+                  {new Date(runThisWeek.started_at).toLocaleString("en-US", {
+                    timeZone: "Asia/Jakarta",
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}{" "}
+                  WIB (status: {runThisWeek.status}, {runThisWeek.done}/{runThisWeek.total} keywords checked).
+                </div>
+                <div className="text-[11px] opacity-90">
+                  Running checks now will execute an additional run for the scheduled batch ({scheduledBatch?.name ?? "Current Batch"}).
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="space-y-2 py-2 text-xs text-[var(--muted)]">
             <div className="rounded-md border border-[var(--line)] bg-[var(--bg)] p-3 space-y-1.5 text-xs">
+              <div>
+                • Scheduled batch for this week:{" "}
+                <strong className="text-[var(--ink)]">
+                  {scheduledBatch?.name ?? "Active batch"}
+                </strong>{" "}
+                ({activeKeywordsCount} active keywords)
+              </div>
               <div>
                 • Estimated SerpApi calls:{" "}
                 <strong className="font-mono text-[var(--ink)]">
@@ -382,7 +428,7 @@ export function SettingsClient({
                 <strong className="font-mono text-[var(--ink)]">
                   {monthlyCallsUsed} / {monthlyBudget} calls
                 </strong>{" "}
-                (Asia/Jakarta calendar month)
+                (Asia/Jakarta calendar month, {Math.max(0, monthlyBudget - monthlyCallsUsed)} calls remaining)
                 <div className="mt-0.5 text-[11px] text-[var(--muted)]">
                   Catatan: Panggilan di luar aplikasi (try:keyword, playground) tidak terhitung.
                 </div>
@@ -396,6 +442,20 @@ export function SettingsClient({
                 </strong>
               </div>
             </div>
+
+            {hasRunThisWeek && (
+              <label className="flex items-start gap-2 pt-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={confirmRepeatRun}
+                  onChange={(e) => setConfirmRepeatRun(e.target.checked)}
+                  className="mt-0.5 rounded border-[var(--line)] text-[var(--cite)] focus:ring-[var(--cite)]"
+                />
+                <span className="text-xs text-[var(--ink)] font-semibold">
+                  I understand a run has already completed this week and explicitly confirm running checks again.
+                </span>
+              </label>
+            )}
           </div>
 
           <DialogFooter>
@@ -403,17 +463,28 @@ export function SettingsClient({
               type="button"
               variant="outline"
               disabled={isPending}
-              onClick={() => setShowRunConfirm(false)}
+              onClick={() => {
+                setShowRunConfirm(false);
+                setConfirmRepeatRun(false);
+              }}
             >
               Cancel
             </Button>
             <Button
               type="button"
               variant="primary"
-              disabled={isPending || activeKeywordsCount === 0}
+              disabled={
+                isPending ||
+                activeKeywordsCount === 0 ||
+                (Boolean(hasRunThisWeek) && !confirmRepeatRun)
+              }
               onClick={handleRunCheckConfirm}
             >
-              {isPending ? "Starting queue..." : "Yes, run checks now"}
+              {isPending
+                ? "Starting queue..."
+                : hasRunThisWeek
+                ? "Yes, force run checks"
+                : "Yes, run checks now"}
             </Button>
           </DialogFooter>
         </DialogContent>

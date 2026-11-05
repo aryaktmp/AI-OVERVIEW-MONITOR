@@ -22,14 +22,16 @@ import { isDryRun } from "@/lib/dry-run";
 import {
   listKeywordBatchesWithCounts,
   getBatchScheduleSettings,
-  getBatchScheduleSlots,
   getMonthlyRunCount,
   listBatchAuditLogs,
+  getScheduledBatchForDate,
   type BatchWithKeywordsCount,
   type BatchScheduleSettingsRecord,
   type BatchScheduleSlotWithBatch,
   type BatchAuditLogRecord,
+  type ScheduledBatchResult,
 } from "@/lib/keyword-batches";
+import { getJakartaWeekBoundaries } from "@/lib/timezone";
 
 export interface SearchSettingsConfig {
   location: string;
@@ -56,6 +58,15 @@ export async function getDashboardOverviewData(): Promise<{
   monthlyRunCount: number;
   auditLogs: Array<BatchAuditLogRecord>;
   unbatchedActiveKeywordsCount: number;
+  scheduledBatchInfo: ScheduledBatchResult<BatchWithKeywordsCount>;
+  isScheduledBatchEmpty: boolean;
+  recentCheckRuns: Array<{
+    id: string;
+    started_at: string;
+    status: string;
+    total: number;
+    done: number;
+  }>;
 }> {
   const supabase = createSupabaseAdminClient();
 
@@ -96,9 +107,7 @@ export async function getDashboardOverviewData(): Promise<{
     listKeywordBatchesWithCounts(supabase).catch(
       () => [] as BatchWithKeywordsCount[]
     ),
-    getBatchScheduleSlots(supabase).catch(
-      () => [] as BatchScheduleSlotWithBatch[]
-    ),
+    Promise.resolve([] as BatchScheduleSlotWithBatch[]),
     getBatchScheduleSettings(supabase).catch(() => ({
       id: 1,
       mode: "auto" as const,
@@ -197,15 +206,40 @@ export async function getDashboardOverviewData(): Promise<{
     (k) => k.active && !k.batchId
   ).length;
 
+  const typedBatches = (batchesData ?? []) as BatchWithKeywordsCount[];
+  const typedSettings = scheduleSettingsData as BatchScheduleSettingsRecord;
+  const scheduledBatchInfo = getScheduledBatchForDate(
+    new Date(),
+    typedBatches,
+    typedSettings
+  );
+  const scheduledBatchEntity = typedBatches.find(
+    (b) => b.id === scheduledBatchInfo.batch?.id
+  );
+  const isScheduledBatchEmpty = Boolean(
+    scheduledBatchInfo.batch &&
+      scheduledBatchEntity &&
+      scheduledBatchEntity.activeKeywords === 0
+  );
+
   return {
     analytics,
     groups: (groupsData ?? []) as Array<{ id: string; name: string }>,
-    batches: (batchesData ?? []) as BatchWithKeywordsCount[],
+    batches: typedBatches,
     slots: (slotsData ?? []) as BatchScheduleSlotWithBatch[],
-    scheduleSettings: scheduleSettingsData as BatchScheduleSettingsRecord,
+    scheduleSettings: typedSettings,
     monthlyRunCount: monthlyRunCountData ?? 0,
     auditLogs: (auditLogsData ?? []) as BatchAuditLogRecord[],
     unbatchedActiveKeywordsCount,
+    scheduledBatchInfo,
+    isScheduledBatchEmpty,
+    recentCheckRuns: (runsData ?? []) as Array<{
+      id: string;
+      started_at: string;
+      status: string;
+      total: number;
+      done: number;
+    }>,
   };
 }
 
@@ -469,6 +503,9 @@ export async function getSettingsPageData(): Promise<{
   hasDemoData: boolean;
   databaseStorage: DatabaseStorageStats;
   runningRun: RunHistoryRow | null;
+  runThisWeek: RunHistoryRow | null;
+  hasRunThisWeek: boolean;
+  scheduledBatch: BatchWithKeywordsCount | null;
 }> {
   const supabase = createSupabaseAdminClient();
   const store = createSupabaseQueueStore(supabase);
@@ -655,6 +692,33 @@ export async function getSettingsPageData(): Promise<{
 
   const runningRun = recentRuns.find((r) => r.status === "running") ?? null;
 
+  const now = new Date();
+  const weekBoundaries = getJakartaWeekBoundaries(now);
+  const runThisWeek =
+    recentRuns.find(
+      (r) =>
+        !r.is_demo &&
+        (r.status === "running" || r.status === "done") &&
+        r.started_at >= weekBoundaries.startIso &&
+        r.started_at <= weekBoundaries.endIso
+    ) ?? null;
+
+  const [batchesList, scheduleSettings] = await Promise.all([
+    listKeywordBatchesWithCounts(supabase).catch(() => []),
+    getBatchScheduleSettings(supabase).catch(() => ({
+      id: 1,
+      mode: "auto" as const,
+      max_runs_per_month: 4,
+      override_until: null,
+      updated_at: "",
+    })),
+  ]);
+  const scheduledResolution = getScheduledBatchForDate(
+    now,
+    batchesList,
+    scheduleSettings
+  );
+
   const monthlyBudget =
     Number(process.env.SERPAPI_MONTHLY_BUDGET) > 0
       ? Number(process.env.SERPAPI_MONTHLY_BUDGET)
@@ -688,5 +752,8 @@ export async function getSettingsPageData(): Promise<{
       percentUsed,
     },
     runningRun,
+    runThisWeek,
+    hasRunThisWeek: Boolean(runThisWeek),
+    scheduledBatch: scheduledResolution.batch,
   };
 }

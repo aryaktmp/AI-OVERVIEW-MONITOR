@@ -19,50 +19,75 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
-  getSlotWeekNumber,
+  getScheduledBatchForDate,
+  getJakartaWeekBoundaries,
   type BatchWithKeywordsCount,
   type BatchScheduleSlotWithBatch,
   type BatchScheduleSettingsRecord,
+  type ScheduledBatchResult,
 } from "@/lib/keyword-batches";
 import { cn } from "@/lib/utils";
 
 interface OverviewActiveBatchWidgetProps {
   batches: BatchWithKeywordsCount[];
-  slots: BatchScheduleSlotWithBatch[];
+  slots?: BatchScheduleSlotWithBatch[];
   scheduleSettings: BatchScheduleSettingsRecord;
   monthlyRunCount: number;
+  scheduledBatchInfo?: ScheduledBatchResult<BatchWithKeywordsCount>;
+  recentCheckRuns?: Array<{
+    id: string;
+    started_at: string;
+    status: string;
+    total: number;
+    done: number;
+  }>;
 }
 
 export function OverviewActiveBatchWidget({
   batches,
-  slots,
   scheduleSettings,
   monthlyRunCount,
+  scheduledBatchInfo,
+  recentCheckRuns = [],
 }: OverviewActiveBatchWidgetProps) {
   const activeBatch = batches.find((b) => b.is_active);
-  const currentSlotWeek = getSlotWeekNumber(new Date());
+  const now = new Date();
+  const currentResolution =
+    scheduledBatchInfo ??
+    getScheduledBatchForDate(now, batches, scheduleSettings);
+  const targetActiveBatch = currentResolution.batch ?? activeBatch;
+  const currentWeekBounds = getJakartaWeekBoundaries(now);
   const maxRuns = scheduleSettings.max_runs_per_month || 4;
   const isAuto = scheduleSettings.mode === "auto";
 
-  // Susun data 4 slot mingguan (Slot 1..4)
-  const slotMap = new Map<number, BatchScheduleSlotWithBatch>();
-  for (const s of slots) {
-    slotMap.set(s.week_number, s);
-  }
+  // Susun data 4 minggu jadwal turunan (Minggu berjalan + 3 minggu ke depan)
+  const timelineWeeks = [0, 1, 2, 3].map((offset) => {
+    const mondayMs =
+      currentWeekBounds.startMs + offset * 7 * 24 * 60 * 60 * 1000;
+    const mondayDate = new Date(mondayMs);
+    const bounds = getJakartaWeekBoundaries(mondayDate);
+    const resolution = getScheduledBatchForDate(
+      mondayDate,
+      batches,
+      scheduleSettings
+    );
+    const isCurrentWeek = offset === 0;
 
-  const slotWeeks = [1, 2, 3, 4].map((num) => {
-    const slot = slotMap.get(num);
-    const assignedBatch = slot?.batch_id
-      ? batches.find((b) => b.id === slot.batch_id)
-      : null;
-    const isCurrentWeek = currentSlotWeek === num;
+    const runInWeek = (recentCheckRuns ?? []).find(
+      (r) => r.started_at >= bounds.startIso && r.started_at <= bounds.endIso
+    );
 
     return {
-      slotNumber: num,
-      assignedBatch,
+      offset,
+      mondayDateString: bounds.mondayDateString,
+      assignedBatch: resolution.batch,
       isCurrentWeek,
+      isOverride: resolution.isOverride,
+      runInWeek,
     };
   });
+
+  const nextWeekScheduled = timelineWeeks[1]?.assignedBatch;
 
   return (
     <Card className="border-[var(--line)] shadow-xs">
@@ -107,20 +132,22 @@ export function OverviewActiveBatchWidget({
             <div
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white shadow-xs font-bold text-sm"
               style={{
-                backgroundColor: activeBatch?.color || "var(--cite)",
+                backgroundColor: targetActiveBatch?.color || "var(--cite)",
               }}
             >
               <Layers className="h-5 w-5" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
-                Active Batch Now
+                {currentResolution.isOverride ? "Override Active" : "Scheduled Batch This Week"}
               </div>
               <div className="font-bold text-sm text-[var(--ink)] truncate">
-                {activeBatch ? activeBatch.name : "No Active Batch"}
+                {targetActiveBatch ? targetActiveBatch.name : "No Active Batch"}
               </div>
               <div className="text-xs text-[var(--muted)]">
-                {activeBatch ? `${activeBatch.activeKeywords} active (${activeBatch.totalKeywords} total)` : "All keywords idle"}
+                {targetActiveBatch
+                  ? `${targetActiveBatch.activeKeywords} active (${targetActiveBatch.totalKeywords} total)`
+                  : "All keywords idle"}
               </div>
             </div>
           </div>
@@ -135,11 +162,13 @@ export function OverviewActiveBatchWidget({
                 Rotation Interval
               </div>
               <div className="font-bold text-sm text-[var(--ink)]">
-                Every Monday · 01:00 UTC
+                Every Monday · 00:00 WIB (01:00 UTC)
               </div>
-              <div className="text-xs text-[var(--muted)] flex items-center gap-1">
-                <Sparkles className="h-3 w-3 text-[var(--seen)]" />
-                <span>Next slot: Week {currentSlotWeek === 4 ? 1 : currentSlotWeek + 1}</span>
+              <div className="text-xs text-[var(--muted)] flex items-center gap-1 truncate">
+                <Sparkles className="h-3 w-3 text-[var(--seen)] shrink-0" />
+                <span className="truncate">
+                  Next: {nextWeekScheduled ? nextWeekScheduled.name : "Upcoming Monday"} ({timelineWeeks[1]?.mondayDateString})
+                </span>
               </div>
             </div>
           </div>
@@ -169,13 +198,13 @@ export function OverviewActiveBatchWidget({
         {/* 4-Week Schedule Slot Timeline */}
         <div className="space-y-1.5">
           <div className="text-xs font-semibold text-[var(--muted)]">
-            Monthly 4-Week Rotation Timeline
+            Upcoming 4-Week Schedule Rotation
           </div>
 
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            {slotWeeks.map(({ slotNumber, assignedBatch, isCurrentWeek }) => (
+            {timelineWeeks.map(({ offset, mondayDateString, assignedBatch, isCurrentWeek, runInWeek }) => (
               <div
-                key={slotNumber}
+                key={mondayDateString}
                 className={cn(
                   "relative flex flex-col justify-between rounded-lg border p-3 transition-all",
                   isCurrentWeek
@@ -185,17 +214,30 @@ export function OverviewActiveBatchWidget({
               >
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <span className="text-xs font-bold text-[var(--muted)] uppercase font-mono">
-                    Week {slotNumber}
+                    {isCurrentWeek ? "This Week" : `+${offset} Week`} ({mondayDateString.slice(5)})
                   </span>
-                  {isCurrentWeek ? (
+                  {runInWeek ? (
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] font-semibold border-emerald-500/30 text-emerald-700 dark:text-emerald-300 bg-emerald-500/10"
+                    >
+                      {runInWeek.status === "done"
+                        ? `${runInWeek.done} checks`
+                        : `${runInWeek.status}`}
+                    </Badge>
+                  ) : isCurrentWeek ? (
                     <Badge
                       variant="outline"
                       className="text-[10px] font-semibold border-[var(--cite)] text-[var(--cite)] bg-white/60 dark:bg-black/20"
                     >
                       <Zap className="h-2.5 w-2.5 mr-1 fill-current" />
-                      Current
+                      Active
                     </Badge>
-                  ) : null}
+                  ) : (
+                    <Badge variant="outline" className="text-[10px] text-[var(--muted)]">
+                      Upcoming
+                    </Badge>
+                  )}
                 </div>
 
                 <div className="space-y-1">

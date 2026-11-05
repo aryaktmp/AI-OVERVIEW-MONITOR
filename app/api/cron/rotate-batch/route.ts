@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { verifyCronSecret } from "@/lib/cron-auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { rotateActiveBatchBySlot } from "@/lib/keyword-batches";
+import { syncScheduledKeywordBatch } from "@/lib/keyword-batches";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +18,7 @@ async function handleRotateBatch(request: Request) {
     const url = new URL(request.url);
     const force = url.searchParams.get("force") === "true";
 
-    const result = await rotateActiveBatchBySlot(supabase, {
+    const result = await syncScheduledKeywordBatch(supabase, {
       actorId: "system:cron",
       force,
     });
@@ -31,7 +31,9 @@ async function handleRotateBatch(request: Request) {
     return NextResponse.json(
       {
         error:
-          err instanceof Error ? err.message : "Gagal memproses rotasi batch.",
+          err instanceof Error
+            ? err.message
+            : "Gagal memproses sinkronisasi batch terjadwal.",
       },
       { status: 500, headers: { "Cache-Control": "no-store, max-age=0" } }
     );

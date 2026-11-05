@@ -916,12 +916,17 @@ export type StartRunResult =
       skipped?: undefined;
     }
   | {
-      runId?: undefined;
+      runId?: string;
       total: 0;
-      status?: undefined;
-      isExisting: false;
+      status?: CheckRunStatus;
+      isExisting: boolean;
       isDemo: boolean;
-      skipped: "no_active_keywords" | "no_active_batch" | "monthly_budget";
+      skipped:
+        | "no_active_keywords"
+        | "no_active_batch"
+        | "monthly_budget"
+        | "empty_batch"
+        | "already_ran_this_week";
     };
 
 /**

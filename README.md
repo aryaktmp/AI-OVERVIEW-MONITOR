@@ -9,7 +9,8 @@ Aplikasi web untuk memantau apakah **LinovHR (`linovhr.com`)** muncul di Google 
    - **Tingkat 2 (`detected_text`)**: Istilah merek (`LinovHR`, `Linov HR`, `linovhr.com`) disebut di dalam teks jawaban AI Overview.
    - **Tingkat 3 (`detected_third_party`)**: Halaman sumber pihak ketiga yang dikutip oleh AI Overview menyebut istilah merek atau menautkan ke `linovhr.com` (dilengkapi cache 7 hari, batas waktu 15 detik per keyword, dan proteksi SSRF berlapis).
 2. **Antrean Atomik & Batas Laju**: Memproses keyword secara bertahap melalui endpoint HTTP `/api/cron/*` dengan klaim atomik (`FOR UPDATE SKIP LOCKED`), batas laju `SERPAPI_MAX_PER_HOUR`, batas durasi yang dapat dikonfigurasi lewat `MAX_DURATION_MS`, serta jalur cepat (_fast-path_) saat antrean kosong.
-3. **Dasbor Analitik & Impor/Ekspor CSV**: Ringkasan statistik, grafik tren 8 minggu, peta status keyword, analisis domain kompetitor, impor CSV keyword dengan pratinjau, ekspor CSV terpaginasi dengan proteksi formula injection, serta pemantauan kapasitas database terhadap batas 500 MB.
+3. **Jadwal Turunan Batch Mingguan & Pagar Kuota**: Penjadwalan batch keyword berulang berbasis fungsi murni kalender Asia/Jakarta dengan tanggal jangkar Senin (`SCHEDULE_ANCHOR_DATE`). Idempoten per minggu Jakarta (`already_ran_this_week`), penanganan aman batch kosong (`empty_batch`), override manual dengan masa kedaluwarsa otomatis (`override_until`), aktivasi batch atomik (`activate_keyword_batch`), serta pagar kuota bulanan (`SERPAPI_MONTHLY_BUDGET`).
+4. **Dasbor Analitik & Impor/Ekspor CSV**: Ringkasan statistik, grafik tren 8 minggu, kalender rotasi batch dan jadwal 8 minggu ke depan, peta status keyword, analisis domain kompetitor, impor CSV keyword dengan pratinjau, ekspor CSV terpaginasi dengan proteksi formula injection, serta pemantauan kapasitas database terhadap batas 500 MB.
 
 ## Stack Teknologi
 

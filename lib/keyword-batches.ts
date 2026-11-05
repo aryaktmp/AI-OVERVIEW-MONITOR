@@ -4,6 +4,7 @@ import {
   makeJakartaDate,
   getJakartaMonthBoundaries,
   getMondaysInMonth,
+  getJakartaWeekBoundaries,
 } from "./timezone.ts";
 
 export {
@@ -11,6 +12,7 @@ export {
   makeJakartaDate,
   getJakartaMonthBoundaries,
   getMondaysInMonth,
+  getJakartaWeekBoundaries,
 };
 
 export type BatchScheduleMode = "auto" | "manual_frozen";
@@ -1140,6 +1142,268 @@ export async function overrideActiveKeywordBatch(
     newBatch: { ...targetBatch, is_active: true },
     mode: nextMode,
     message: `Batch aktif berhasil diubah secara manual ke ${targetBatch.name}.`,
+  };
+}
+
+export const DEFAULT_SCHEDULE_ANCHOR_DATE = "2026-11-02";
+
+export interface ScheduleAnchorInfo {
+  date: Date;
+  dateString: string;
+}
+
+/**
+ * Mengambil tanggal jangkar jadwal berulang (default: Senin 2 November 2026),
+ * yang dapat ditimpa melalui variabel lingkungan SCHEDULE_ANCHOR_DATE.
+ * Memvalidasi secara ketat bahwa tanggal jangkar WAJIB jatuh pada hari Senin di Asia/Jakarta.
+ */
+export function resolveScheduleAnchorDate(): ScheduleAnchorInfo {
+  const raw =
+    process.env.SCHEDULE_ANCHOR_DATE?.trim() || DEFAULT_SCHEDULE_ANCHOR_DATE;
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) {
+    throw new Error(
+      `SCHEDULE_ANCHOR_DATE tidak valid ('${raw}'). Format harus YYYY-MM-DD.`
+    );
+  }
+  const year = Number(match[1]);
+  const month = Number(match[2]) - 1;
+  const day = Number(match[3]);
+  const anchorDate = makeJakartaDate(year, month, day, 0, 0, 0, 0);
+  const parts = getJakartaDateParts(anchorDate);
+  if (parts.day !== 1) {
+    throw new Error(
+      `SCHEDULE_ANCHOR_DATE (${raw}) bukan hari Senin di Asia/Jakarta (hari ke-${parts.day}). Tanggal jangkar wajib jatuh pada hari Senin.`
+    );
+  }
+  return { date: anchorDate, dateString: raw };
+}
+
+export interface BatchOverrideState {
+  mode?: BatchScheduleMode | null;
+  manual_frozen?: boolean | null;
+  override_until?: string | null;
+  activeBatchId?: string | null;
+  active_batch_id?: string | null;
+}
+
+export interface ScheduledBatchResult<
+  TBatch extends KeywordBatchRecord = KeywordBatchRecord,
+> {
+  batch: TBatch | null;
+  targetWeekMonday: string; // YYYY-MM-DD (WIB)
+  weekIndex: number; // Jumlah minggu sejak anchor date (bisa negatif)
+  slotIndex: number; // (weekIndex mod N) dalam rentang 0 .. N-1
+  totalEnabledBatches: number; // N
+  isOverride: boolean;
+  overrideUntil: string | null;
+  reason: "scheduled" | "override" | "no_enabled_batches";
+}
+
+/**
+ * Fungsi murni untuk menghitung batch terjadwal pada tanggal tertentu.
+ * - Minggu dihitung dengan batas Senin 00:00 Asia/Jakarta.
+ * - Tanggal jangkar: Senin 2 November 2026 (atau env SCHEDULE_ANCHOR_DATE, wajib Senin).
+ * - Batch minggu itu = batch enabled non-demo ke-(indeks minggu mod N) menurut order_index.
+ * - N menghitung semua batch enabled, termasuk yang kosong.
+ * - Menggunakan modulo positif untuk tanggal sebelum jangkar.
+ * - Jika override manual aktif (mode manual_frozen atau sekarang < override_until), gunakan batch override.
+ */
+export function getScheduledBatchForDate<
+  TBatch extends KeywordBatchRecord = KeywordBatchRecord,
+>(
+  date: Date = new Date(),
+  batches: TBatch[],
+  overrideState?: BatchOverrideState | null
+): ScheduledBatchResult<TBatch> {
+  const weekBoundaries = getJakartaWeekBoundaries(date);
+  const anchor = resolveScheduleAnchorDate();
+  const anchorMondayMs = anchor.date.getTime();
+
+  // Hitung jumlah minggu sejak tanggal jangkar (Senin 00:00:00 WIB)
+  const diffWeeks = Math.round(
+    (weekBoundaries.startMs - anchorMondayMs) / (7 * 24 * 60 * 60 * 1000)
+  );
+
+  // Ambil semua batch non-demo yang berstatus enabled, urutkan berdasarkan order_index
+  const enabledBatches = batches
+    .filter((b) => b.is_enabled && !b.is_demo)
+    .sort((a, b) => a.order_index - b.order_index);
+
+  const N = enabledBatches.length;
+
+  // Evaluasi override manual
+  const nowMs = date.getTime();
+  let isOverrideActive = false;
+  let overrideBatch: TBatch | null = null;
+
+  if (overrideState) {
+    const isFrozen =
+      overrideState.mode === "manual_frozen" ||
+      overrideState.manual_frozen === true;
+
+    if (overrideState.override_until) {
+      const untilMs = new Date(overrideState.override_until).getTime();
+      if (nowMs < untilMs) {
+        isOverrideActive = true;
+      }
+    } else if (isFrozen) {
+      isOverrideActive = true;
+    }
+
+    if (isOverrideActive) {
+      const targetId =
+        overrideState.activeBatchId || overrideState.active_batch_id;
+      if (targetId) {
+        overrideBatch =
+          batches.find((b) => b.id === targetId) ?? null;
+      } else {
+        overrideBatch = batches.find((b) => b.is_active) ?? null;
+      }
+    }
+  }
+
+  if (isOverrideActive && overrideBatch) {
+    const positiveSlotIndex = N > 0 ? ((diffWeeks % N) + N) % N : 0;
+    return {
+      batch: overrideBatch,
+      targetWeekMonday: weekBoundaries.mondayDateString,
+      weekIndex: diffWeeks,
+      slotIndex: positiveSlotIndex,
+      totalEnabledBatches: N,
+      isOverride: true,
+      overrideUntil: overrideState?.override_until ?? null,
+      reason: "override",
+    };
+  }
+
+  if (N === 0) {
+    return {
+      batch: null,
+      targetWeekMonday: weekBoundaries.mondayDateString,
+      weekIndex: diffWeeks,
+      slotIndex: 0,
+      totalEnabledBatches: 0,
+      isOverride: false,
+      overrideUntil: null,
+      reason: "no_enabled_batches",
+    };
+  }
+
+  // Modulo positif murni: ((diffWeeks % N) + N) % N
+  const positiveSlotIndex = ((diffWeeks % N) + N) % N;
+  const scheduledBatch = enabledBatches[positiveSlotIndex] ?? null;
+
+  return {
+    batch: scheduledBatch,
+    targetWeekMonday: weekBoundaries.mondayDateString,
+    weekIndex: diffWeeks,
+    slotIndex: positiveSlotIndex,
+    totalEnabledBatches: N,
+    isOverride: false,
+    overrideUntil: null,
+    reason: "scheduled",
+  };
+}
+
+export interface SyncScheduledBatchResult {
+  status: "synchronized" | "unchanged" | "no_candidates";
+  scheduledBatch: KeywordBatchRecord | null;
+  previousBatch: KeywordBatchRecord | null;
+  isOverride: boolean;
+  message: string;
+}
+
+/**
+ * Mengaktifkan keyword batch secara atomik menggunakan fungsi RPC activate_keyword_batch.
+ */
+export async function activateKeywordBatch(
+  supabase: SupabaseClient,
+  targetBatchId: string,
+  options: {
+    triggerType?: string;
+    actorId?: string;
+    notes?: string | null;
+  } = {}
+): Promise<void> {
+  const { error } = await supabase.rpc("activate_keyword_batch", {
+    target_batch_id: targetBatchId,
+    trigger_type: options.triggerType ?? "auto_schedule",
+    actor_id: options.actorId ?? "system",
+    notes: options.notes ?? null,
+  });
+
+  if (error) {
+    throw new Error(
+      `Gagal mengaktifkan keyword batch secara atomik: ${error.message}`
+    );
+  }
+
+  invalidateActiveKeywordBatchCache();
+}
+
+/**
+ * Menyinkronkan status batch aktif di database dengan batch terjadwal untuk minggu ini.
+ * Jika batch aktif saat ini berbeda dari batch terjadwal, jalankan RPC activate_keyword_batch.
+ */
+export async function syncScheduledKeywordBatch(
+  supabase: SupabaseClient,
+  options: {
+    now?: Date;
+    actorId?: string;
+    force?: boolean;
+  } = {}
+): Promise<SyncScheduledBatchResult> {
+  const now = options.now ?? new Date();
+  const actorId = options.actorId ?? "system:cron";
+
+  const [allBatches, settings] = await Promise.all([
+    listKeywordBatches(supabase),
+    getBatchScheduleSettings(supabase),
+  ]);
+
+  const activeBatch = allBatches.find((b) => b.is_active) ?? null;
+  const scheduled = getScheduledBatchForDate(now, allBatches, {
+    mode: settings.mode,
+    override_until: settings.override_until,
+    activeBatchId: activeBatch?.id,
+  });
+
+  if (!scheduled.batch) {
+    return {
+      status: "no_candidates",
+      scheduledBatch: null,
+      previousBatch: activeBatch,
+      isOverride: false,
+      message:
+        "Tidak ada batch keyword yang aktif atau diaktifkan untuk dijadwalkan.",
+    };
+  }
+
+  if (activeBatch && activeBatch.id === scheduled.batch.id) {
+    return {
+      status: "unchanged",
+      scheduledBatch: scheduled.batch,
+      previousBatch: activeBatch,
+      isOverride: scheduled.isOverride,
+      message: `Batch aktif sudah sesuai dengan jadwal minggu ini (${scheduled.batch.name}).`,
+    };
+  }
+
+  // Lakukan aktivasi batch terjadwal via RPC activate_keyword_batch
+  await activateKeywordBatch(supabase, scheduled.batch.id, {
+    actorId,
+    notes: scheduled.isOverride
+      ? `Sinkronisasi batch override manual (${scheduled.batch.name})`
+      : `Sinkronisasi jadwal turunan minggu ${scheduled.targetWeekMonday} (${scheduled.batch.name})`,
+  });
+
+  return {
+    status: "synchronized",
+    scheduledBatch: scheduled.batch,
+    previousBatch: activeBatch,
+    isOverride: scheduled.isOverride,
+    message: `Batch aktif berhasil disinkronkan ke jadwal minggu ini: ${scheduled.batch.name}.`,
   };
 }
 

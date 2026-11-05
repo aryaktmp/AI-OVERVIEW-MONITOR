@@ -159,25 +159,32 @@ Untuk mendukung pemantauan berkala dan rotasi keyword mingguan:
 5. **Inisialisasi Data Migrasi**:
    - Menginisialisasi Batch 1 (aktif), Batch 2, dan Batch 3, serta memigrasikan seluruh keyword eksisting yang belum memiliki batch ke Batch 1 agar sistem tetap berfungsi penuh (_zero-downtime & backward-compatible_).
 
-## 12. Implementasi Fase Logika: Rotasi Otomatis, Kontrol Manual, & Search Filtering (2 November 2026)
+## 12. Arsitektur Jadwal Turunan Mingguan (Derived Weekly Schedule) & Sinkronisasi Atomik (5 November 2026)
 
-Menerapkan aturan bisnis dan orkestrasi pemrosesan batch keyword:
+Menggantikan pendekatan rotasi _round-robin_ bergiliran dengan **Jadwal Turunan Murni (Opsi A)** yang bersifat deterministik, bebas status (_stateless_), dan konsisten terhadap kalender:
 
-1. **Rotasi Batch Otomatis (`rotateActiveKeywordBatch`)**:
-   - Berjalan secara _sequential round-robin_ (`Batch 1 -> Batch 2 -> Batch 3 -> Batch 1`) berdasarkan `order_index ASC`.
-   - **Penanganan Edge Case Batch Kosong (_Skip Empty Batch_)**: Sistem otomatis menyaring batch yang memiliki `activeKeywords > 0`. Jika sebuah batch kosong, rotasi melompat ke batch valid berikutnya. Jika semua batch kosong, sistem mempertahankan batch aktif saat ini dan mencatat peringatan di audit log.
-   - **Penanganan Edge Case Overlap Jadwal**: Sebelum merotasi, sistem memeriksa apakah ada run berstatus `running` di `check_runs`. Jika masih berjalan, rotasi ditunda (`skipped_running_run`) guna mencegah tumpang tindih data.
-   - **Mode Manual Frozen & Override Until**: Jika mode `manual_frozen` aktif, rotasi rutin dilewati (kecuali dipaksa dengan flag `force: true`). Jika terdapat `override_until` yang telah kedaluwarsa, pengaturan otomatis dinormalisasi kembali ke mode `auto`.
-2. **Kontrol Manual Admin (`overrideActiveKeywordBatch` & `setBatchScheduleMode`)**:
-   - Admin dapat memilih batch tujuan secara eksplisit.
-   - Pergantian batch aktif dilakukan secara atomik melalui fungsi RPC database `activate_keyword_batch` (`SECURITY DEFINER`, `search_path = public, pg_temp`, izin hanya untuk `service_role`) dengan audit trail lengkap.
-   - Mendukung opsi pembekuan mode (`freezeMode: true`) atau override sementara dengan batas waktu (`overrideUntil`).
-3. **Filter Antrean Search Berbasis Batch Aktif (`lib/queue.ts`)**:
-   - `createSupabaseQueueStore.getActiveKeywords`: secara bawaan mengambil keyword aktif dari batch yang sedang `is_active = true`. Jika tidak ada batch aktif, sistem mengembalikan array kosong sebagai gagal aman (dilarang fallback ke seluruh keyword aktif).
-   - Menyediakan cache in-memory jangka pendek dengan invalidasi instan (`invalidateActiveKeywordBatchCache`) setiap kali terjadi pergantian batch untuk menjamin _zero-downtime switch_.
-4. **Integrasi Endpoint Cron Mingguan**:
-   - `app/api/cron/start-run/route.ts`: secara otomatis memicu rotasi batch sebelum memulai pemindaian mingguan hari Senin (`?rotate=false` untuk melewatinya).
-   - Menambahkan rute terdedikasi `app/api/cron/rotate-batch/route.ts` untuk pemanggilan rotasi independen via webhook/cron.
+1. **Fungsi Murni Jadwal Turunan (`getScheduledBatchForDate`)**:
+   - Menghitung batch terjadwal secara matematis berdasarkan tanggal: $\text{indeks} = ((\text{diffWeeks} \bmod N) + N) \bmod N$, di mana $\text{diffWeeks}$ dihitung dari batas Senin 00:00 Asia/Jakarta terhadap tanggal jangkar (**Senin, 2 November 2026**, dapat diubah via `SCHEDULE_ANCHOR_DATE`).
+   - $N$ adalah jumlah seluruh batch non-demo yang berstatus `is_enabled = true`, diurutkan berdasarkan `order_index`. Batch kosong tetap dihitung dalam $N$. Formula modulo positif menjamin rotasi tetap valid untuk tanggal sebelum tanggal jangkar.
+   - **Bebas Melenceng (_No Drift_)**: Jika cron terlewat pada satu atau beberapa minggu, pemanggilan berikutnya langsung mengeksekusi batch untuk minggu berjalan, bukan batch yang tertinggal.
+2. **Idempotensi per Minggu Jakarta pada `start-run`**:
+   - Jika sudah terdapat run non-demo berstatus `running` atau `done` dengan `started_at` di minggu Jakarta yang sama (Senin 00:00:00 s/d Minggu 23:59:59 WIB), eksekusi baru dilewati dengan respons HTTP 200 dan `{ skipped: "already_ran_this_week", runId }`.
+   - Run yang berstatus `failed` tidak memblokir eksekusi ulang. Pemicu manual dengan parameter `?force=true` dapat melewati batasan ini dan wajib menyertakan Bearer `CRON_SECRET`.
+3. **Penanganan Batch Terjadwal Kosong**:
+   - Jika batch yang terjadwal tidak memiliki keyword aktif non-demo, `start-run` mengembalikan HTTP 200 dengan `skipped: "empty_batch"` tanpa membuat baris `check_runs`.
+   - Dasbor Overview dan halaman Keywords menampilkan peringatan peringatan visual bahwa batch kosong dan tidak akan diperiksa.
+4. **Override Manual Berbatas Waktu (`override_until`)**:
+   - Menggunakan kolom tabel yang sudah ada pada `batch_schedule_settings` (`mode = 'manual_frozen'` dan `override_until`).
+   - Override aktif selama waktu sekarang $< \text{override\_until}$. Begitu waktu kedaluwarsa terlampaui, sistem otomatis kembali ke jadwal turunan tanpa perlu pembaruan manual ke database.
+5. **Aktivasi Batch Atomik (`activate_keyword_batch`)**:
+   - Seluruh mutasi batch aktif dieksekusi melalui fungsi RPC database atomik (`public.activate_keyword_batch`), menjamin nonaktifnya batch lama, aktifnya batch baru, dan pencatatan `batch_audit_logs` dalam satu transaksi PostgreSQL terisolasi.
+6. **Depresiasi `batch_schedule_slots` & Kalender Dinamis**:
+   - Tabel `batch_schedule_slots` dipertahankan untuk integritas skema tetapi tidak lagi dibaca maupun ditulis. Antarmuka penugasan slot manual dihapus.
+   - Kalender bulanan dan kartu minggu secara dinamis menampilkan jadwal batch untuk seluruh hari Senin di bulan yang sedang dilihat menggunakan `getScheduledBatchForDate`, dilengkapi status eksekusi nyata dari tabel `check_runs`, serta daftar proyeksi 8 minggu ke depan.
+7. **Endpoint Sinkronisasi (`rotate-batch`)**:
+   - Endpoint `/api/cron/rotate-batch` diubah menjadi endpoint sinkronisasi batch aktif (`syncScheduledKeywordBatch`), memastikan batch aktif di database selaras dengan jadwal turunan minggu berjalan tanpa memicu check run baru. Tetap wajib menyertakan Bearer `CRON_SECRET`.
+8. **Pagar Kuota Bulanan (`SERPAPI_MONTHLY_BUDGET`)**:
+   - Tetap diberlakukan untuk run terjadwal maupun manual (bawaan 235 panggilan) dengan estimasi `jumlah_keyword × 1,3`. Jika pemakaian ditambah estimasi melebihi anggaran, eksekusi dilewati dengan `skipped: "monthly_budget"`.
 
 ## 13. Implementasi Fase UI: Antarmuka Penjadwalan Batch & Manajemen Keyword (2 November 2026)
 
@@ -213,25 +220,20 @@ Menerapkan skema relasi dan tabel slot penjadwalan 4 minggu bulanan (`supabase/m
    - Mengisi 4 slot mingguan awal (Slot 1..3 mengarah ke Batch 1..3, dan Slot 4 mengarah kembali ke Batch 1 sebagai pemenuhan aturan looping jika jumlah batch $N < 4$).
    - Mencatat log inisialisasi pada `batch_audit_logs` dengan `trigger_type = 'slots_initial_setup'`.
 
-## 15. Fase Logika: Penjadwalan Rotasi Slot 4 Minggu & Batas Eksekusi Bulanan (2 November 2026)
+## 15. Penggantian Penjadwalan Berbasis Slot dengan Jadwal Turunan Murni (5 November 2026)
 
-Menerapkan logika penjadwalan rotasi bulanan berbasis 4 slot mingguan (`lib/keyword-batches.ts`):
+Menyusul pengadopsian Jadwal Turunan Mingguan (Bagian 12), pendekatan slot statis 4 minggu pada bagian ini resmi **ditinggalkan (deprecated)** demi konsistensi dan determinisme jadwal:
 
-1. **Penentuan Minggu Kalender (`getActiveWeekOfMonth`)**:
-   - Memetakan hari tanggal kalender: Hari 1–7 (Week 1), 8–14 (Week 2), 15–21 (Week 3), dan 22–28 (Week 4).
-   - Hari ke 29–31 dialokasikan ke Week 4 sebagai periode penyelesaian/penyangga, menjamin nilai minggu berada dalam rentang valid 1 s/d 4.
-2. **Sinkronisasi Pola Rotasi Bawaan (`syncDefaultScheduleSlots`)**:
-   - Jika jumlah batch $N < 4$: menggunakan rumus modulo `(w - 1) % N` sehingga berulang dari batch pertama setelah batch habis (misal $N=3 \rightarrow$ Week 1: B1, Week 2: B2, Week 3: B3, Week 4: B1).
-   - Jika jumlah batch $N \ge 4$: menggunakan 4 batch pertama secara berurutan sesuai `order_index`.
-   - Menghormati slot yang ditandai override kustom (`is_override = true`) agar tidak ditimpa rotasi bawaan.
-3. **Penugasan Kustom & Reset Slot (`assignBatchToSlot` & `resetSlotsToDefault`)**:
-   - Admin dapat menugaskan sembarang batch ke slot minggu manapun dengan audit trail `slot_assignment`.
-   - Jika slot minggu yang diubah adalah minggu kalender yang sedang berjalan, sistem langsung menyinkronkan status batch aktif secara seketika.
-   - Opsi `resetSlotsToDefault` membersihkan flag override dan mengembalikan susunan slot ke aturan pola bawaan.
-4. **Perlindungan Batas Bulanan (`rotateActiveBatchBySlot` & `getMonthlyRunCount`)**:
-   - Menghitung jumlah run non-demo yang berjalan di bulan kalender aktif.
-   - Jika telah mencapai batas kuota (`max_runs_per_month`, bawaan: 4) dan flag `force` tidak diaktifkan, rotasi mengembalikan status `skipped_monthly_limit`.
-   - Endpoint `/api/cron/start-run` secara otomatis mengenali status `skipped_monthly_limit` dan membatalkan inisiasi run baru untuk mencegah pembengkakan kuota SerpApi pada bulan yang memiliki 5 hari Senin.
+1. **Penghentian Pembacaan & Penulisan `batch_schedule_slots`**:
+   - Sistem tidak lagi membaca maupun menulis ke tabel `batch_schedule_slots`.
+   - Pembagian bulan berdasarkan tanggal 1–7, 8–14, 15–21, 22–28 dihapus karena rentan anomali pada bulan dengan 5 hari Senin serta inkonsisten terhadap batas kalender minggu nyata (Senin s/d Minggu).
+2. **Penentuan Kalender Berbasis Hari Senin Asia/Jakarta**:
+   - Seluruh visualisasi kalender, kartu ringkasan minggu berjalan, dan proyeksi minggu ke depan menggunakan fungsi murni `getScheduledBatchForDate(date, batches, overrideState)`.
+   - Setiap hari Senin diidentifikasi sebagai hari eksekusi (_Run Day_), memetakan batch yang terjadwal secara deterministik tanpa risiko desinkronisasi antara UI dan cron backend.
+3. **Penyatuan Status Eksekusi Nyata dari `check_runs`**:
+   - Status kartu mingguan (sudah dijalankan beserta jumlah kata kunci diperiksa, belum dijalankan, atau dilewati) ditarik langsung dari rekaman riil pada tabel `check_runs`, bukan dari status slot sintetis.
+4. **Pagar Kuota Melalui `SERPAPI_MONTHLY_BUDGET`**:
+   - Pembatasan frekuensi run statis (`max_runs_per_month`) digantikan oleh pagar kuota dinamis berbasis panggilan SerpApi riil (`SERPAPI_MONTHLY_BUDGET`), yang menghitung pemakaian bulan berjalan ditambah estimasi run berikutnya ($N_{\text{keyword}} \times 1,3$). Hal ini memberikan proteksi anggaran yang lebih akurat daripada pembatasan 4 run kaku.
 
 ## 16. Fase UI: Hub Terpadu 3-Tab & Kalender Visual Monitoring Rotasi (3 November 2026)
 

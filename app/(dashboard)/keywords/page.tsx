@@ -17,11 +17,23 @@ export default async function KeywordPage() {
     monthlyRunCount,
     auditLogs,
     unbatchedActiveKeywordsCount,
+    scheduledBatchInfo,
+    isScheduledBatchEmpty,
+    recentCheckRuns,
   } = await getDashboardOverviewData();
 
   return (
     <div>
       <DemoDataBanner visible={analytics.hasDemoData} />
+      {isScheduledBatchEmpty && scheduledBatchInfo.batch && (
+        <Alert variant="warning" className="mb-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription className="font-medium">
+            <strong>Empty scheduled batch warning:</strong> The batch scheduled for this week (
+            <strong>{scheduledBatchInfo.batch.name}</strong>) has no active keywords. Scheduled runs will be skipped.
+          </AlertDescription>
+        </Alert>
+      )}
       {unbatchedActiveKeywordsCount > 0 && (
         <Alert variant="warning" className="mb-4">
           <AlertTriangle className="h-4 w-4" />
@@ -50,6 +62,7 @@ export default async function KeywordPage() {
           scheduleSettings={scheduleSettings}
           monthlyRunCount={monthlyRunCount}
           auditLogs={auditLogs}
+          recentCheckRuns={recentCheckRuns}
         />
       </Suspense>
     </div>

@@ -114,6 +114,7 @@ export function KeywordManagerClient({
   scheduleSettings,
   monthlyRunCount = 0,
   auditLogs = [],
+  recentCheckRuns = [],
 }: {
   rows: KeywordWeeklyRow[];
   groups: Array<{ id: string; name: string }>;
@@ -122,6 +123,13 @@ export function KeywordManagerClient({
   scheduleSettings?: BatchScheduleSettingsRecord;
   monthlyRunCount?: number;
   auditLogs?: BatchAuditLogRecord[];
+  recentCheckRuns?: Array<{
+    id: string;
+    started_at: string;
+    status: string;
+    total: number;
+    done: number;
+  }>;
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -1265,6 +1273,7 @@ export function KeywordManagerClient({
         }
         monthlyRunCount={monthlyRunCount}
         initialAuditLogs={auditLogs}
+        recentCheckRuns={recentCheckRuns}
         availableKeywords={rows.map((r) => ({
           id: r.id,
           text: r.keyword,

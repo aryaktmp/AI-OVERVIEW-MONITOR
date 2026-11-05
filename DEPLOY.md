@@ -54,12 +54,14 @@ Seluruh variabel lingkungan terdaftar di `.env.example`. **Jangan pernah** mengg
 
 ### Variabel Opsional (Netral Platform)
 
-| Nama Variabel     | Nilai Bawaan | Keterangan Singkat                                                                                      |
-| :---------------- | :----------- | :------------------------------------------------------------------------------------------------------ |
-| `MAX_DURATION_MS` | `50000`      | Batas waktu maksimal pemrosesan antrean per satu pemanggilan HTTP `/api/cron/process` dalam milidetik.  |
-| `APP_URL`         | _(kosong)_   | URL dasar aplikasi publik untuk pemeriksaan kesiapan produksi & penjadwal eksternal.                    |
-| `SITE_URL`        | _(kosong)_   | URL situs publik untuk verifikasi `npm run check:env -- --production`.                                  |
-| `DATABASE_URL`    | _(kosong)_   | String koneksi Postgres (opsional, hanya dipakai oleh `npm run verify:db` dalam transaksi `READ ONLY`). |
+| Nama Variabel              | Nilai Bawaan   | Keterangan Singkat                                                                                             |
+| :------------------------- | :------------- | :------------------------------------------------------------------------------------------------------------- |
+| `MAX_DURATION_MS`          | `50000`        | Batas waktu maksimal pemrosesan antrean per satu pemanggilan HTTP `/api/cron/process` dalam milidetik.         |
+| `SERPAPI_MONTHLY_BUDGET`   | `235`          | Anggaran pagart kuota panggilan SerpApi per bulan kalender Asia/Jakarta sebelum pemindaian non-demo dilewati. |
+| `SCHEDULE_ANCHOR_DATE`     | `2026-11-02`   | Tanggal jangkar jadwal berulang (wajib jatuh pada hari Senin di zona Asia/Jakarta, format `YYYY-MM-DD`).       |
+| `APP_URL`                  | _(kosong)_     | URL dasar aplikasi publik untuk pemeriksaan kesiapan produksi & penjadwal eksternal.                           |
+| `SITE_URL`                 | _(kosong)_     | URL situs publik untuk verifikasi `npm run check:env -- --production`.                                         |
+| `DATABASE_URL`             | _(kosong)_     | String koneksi Postgres (opsional, hanya dipakai oleh `npm run verify:db` dalam transaksi `READ ONLY`).        |
 
 ---
 
@@ -118,8 +120,10 @@ Jika `DATABASE_URL` dikosongkan:
 
 Paket **Vercel Hobby** hanya mengizinkan cron dijalankan maksimal **sekali sehari**. Oleh karena itu, `vercel.json` hanya memuat 2 jadwal:
 
-1. `GET /api/cron/start-run` pada `0 1 * * 1` (**Senin pukul 01:00 UTC / 08:00 WIB**) — memulai run mingguan baru sekaligus membersihkan data `checks.raw` yang lebih tua dari 90 hari.
+1. `GET /api/cron/start-run` pada `0 1 * * 1` (**Senin pukul 01:00 UTC / 08:00 WIB**) — menjalankan batch terjadwal turunan minggu ini secara idempoten per minggu Jakarta (`already_ran_this_week`), melewati dengan aman jika batch kosong (`empty_batch`), memeriksa pagar kuota bulanan (`SERPAPI_MONTHLY_BUDGET`), dan membersihkan data mentah `checks.raw` yang lebih tua dari 90 hari. Pemicu manual berulang dapat menggunakan `?force=true` dengan header `Authorization: Bearer <CRON_SECRET>`.
 2. `GET /api/cron/process` pada `0 2 * * *` (**Setiap hari pukul 02:00 UTC / 09:00 WIB**) — menguras antrean yang mungkin tertinggal.
+
+Catatan: Endpoint `GET/POST /api/cron/rotate-batch` berfungsi sebagai endpoint sinkronisasi (`syncScheduledKeywordBatch`) untuk menyelaraskan batch aktif di database dengan jadwal turunan minggu berjalan tanpa membuat run baru (wajib menyertakan Bearer `CRON_SECRET`).
 
 ### B. GitHub Actions (`.github/workflows/process-queue.yml`)
 
